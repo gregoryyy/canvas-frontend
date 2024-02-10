@@ -195,8 +195,9 @@
         overflow: auto;
         font-size: 10px;
         min-height: 500px;
-        grid-template-rows: 2fr 1fr 3fr 1fr 2fr 3fr 2fr;
+        grid-template-rows: 2fr 1fr 3fr 1fr 2fr 2fr 1fr;
         grid-template-columns: 4fr 2fr 2fr 4fr;
+        max-height: 1500px;
         gap: 0px;
     }
 
@@ -277,7 +278,7 @@
     }
 
     .canvas>div:nth-child(11) {
-        /* defensability */
+        /* defensibility */
         grid-area: 5 / 2 / 6 / 4;
         border-top: 1px dashed;
     }
@@ -295,20 +296,26 @@
     .canvas>div:nth-child(8) {
         /* go-to-market */
         grid-area: 6 / 1 / 7 / 3;
+        border: 1px solid;
+        border-bottom: 0;
     }
 
     .canvas>div:nth-child(9) {
         /* sales traction */
         grid-area: 6 / 3 / 7 / 5;
+        border: 1px solid;
+        border-bottom: 0;
     }
 
     .canvas>div:nth-child(13) {
         grid-area: 7 / 1 / 8 / 3;
-        border-left: 1px dashed;
+        border: 1px solid;
+        border-top: 1px dashed;
     }
     
     .canvas>div:nth-child(14) {
         grid-area: 7 / 3 / 8 / 5;
-        border-left: 1px dashed;
+        border: 1px solid;
+        border-top: 1px dashed;
     }
 }
