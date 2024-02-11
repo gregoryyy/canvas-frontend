@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
             precanvas.render();
             canvas.render();
             postcanvas.render();
-            
+
             // load actual data
             canvas.load('example.json');
-            // canvas.initCards();
+            canvas.initCards();
         });
 });
 
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
  * "hover" for mobile devices: long press leads to 
  */
 document.querySelectorAll('.cell-title').forEach(title => {
-    title.addEventListener('click', function() {
+    title.addEventListener('click', function () {
         const hoverDiv = this.querySelector('.hover-help');
         hoverDiv.style.display = hoverDiv.style.display === 'block' ? 'none' : 'block';
     });
@@ -113,14 +113,19 @@ class Cell {
      */
     replaceContent(content, score) {
         this.cards = [];
-        content.forEach(line => {
-            const card = new Card(line);
-            this.addCard(card);
-            const cellDiv = document.getElementById(this.id);
-            if (cellDiv) {
-                cellDiv.appendChild(card.render());
-            }
-        });
+        // TODO: store as fields
+        const cellDiv = document.getElementById(this.id);
+        if (cellDiv) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'cell-card-container';
+            cellDiv.appendChild(cardDiv);
+            content.forEach(line => {
+                const card = new Card(line);
+                this.addCard(card);
+                cardDiv.appendChild(card.render());
+            });
+        }
+
         this.score = score;
         // TODO: auto-synchronize
         const select = document.getElementById("score" + this.id);
@@ -164,8 +169,12 @@ class Cell {
         titleH3.appendChild(helpDiv);
 
         // populate with cards
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'cell-card-container';
+        cellDiv.appendChild(cardDiv);
+
         this.cards.forEach(card => {
-            cellDiv.appendChild(card.render());
+            cardDiv.appendChild(card.render());
         });
 
         return cellDiv;
