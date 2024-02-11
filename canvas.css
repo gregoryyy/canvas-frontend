@@ -90,6 +90,19 @@
     justify-content: space-between;
 }
 
+.hover-help {
+    display: none;
+    position: absolute;
+    text-transform: none;
+    /* margin-top: 10px; */
+    color: #33d;
+    background-color: rgba(255, 255, 255, .8);
+}
+
+.cell-title:hover .hover-help {
+    display: block;
+}
+
 .empty-score {
     color: #00d;
     background-color: black;

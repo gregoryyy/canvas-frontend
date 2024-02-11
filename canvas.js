@@ -31,20 +31,40 @@ class Canvas {
     }
 
     initCards() {
-        // TODO: only as a placeholder
+        // TODO: only as a placeholder; remove
         this.cells.forEach(cell => {
             cell.addCard(new Card("Item 1"));
         });
-    }
-
-    load(file) {
-
     }
 
     render() {
         const canvas = document.querySelector('.canvas');
         this.cells.forEach(cell => {
             canvas.appendChild(cell.render());
+        });
+    }
+
+    /**
+     * update the canvas content with data from the file, which 
+     * should be a JSON with a canvas object
+     * 
+     * @param {string} file 
+     */
+    load(file) {
+        fetch(file)
+            .then(response => response.json())
+            .then(data => {
+                updateContent(data.canvas);
+            });
+    }
+
+    updateContent(data) {
+        data.forEach(cellData => {
+            // Find the corresponding cell in the canvas by ID
+            let cell = this.findCellById(cellData.id);
+            if (cell) {
+                cell.updateContent(cellData.content, cellData.score);
+            }
         });
     }
 }
@@ -55,8 +75,8 @@ class Canvas {
 class Cell {
     constructor(cellData) {
         this.title = cellData.title;
-        this.subtitle = cellData.subtitle;
-        this.description = cellData.description;
+        this.helptitle = cellData.subtitle;
+        this.helptext = cellData.description;
         this.score = cellData.score;
         this.cards = [];
     }
@@ -73,21 +93,9 @@ class Cell {
         cellTitle.classList.add('cell-title-container');
 
         const title = document.createElement('h3');
+        title.classList.add('cell-title');
         title.textContent = this.title;
         cellTitle.appendChild(title);
-
-        // TODO: hover
-        // if (this.subtitle) {
-        //     const subtitle = document.createElement('h4');
-        //     subtitle.textContent = this.subtitle;
-        //     cellDiv.appendChild(subtitle);
-        // }
-
-        // if (this.description) {
-        //     const description = document.createElement('p');
-        //     description.textContent = this.description;
-        //     cellDiv.appendChild(description);
-        // }
 
         if (this.score === "yes") {
             this.addScoringDropdown(cellTitle);
@@ -95,6 +103,24 @@ class Cell {
 
         cellDiv.appendChild(cellTitle);
 
+        // hover help on title
+        const helpDiv = document.createElement('div');
+        helpDiv.classList.add('hover-help');
+        if (this.helptitle) {
+            const helptitle = document.createElement('h4');
+            helptitle.textContent = this.helptitle;
+            helpDiv.appendChild(helptitle);
+        }
+        if (this.helptext) {
+            const helptext = document.createElement('p');
+            helptext.textContent = this.helptext;
+            helpDiv.appendChild(helptext);
+        }
+        // cellDiv.appendChild(helpDiv);
+        // cellTitle.appendChild(helpDiv);
+        title.appendChild(helpDiv);
+
+        // populate with cards
         this.cards.forEach(card => {
             cellDiv.appendChild(card.render());
         });
