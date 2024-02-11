@@ -5,167 +5,183 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('preseed.json')
         .then(response => response.json())
         .then(data => {
-            loadPrecanvas(data);
-            loadCanvas(data);
-            initializeCanvasCells();
-            loadPostcanvas(data);
+            const precanvas = new PreCanvas(data.meta);
+            const canvas = new Canvas(data);
+            canvas.initCards();
+            const postcanvas = new PostCanvas(canvas, data);
+            precanvas.render();
+            canvas.render();
+            postcanvas.render();
+
+            // load actual data
+            canvas.load('example.json');
         });
 });
 
 /**
- * Populate the canvas. Layout is via CSS.
- * 
- * @param {JSON} data 
+ * The main Canvas that contains all cells
  */
-function loadCanvas(data) {
-    const canvas = document.querySelector('.canvas');
-    data.canvas.forEach(cell => {
-
-        loadCell(canvas, cell);
-
-    });
-}
-
-/**
- * Populate canvas cell with 
- * 
- * @param {Element} canvas 
- * @param {JSON} cell data
- */
-function loadCell(canvas, cell) {
-
-    const cellDiv = document.createElement('div');
-    cellDiv.className = 'cell';
-
-    const title = document.createElement('h3');
-    title.textContent = cell.title;
-    cellDiv.appendChild(title);
-    canvas.appendChild(cellDiv);
-    if (cell.score === "yes") {
-        addScoringDropdown(cellDiv);
+class Canvas {
+    constructor(data) {
+        this.cells = data.canvas.map(cellData => new Cell(cellData));
     }
 
-    const subtitle = document.createElement('h4');
-    subtitle.textContent = cell.subtitle;
-    cellDiv.appendChild(subtitle);
-
-    const description = document.createElement('p');
-    description.textContent = cell.description;
-    cellDiv.appendChild(description);
-}
-
-/**
- * Load data for precanvas
- * 
- * @param {JSON} data 
- */
-function loadPrecanvas(data) {
-    const metaDiv = document.querySelector('.precanvas');
-    const title = document.createElement('h2');
-    title.textContent = data.meta.type;
-    // Add click event listener for R1
-    //title.addEventListener('click', toggleEditable);
-    const description = document.createElement('p');
-    description.textContent = data.meta.description;
-    metaDiv.appendChild(title);
-    metaDiv.appendChild(description);
-}
-
-/**
- * Load data for the postcanvas
- * 
- * @param {JSON} data 
- */
-function loadPostcanvas(data) {
-    const metaDiv = document.querySelector('.postcanvas');
-    const title = document.createElement('h3');
-    title.textContent = 'Analysis';
-    const description = document.createElement('p');
-    description.textContent = data.meta.description; // Adjust according to your JSON structure
-    metaDiv.appendChild(title);
-    metaDiv.appendChild(description);
-}
-
-/**
- * Create a scoring dropdown field
- * 
- * @param {Element} parentElement 
- */
-function addScoringDropdown(parentElement) {
-    const select = document.createElement('select');
-    select.className = 'scoring-dropdown';
-    for (let i = 0; i <= 5; i++) {
-        let option = document.createElement('option');
-        if (i == 0) option.classList.add("empty-score");
-        option.value = i;
-        option.text = i;
-        select.appendChild(option);
+    addCell(cell) {
+        this.cells.push(cell);
     }
 
-    const titleAndSelectContainer = document.createElement('div');
-    titleAndSelectContainer.className = 'cell-title-container';
-
-    const title = parentElement.querySelector('h3');
-    if (title) {
-        parentElement.removeChild(title); // Remove the title from its current parent
-        titleAndSelectContainer.appendChild(title); // Add title to the new container
+    initCards() {
+        // TODO: only as a placeholder
+        this.cells.forEach(cell => {
+            cell.addCard(new Card("Item 1"));
+        });
     }
-    titleAndSelectContainer.appendChild(select); // Add select to the container
 
-    parentElement.appendChild(titleAndSelectContainer); // Add the container back to the parent element
+    load(file) {
+
+    }
+
+    render() {
+        const canvas = document.querySelector('.canvas');
+        this.cells.forEach(cell => {
+            canvas.appendChild(cell.render());
+        });
+    }
 }
 
 /**
- * Fill initial cards to the canvas dells
+ * A cell is a part of a Canvas
  */
-function initializeCanvasCells() {
-    // TODO: load from file
-    const cells = document.querySelectorAll('.cell');
-    cells.forEach(cell => {
-        addCard(cell, "Item 1");
-        addCard(cell, "Item 2");
-        addCard(cell, "Item 3");
-        // addCard(cell, "Item 4");
-        // addCard(cell, "Item 5");
-    });
-}
+class Cell {
+    constructor(cellData) {
+        this.title = cellData.title;
+        this.subtitle = cellData.subtitle;
+        this.description = cellData.description;
+        this.score = cellData.score;
+        this.cards = [];
+    }
 
-/* card logic */
+    addCard(card) {
+        this.cards.push(card);
+    }
+
+    render() {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = 'cell';
+
+        const cellTitle = document.createElement('div');
+        cellTitle.classList.add('cell-title-container');
+
+        const title = document.createElement('h3');
+        title.textContent = this.title;
+        cellTitle.appendChild(title);
+
+        // TODO: hover
+        // if (this.subtitle) {
+        //     const subtitle = document.createElement('h4');
+        //     subtitle.textContent = this.subtitle;
+        //     cellDiv.appendChild(subtitle);
+        // }
+
+        // if (this.description) {
+        //     const description = document.createElement('p');
+        //     description.textContent = this.description;
+        //     cellDiv.appendChild(description);
+        // }
+
+        if (this.score === "yes") {
+            this.addScoringDropdown(cellTitle);
+        }
+
+        cellDiv.appendChild(cellTitle);
+
+        this.cards.forEach(card => {
+            cellDiv.appendChild(card.render());
+        });
+
+
+        return cellDiv;
+    }
+
+    addScoringDropdown(parentElement) {
+        const select = document.createElement('select');
+        select.className = 'scoring-dropdown';
+        for (let i = 0; i <= 5; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.text = i === 0 ? "-" : i;
+            select.appendChild(option);
+        }
+        parentElement.appendChild(select);
+    }
+}
 
 /**
- * add a card
- * 
- * @param {Element} cell 
- * @param {string} text if null empty card‰
+ * a card is an object in a cell
  */
-function addCard(cell, text) {
-    const card = document.createElement('div');
-    card.textContent = text;
-    card.classList.add('card');
-    cell.appendChild(card);
+class Card {
+    constructor(text) {
+        this.text = text;
+    }
+
+    render() {
+        const card = document.createElement('div');
+        card.textContent = this.text;
+        card.classList.add('card');
+        return card;
+    }
 }
 
-// /**
-//  * start editing the card
-//  * @param {Element} card 
-//  */
-// function editCardStart(card) {
-//     // TODO: implement
-// }
+/**
+ * Help cards have special layout 
+ */
+class HelpCard {
 
-// /**
-//  * finish editing the card, updating the state
-//  * @param {Element} card 
-//  */
-// function editCardComplete(card) {
-//     // TODO: implement
-// }
+    render() {
+        const card = super.render();
+        card.classList.add('helpcard');
+    }
+}
 
-// /**
-//  * remove the card, also from the state
-//  * @param {Element} card 
-//  */
-// function removeCard(card) {
-//     // TODO: implement
-// }
+/**
+ * PreCanvas contains meta information about the canvas
+ */
+class PreCanvas {
+    constructor(data) {
+        this.title = data.type;
+        this.content = data.description;
+    }
+
+    render() {
+        const metaDiv = document.querySelector('.precanvas');
+        const title = document.createElement('h2');
+        title.textContent = this.title;
+        //title.addEventListener('click', toggleEditable);
+        const description = document.createElement('p');
+        description.textContent = this.content;
+        metaDiv.appendChild(title);
+        metaDiv.appendChild(description);
+    }
+}
+
+/**
+ * PostCanvas contains analysis from a Canvas and additional data
+ */
+class PostCanvas {
+    constructor(canvas, data) {
+        this.title = 'Analysis';
+        this.content = data.description;
+        this.canvas = canvas;
+    }
+
+    render() {
+        const metaDiv = document.querySelector('.postcanvas');
+        const title = document.createElement('h3');
+        title.textContent = this.title;
+        const description = document.createElement('p');
+        description.textContent = this.content;
+        metaDiv.appendChild(title);
+        metaDiv.appendChild(description);
+    }
+}
 

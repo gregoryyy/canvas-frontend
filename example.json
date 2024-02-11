@@ -1,0 +1,127 @@
+{
+    "meta": {
+        "title": "Example Startup",
+        "description": "Example company that does x for y.",
+        "canvas": "Preseed Canvas v0.1",
+        "version": "0.1",
+        "date": "20240207"
+    },
+    "canvas": [
+        {
+            "id": 1,
+            "content": [
+                "Problem 1",
+                "Problem 2"
+            ],
+            "score": 5,
+            "comment": "super relevant"
+        },
+        {
+            "id": 2,
+            "content": [
+                "Solution 1",
+                "Solution 2"
+            ],
+            "score": 3,
+            "comment": "innovative?"
+        },
+        {
+            "id": 3,
+            "content": [
+                "Progress 1",
+                "Progress 2"
+            ],
+            "score": 3,
+            "comment": "prototype and PoC"
+        },
+        {
+            "id": 4,
+            "content": [
+                "Value Proposition 5",
+                "Value Proposition 6"
+            ],
+            "score": 5,
+            "comment": "cool!"
+        },
+        {
+            "id": 5,
+            "content": [
+                "GTM Strategy 1",
+                "GTM Strategy 2"
+            ],
+            "score": 3,
+            "comment": "needs improvement"
+        },
+        {
+            "id": 6,
+            "content": [
+                "Traction KPI 1",
+                "Traction KPI 2"
+            ],
+            "score": 5,
+            "comment": "great progress"
+        },
+        {
+            "id": 7,
+            "content": [
+                "Customer segment 1",
+                "Customer segment 2"
+            ],
+            "score": 4,
+            "comment": "do we know enough?"
+        },
+        {
+            "id": 8,
+            "content": [
+                "Founder 1",
+                "Founder 2"
+            ],
+            "score": 4,
+            "comment": "great tech experties, but sales?"
+        },
+        {
+            "id": 9,
+            "content": [
+                "Market definition",
+                "Market size and growth"
+            ],
+            "score": 5,
+            "comment": "huge market"
+        },
+        {
+            "id": 10,
+            "content": [
+                "Existing solution 1",
+                "Existing solution 2"
+            ]
+        },
+        {
+            "id": 11,
+            "content": [
+                "Moat",
+                "Unfair Advantage"
+            ]
+        },
+        {
+            "id": 12,
+            "content": [
+                "Early adopter 1",
+                "Early adopter 2"
+            ]
+        },
+        {
+            "id": 13,
+            "content": [
+                "Investor 1",
+                "Investor 2"
+            ]
+        },
+        {
+            "id": 14,
+            "content": [
+                "Competitor 1",
+                "Competitor 2"
+            ]
+        }
+    ]
+}
