@@ -7,14 +7,14 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             const precanvas = new PreCanvas(data.meta);
             const canvas = new Canvas(data);
-            canvas.initCards();
             const postcanvas = new PostCanvas(canvas, data);
             precanvas.render();
             canvas.render();
             postcanvas.render();
-
+            
             // load actual data
             canvas.load('example.json');
+            // canvas.initCards();
         });
 });
 
@@ -54,18 +54,28 @@ class Canvas {
         fetch(file)
             .then(response => response.json())
             .then(data => {
-                updateContent(data.canvas);
+                this.replaceContent(data.canvas);
             });
     }
 
-    updateContent(data) {
+    /**
+     * update all content of the cell, incl. all cards and score
+     * 
+     * @param {*} data 
+     */
+    replaceContent(data) {
         data.forEach(cellData => {
             // Find the corresponding cell in the canvas by ID
             let cell = this.findCellById(cellData.id);
             if (cell) {
-                cell.updateContent(cellData.content, cellData.score);
+                cell.replaceContent(cellData.content, cellData.score);
             }
         });
+    }
+
+    findCellById(id) {
+        // consider map id => cell
+        return this.cells.find(cell => cell.id === id);
     }
 }
 
@@ -74,6 +84,7 @@ class Canvas {
  */
 class Cell {
     constructor(cellData) {
+        this.id = cellData.id;
         this.title = cellData.title;
         this.helptitle = cellData.subtitle;
         this.helptext = cellData.description;
@@ -85,17 +96,41 @@ class Cell {
         this.cards.push(card);
     }
 
+    /**
+     * Update all content of this card, incl. cards and score.
+     * @param {*} content list of text content
+     * @param {*} score numeric score
+     */
+    replaceContent(content, score) {
+        this.cards = [];
+        content.forEach(line => {
+            const card = new Card(line);
+            this.addCard(card);
+            const cellDiv = document.getElementById(this.id);
+            if (cellDiv) {
+                cellDiv.appendChild(card.render());
+            }
+        });
+        this.score = score;
+        // TODO: auto-synchronize
+        const select = document.getElementById("score" + this.id);
+        if (select) {
+            select.value = score;
+        }
+    }
+
     render() {
         const cellDiv = document.createElement('div');
         cellDiv.className = 'cell';
+        cellDiv.id = this.id;
 
         const cellTitle = document.createElement('div');
         cellTitle.classList.add('cell-title-container');
 
-        const title = document.createElement('h3');
-        title.classList.add('cell-title');
-        title.textContent = this.title;
-        cellTitle.appendChild(title);
+        const titleH3 = document.createElement('h3');
+        titleH3.classList.add('cell-title');
+        titleH3.textContent = this.title;
+        cellTitle.appendChild(titleH3);
 
         if (this.score === "yes") {
             this.addScoringDropdown(cellTitle);
@@ -116,21 +151,19 @@ class Cell {
             helptext.textContent = this.helptext;
             helpDiv.appendChild(helptext);
         }
-        // cellDiv.appendChild(helpDiv);
-        // cellTitle.appendChild(helpDiv);
-        title.appendChild(helpDiv);
+        titleH3.appendChild(helpDiv);
 
         // populate with cards
         this.cards.forEach(card => {
             cellDiv.appendChild(card.render());
         });
 
-
         return cellDiv;
     }
 
     addScoringDropdown(parentElement) {
         const select = document.createElement('select');
+        select.id = "score" + this.id;
         select.className = 'scoring-dropdown';
         for (let i = 0; i <= 5; i++) {
             let option = document.createElement('option');
@@ -170,7 +203,7 @@ class HelpCard {
 }
 
 /**
- * PreCanvas contains meta information about the canvas
+ * PreCanvas displays meta information about the canvas
  */
 class PreCanvas {
     constructor(data) {

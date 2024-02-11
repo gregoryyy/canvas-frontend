@@ -103,11 +103,6 @@
     display: block;
 }
 
-.empty-score {
-    color: #00d;
-    background-color: black;
-}
-
 .canvas>div>p,
 .postcanvas>p {
     font-size: 10px;
