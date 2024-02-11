@@ -116,9 +116,7 @@ class Cell {
         // TODO: store as fields
         const cellDiv = document.getElementById(this.id);
         if (cellDiv) {
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'cell-card-container';
-            cellDiv.appendChild(cardDiv);
+            const cardDiv = cellDiv.querySelector('.cell-card-container');
             content.forEach(line => {
                 const card = new Card(line);
                 this.addCard(card);
