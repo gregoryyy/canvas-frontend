@@ -1,36 +1,65 @@
+/*
+ * load data and populate canvas
+ */
 document.addEventListener('DOMContentLoaded', function () {
     fetch('preseed.json')
         .then(response => response.json())
         .then(data => {
-            loadPrecanvas(document, data);
-            const canvas = document.querySelector('.canvas');
-            data.canvas.forEach(cell => {
-                const cellDiv = document.createElement('div');
-                cellDiv.className = 'cell';
-
-                const title = document.createElement('h3');
-                title.textContent = cell.title;
-                cellDiv.appendChild(title);
-                canvas.appendChild(cellDiv);
-                if (cell.score === "yes") {
-                    addScoringDropdown(cellDiv);
-                }
-
-                const subtitle = document.createElement('h4');
-                subtitle.textContent = cell.subtitle;
-                cellDiv.appendChild(subtitle);
-
-                const description = document.createElement('p');
-                description.textContent = cell.description;
-                cellDiv.appendChild(description);
-
-            });
-            initializeCanvasCells(document);
-            loadPostcanvas(document, data);
+            loadPrecanvas(data);
+            loadCanvas(data);
+            initializeCanvasCells();
+            loadPostcanvas(data);
         });
 });
 
-function loadPrecanvas(document, data) {
+/**
+ * Populate the canvas. Layout is via CSS.
+ * 
+ * @param {JSON} data 
+ */
+function loadCanvas(data) {
+    const canvas = document.querySelector('.canvas');
+    data.canvas.forEach(cell => {
+
+        loadCell(canvas, cell);
+
+    });
+}
+
+/**
+ * Populate canvas cell with 
+ * 
+ * @param {Element} canvas 
+ * @param {JSON} cell data
+ */
+function loadCell(canvas, cell) {
+
+    const cellDiv = document.createElement('div');
+    cellDiv.className = 'cell';
+
+    const title = document.createElement('h3');
+    title.textContent = cell.title;
+    cellDiv.appendChild(title);
+    canvas.appendChild(cellDiv);
+    if (cell.score === "yes") {
+        addScoringDropdown(cellDiv);
+    }
+
+    const subtitle = document.createElement('h4');
+    subtitle.textContent = cell.subtitle;
+    cellDiv.appendChild(subtitle);
+
+    const description = document.createElement('p');
+    description.textContent = cell.description;
+    cellDiv.appendChild(description);
+}
+
+/**
+ * Load data for precanvas
+ * 
+ * @param {JSON} data 
+ */
+function loadPrecanvas(data) {
     const metaDiv = document.querySelector('.precanvas');
     const title = document.createElement('h2');
     title.textContent = data.meta.type;
@@ -42,7 +71,12 @@ function loadPrecanvas(document, data) {
     metaDiv.appendChild(description);
 }
 
-function loadPostcanvas(document, data) {
+/**
+ * Load data for the postcanvas
+ * 
+ * @param {JSON} data 
+ */
+function loadPostcanvas(data) {
     const metaDiv = document.querySelector('.postcanvas');
     const title = document.createElement('h3');
     title.textContent = 'Analysis';
@@ -52,9 +86,14 @@ function loadPostcanvas(document, data) {
     metaDiv.appendChild(description);
 }
 
+/**
+ * Create a scoring dropdown field
+ * 
+ * @param {Element} parentElement 
+ */
 function addScoringDropdown(parentElement) {
     const select = document.createElement('select');
-    select.className = 'scoring-dropdown'; // Add class for styling
+    select.className = 'scoring-dropdown';
     for (let i = 0; i <= 5; i++) {
         let option = document.createElement('option');
         if (i == 0) option.classList.add("empty-score");
@@ -76,7 +115,11 @@ function addScoringDropdown(parentElement) {
     parentElement.appendChild(titleAndSelectContainer); // Add the container back to the parent element
 }
 
-function initializeCanvasCells(document) {
+/**
+ * Fill initial cards to the canvas dells
+ */
+function initializeCanvasCells() {
+    // TODO: load from file
     const cells = document.querySelectorAll('.cell');
     cells.forEach(cell => {
         addCard(cell, "Item 1");
