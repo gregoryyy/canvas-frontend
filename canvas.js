@@ -19,6 +19,16 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
+ * "hover" for mobile devices: long press leads to 
+ */
+document.querySelectorAll('.cell-title').forEach(title => {
+    title.addEventListener('click', function() {
+        const hoverDiv = this.querySelector('.hover-help');
+        hoverDiv.style.display = hoverDiv.style.display === 'block' ? 'none' : 'block';
+    });
+});
+
+/**
  * The main Canvas that contains all cells
  */
 class Canvas {

@@ -103,6 +103,13 @@
     display: block;
 }
 
+/* simplify mobile "hover" */
+.cell-title {
+    user-select: none;
+    -webkit-user-select: none;
+}
+}
+
 .canvas>div>p,
 .postcanvas>p {
     font-size: 10px;
