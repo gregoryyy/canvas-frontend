@@ -178,6 +178,7 @@ class Cell {
         });
 
         this.dom = cellDiv;
+        this.setListeners();
         return cellDiv;
     }
 
@@ -192,6 +193,16 @@ class Cell {
             select.appendChild(option);
         }
         parentElement.appendChild(select);
+    }
+
+    // FIXME: event not caught
+    setListeners() {
+        const div = this.dom.querySelector('.cell-card-container');
+        div.addEventListener('dblclick', function () {
+            e.stopPropagation();
+            const card = new Card('New');
+            div.appendChild(card.render());
+        });
     }
 }
 
@@ -229,12 +240,12 @@ class Card {
     // TODO: better mobile support
     setListeners() {
         const card = this;
-        card.dom.addEventListener('dblclick', function() {
+        card.dom.addEventListener('dblclick', function (e) {
             this.classList.contains('card-editing') ? card.finishEdit() : card.startEdit();
         });
-        
-        card.dom.addEventListener('blur', function() {
-           card.finishEdit();
+
+        card.dom.addEventListener('blur', function () {
+            card.finishEdit();
         });
     }
 }
