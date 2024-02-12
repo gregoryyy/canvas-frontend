@@ -52,6 +52,8 @@ class Canvas {
         this.cells.forEach(cell => {
             canvas.appendChild(cell.render());
         });
+        this.dom = canvas;
+        return canvas;
     }
 
     /**
@@ -175,6 +177,7 @@ class Cell {
             cardDiv.appendChild(card.render());
         });
 
+        this.dom = cellDiv;
         return cellDiv;
     }
 
@@ -204,7 +207,35 @@ class Card {
         const card = document.createElement('div');
         card.textContent = this.text;
         card.classList.add('card');
+
+        this.dom = card;
+        this.setListeners(card);
         return card;
+    }
+
+    startEdit() {
+        const card = this.dom;
+        card.contentEditable = true;
+        card.classList.add('card-editing');
+        card.focus();
+    }
+
+    finishEdit() {
+        const card = this.dom;
+        card.contentEditable = false;
+        card.classList.remove('card-editing');
+    }
+
+    // TODO: better mobile support
+    setListeners() {
+        const card = this;
+        card.dom.addEventListener('dblclick', function() {
+            this.classList.contains('card-editing') ? card.finishEdit() : card.startEdit();
+        });
+        
+        card.dom.addEventListener('blur', function() {
+           card.finishEdit();
+        });
     }
 }
 
