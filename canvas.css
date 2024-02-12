@@ -107,9 +107,9 @@
     background-color: rgba(255, 255, 255, .8);
 }
 
-.cell-title:hover .hover-help {
+/* .cell-title:hover .hover-help {
     display: block;
-}
+} */
 
 /* simplify mobile "hover" */
 .cell-title {

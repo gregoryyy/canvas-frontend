@@ -19,16 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * "hover" for mobile devices: long press leads to 
- */
-document.querySelectorAll('.cell-title').forEach(title => {
-    title.addEventListener('click', function () {
-        const hoverDiv = this.querySelector('.hover-help');
-        hoverDiv.style.display = hoverDiv.style.display === 'block' ? 'none' : 'block';
-    });
-});
-
-/**
  * The main Canvas that contains all cells
  */
 class Canvas {
@@ -154,19 +144,8 @@ class Cell {
         cellDiv.appendChild(cellTitle);
 
         // hover help on title
-        const helpDiv = document.createElement('div');
-        helpDiv.classList.add('hover-help');
-        if (this.helptitle) {
-            const helptitle = document.createElement('h4');
-            helptitle.textContent = this.helptitle;
-            helpDiv.appendChild(helptitle);
-        }
-        if (this.helptext) {
-            const helptext = document.createElement('p');
-            helptext.textContent = this.helptext;
-            helpDiv.appendChild(helptext);
-        }
-        titleH3.appendChild(helpDiv);
+        this.addHelpOverlay(titleH3);
+
 
         // populate with cards
         const cardDiv = document.createElement('div');
@@ -180,6 +159,27 @@ class Cell {
         this.dom = cellDiv;
         this.setListeners();
         return cellDiv;
+    }
+
+    addHelpOverlay(parentElement) {
+        const helpDiv = document.createElement('div');
+        helpDiv.classList.add('hover-help');
+        if (this.helptitle) {
+            const helptitle = document.createElement('h4');
+            helptitle.textContent = this.helptitle;
+            helpDiv.appendChild(helptitle);
+        }
+        if (this.helptext) {
+            const helptext = document.createElement('p');
+            helptext.textContent = this.helptext;
+            helpDiv.appendChild(helptext);
+        }
+        parentElement.appendChild(helpDiv);
+        parentElement.addEventListener('dblclick', function () {
+            const hoverDiv = this.querySelector('.hover-help');
+            hoverDiv.style.display = hoverDiv.style.display === 'block' ? 'none' : 'block';
+        });
+
     }
 
     addScoringDropdown(parentElement) {
