@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Editable Content</title>
+    <style>
+        .editable {
+            border: 1px solid #ccc;
+            min-height: 100px;
+            overflow: auto;
+            padding: 10px;
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="editable" contenteditable="true"></div>
+
+    <script>
+        document.querySelector('.editable').addEventListener('keydown', function (e) {
+            // Check if the key pressed is 'Enter'
+            if (e.key === 'Enter') {
+                // document.execCommand('insertHTML', false, '<br><br>');
+                const br = document.createElement('br');
+                const range = window.getSelection().getRangeAt(0);
+                range.insertNode(br);
+                range.setStartAfter(br);
+                range.setEndAfter(br);
+                // clear selection, set new range
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                // Prevent the default behavior of the return key
+                //e.preventDefault();
+            } 
+        });
+
+    </script>
+
+</body>
+
+</html>

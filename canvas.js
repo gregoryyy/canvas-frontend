@@ -299,6 +299,20 @@ function makeEditable(elem, editclass, editelem = null) {
         finishEdit(el);
     });
 
+    // allow multiline entries
+    el = editelem != null ? editelem : elem;
+    el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (e.shiftKey) {
+                // finalize editing by removing focus
+                finishEdit(el);
+            } else {
+                e.preventDefault();
+                insertBr();
+            }
+        }
+    });
+
     function startEdit(elem) {
         elem.contentEditable = true;
         elem.classList.add(editclass);
@@ -308,6 +322,20 @@ function makeEditable(elem, editclass, editelem = null) {
     function finishEdit(elem) {
         elem.contentEditable = false;
         elem.classList.remove(editclass);
+    }
+
+    function insertBr() {
+        // insert new line br at cursor
+        console.log('BR');
+        const br = document.createElement('br');
+        const range = window.getSelection().getRangeAt(0);
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        // clear selection, set new range
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        br.parentElement.focus();
     }
 }
 
