@@ -197,12 +197,12 @@ class Cell {
 
     // FIXME: event not caught
     setListeners() {
-        const div = this.dom.querySelector('.cell-card-container');
-        div.addEventListener('dblclick', function () {
-            e.stopPropagation();
-            const card = new Card('New');
-            div.appendChild(card.render());
-        });
+        // const div = this.dom.querySelector('.cell-card-container');
+        // div.addEventListener('dblclick', function (e) {
+        //     e.stopPropagation();
+        //     const card = new Card('New');
+        //     div.appendChild(card.render());
+        // });
     }
 }
 
@@ -220,33 +220,8 @@ class Card {
         card.classList.add('card');
 
         this.dom = card;
-        this.setListeners(card);
+        makeEditable(card, 'card-editing');
         return card;
-    }
-
-    startEdit() {
-        const card = this.dom;
-        card.contentEditable = true;
-        card.classList.add('card-editing');
-        card.focus();
-    }
-
-    finishEdit() {
-        const card = this.dom;
-        card.contentEditable = false;
-        card.classList.remove('card-editing');
-    }
-
-    // TODO: better mobile support
-    setListeners() {
-        const card = this;
-        card.dom.addEventListener('dblclick', function (e) {
-            this.classList.contains('card-editing') ? card.finishEdit() : card.startEdit();
-        });
-
-        card.dom.addEventListener('blur', function () {
-            card.finishEdit();
-        });
     }
 }
 
@@ -274,9 +249,10 @@ class PreCanvas {
         const metaDiv = document.querySelector('.precanvas');
         const title = document.createElement('h2');
         title.textContent = this.title;
-        //title.addEventListener('click', toggleEditable);
+        makeEditable(title, 'editing');
         const description = document.createElement('p');
         description.textContent = this.content;
+        makeEditable(description, 'editing');
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
@@ -293,13 +269,45 @@ class PostCanvas {
     }
 
     render() {
-        const metaDiv = document.querySelector('.postcanvas');
+        const anaDiv = document.querySelector('.postcanvas');
         const title = document.createElement('h3');
         title.textContent = this.title;
         const description = document.createElement('p');
         description.textContent = this.content;
-        metaDiv.appendChild(title);
-        metaDiv.appendChild(description);
+        anaDiv.appendChild(title);
+        anaDiv.appendChild(description);
+        makeEditable(anaDiv, 'editing', description);
+    }
+}
+
+/**
+ * Toggle standard editing mode on element
+ * 
+ * @param {elem} elem dom element doubleclicked
+ * @param {string} editclass the class label while editing
+ * @param {string} editelem dom element made editable
+ */
+function makeEditable(elem, editclass, editelem = null) {
+    elem.addEventListener('dblclick', function () {
+        el = editelem != null ? editelem : this;
+        el.classList.contains(editclass) ? finishEdit(el) : startEdit(el);
+    });
+
+    // max one field editable at a time
+    elem.addEventListener('blur', function () {
+        el = editelem != null ? editelem : this;
+        finishEdit(el);
+    });
+
+    function startEdit(elem) {
+        elem.contentEditable = true;
+        elem.classList.add(editclass);
+        elem.focus();
+    }
+
+    function finishEdit(elem) {
+        elem.contentEditable = false;
+        elem.classList.remove(editclass);
     }
 }
 
