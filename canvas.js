@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // load actual data
             canvas.load('example.json');
             canvas.initCards();
+            // canvas.computeScore();
+            
         });
 });
 
@@ -157,7 +159,7 @@ class Cell {
         });
 
         this.dom = cellDiv;
-        this.setListeners();
+        this.makeBgClickable(cardDiv);
         return cellDiv;
     }
 
@@ -196,13 +198,27 @@ class Cell {
     }
 
     // FIXME: event not caught
-    setListeners() {
+    makeBgClickable(cardDiv) {
         // const div = this.dom.querySelector('.cell-card-container');
         // div.addEventListener('dblclick', function (e) {
         //     e.stopPropagation();
         //     const card = new Card('New');
         //     div.appendChild(card.render());
         // });
+
+        // Existing render code...
+        cardDiv.addEventListener('click', (e) => {
+            if (e.target === cardDiv) { // Ensures the container itself was clicked
+                const newCard = new Card("New Card Text");
+                this.addCard(newCard);
+                cardDiv.appendChild(newCard.render());
+                // Optional: focus the new card for immediate editing
+            }
+        });
+        // Ensure the container is always clickable
+        cardDiv.style.minHeight = '50px'; // Example minimum height
+        cardDiv.style.cursor = 'pointer'; // Change cursor on hover
+        // Existing render code continues...
     }
 }
 
@@ -222,17 +238,6 @@ class Card {
         this.dom = card;
         makeEditable(card, 'card-editing');
         return card;
-    }
-}
-
-/**
- * Help cards have special layout 
- */
-class HelpCard {
-
-    render() {
-        const card = super.render();
-        card.classList.add('helpcard');
     }
 }
 
@@ -264,20 +269,65 @@ class PreCanvas {
 class PostCanvas {
     constructor(canvas, data) {
         this.title = 'Analysis';
-        this.content = data.description;
+        this.content = data.meta.description;
         this.canvas = canvas;
+        this.total = data.scoring[0].total;
+        this.scores = data.scoring[0].scores;
     }
 
     render() {
+
         const anaDiv = document.querySelector('.postcanvas');
-        const title = document.createElement('h3');
-        title.textContent = this.title;
+        const cellTitle = document.createElement('div');
+        cellTitle.classList.add('cell-title-container');
+        const titleH3 = document.createElement('h3');
+        titleH3.classList.add('cell-title');
+        titleH3.textContent = this.title;
+        cellTitle.appendChild(titleH3);
+        anaDiv.appendChild(cellTitle);
+
+        if (this.total) {
+            this.scoreSpan = this.addScorer(cellTitle);
+            this.computeScore();
+        }
+
         const description = document.createElement('p');
         description.textContent = this.content;
-        anaDiv.appendChild(title);
         anaDiv.appendChild(description);
         makeEditable(anaDiv, 'editing', description);
     }
+
+    // TODO: this is hardcoded and should be read from the file
+    addScorer(parentElement) {
+        const score = document.createElement('span');
+        score.className = 'score-total';
+        var num = 0.0;
+        score.textContent = num.toFixed(1);
+        parentElement.appendChild(score);
+        return score;
+    }
+
+    computeScore() {
+        const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
+
+        // Apply the specific formula
+        let Product = score(1) * 1/3 + score(2) * 1/3 + score(7) * 1/3;
+        let Market = score(4) * 1/3 + score(9) * 1/3 + score(5) * 1/3;
+        let Progress = score(3) * 1/2 + score(6) * 1/2;
+        let Team = score(8) * 1;
+        let total = Product * 3/10 + Market * 1/5  + Progress * 1/5 + Team * 3/10;
+        this.scoreSpan.textContent = total;
+
+        // "scores": {
+        //     "Product": "score(1) * 1/3 + score(2) * 1/3 + score(7) * 1/3",
+        //     "Market": "score(4) * 1/3 + score(9) * 1/3 + score(5) * 1/3",
+        //     "Progress": "score(3) * 1/2 + score(6) * 1/2",
+        //     "Team": "score(8) * 1"
+        // }
+        // "total": "Product * 3/10 + Market * 1/5  + Progress * 1/5 + Team * 3/10",
+        return total;
+    }
+
 }
 
 /**
@@ -310,6 +360,9 @@ function makeEditable(elem, editclass, editelem = null) {
                 e.preventDefault();
                 insertBr();
             }
+        }
+        if (e.key === 'Escape') {
+            finishEdit(el);
         }
     });
 
