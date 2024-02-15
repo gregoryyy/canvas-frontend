@@ -415,7 +415,8 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
 }
 
 /**
- * Add a long press listener for pointer and touch devices
+ * Add a long press listener for pointer and touch devices.
+ * The method separates this from touch-move events. 
  * 
  * @param {Element} element 
  * @param {Function}} callback 
@@ -423,14 +424,31 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
  */
 function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
+    let startX = 0;
+    let startY = 0;
 
     const start = (event) => {
+        // For touch events, use the first touch point
+        startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
+        startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
+
         if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
         timerId = setTimeout(() => callback(element), duration);
     };
 
     const cancel = () => {
         clearTimeout(timerId);
+    };
+
+    const move = (event) => {
+        // Determine the new position
+        let newX = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
+        let newY = event.type === 'touchmove' ? event.touches[0].pageY : event.pageY;
+
+        // Calculate the distance moved
+        if (Math.abs(newX - startX) > 10 || Math.abs(newY - startY) > 10) {
+            cancel();
+        }
     };
 
     // Attach listeners
@@ -440,7 +458,10 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('mouseleave', cancel);
     element.addEventListener('touchend', cancel);
     element.addEventListener('touchcancel', cancel);
+    element.addEventListener('mousemove', move);
+    element.addEventListener('touchmove', move, { passive: true });
 }
+
 
 
 
