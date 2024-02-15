@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
             canvas.load('example.json');
             canvas.initCards();
             // canvas.computeScore();
-            
+
         });
 });
 
@@ -150,16 +150,16 @@ class Cell {
 
 
         // populate with cards
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'cell-card-container';
-        cellDiv.appendChild(cardDiv);
+        const cardContainerDiv = document.createElement('div');
+        cardContainerDiv.className = 'cell-card-container';
+        cellDiv.appendChild(cardContainerDiv);
 
         this.cards.forEach(card => {
-            cardDiv.appendChild(card.render());
+            cardContainerDiv.appendChild(card.render());
         });
 
         this.dom = cellDiv;
-        this.makeBgClickable(cardDiv);
+        this.makeBgClickable(cardContainerDiv);
         return cellDiv;
     }
 
@@ -177,11 +177,16 @@ class Cell {
             helpDiv.appendChild(helptext);
         }
         parentElement.appendChild(helpDiv);
+
+        const hoverHelp = (elem) => {
+            helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';
+        }
+
         parentElement.addEventListener('dblclick', function () {
-            const hoverDiv = this.querySelector('.hover-help');
-            hoverDiv.style.display = hoverDiv.style.display === 'block' ? 'none' : 'block';
+            hoverHelp();
         });
 
+        addLongPressListener(parentElement, hoverHelp);
     }
 
     addScoringDropdown(parentElement) {
@@ -197,27 +202,27 @@ class Cell {
         parentElement.appendChild(select);
     }
 
-    // FIXME: event not caught
-    makeBgClickable(cardDiv) {
-        // const div = this.dom.querySelector('.cell-card-container');
-        // div.addEventListener('dblclick', function (e) {
-        //     e.stopPropagation();
-        //     const card = new Card('New');
-        //     div.appendChild(card.render());
-        // });
+    makeBgClickable(cardContainerDiv) {
 
         // Existing render code...
-        cardDiv.addEventListener('click', (e) => {
-            if (e.target === cardDiv) { // Ensures the container itself was clicked
+        cardContainerDiv.addEventListener('dblclick', (e) => {
+            if (e.target === cardContainerDiv) { // Ensures the container itself was clicked
                 const newCard = new Card("New Card Text");
                 this.addCard(newCard);
-                cardDiv.appendChild(newCard.render());
+                cardContainerDiv.appendChild(newCard.render());
                 // Optional: focus the new card for immediate editing
             }
         });
+
+        addLongPressListener(cardContainerDiv, () => {
+            const newCard = new Card("New Card Text");
+            this.addCard(newCard);
+            cardContainerDiv.appendChild(newCard.render());
+        });
+
         // Ensure the container is always clickable
-        cardDiv.style.minHeight = '50px'; // Example minimum height
-        cardDiv.style.cursor = 'pointer'; // Change cursor on hover
+        cardContainerDiv.style.minHeight = '50px'; // Example minimum height
+        cardContainerDiv.style.cursor = 'pointer'; // Change cursor on hover
         // Existing render code continues...
     }
 }
@@ -311,11 +316,11 @@ class PostCanvas {
         const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
 
         // Apply the specific formula
-        let Product = score(1) * 1/3 + score(2) * 1/3 + score(7) * 1/3;
-        let Market = score(4) * 1/3 + score(9) * 1/3 + score(5) * 1/3;
-        let Progress = score(3) * 1/2 + score(6) * 1/2;
+        let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
+        let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
+        let Progress = score(3) * 1 / 2 + score(6) * 1 / 2;
         let Team = score(8) * 1;
-        let total = Product * 3/10 + Market * 1/5  + Progress * 1/5 + Team * 3/10;
+        let total = Product * 3 / 10 + Market * 1 / 5 + Progress * 1 / 5 + Team * 3 / 10;
         this.scoreSpan.textContent = total;
 
         // "scores": {
@@ -330,6 +335,8 @@ class PostCanvas {
 
 }
 
+/* static functions */
+
 /**
  * Toggle standard editing mode on element
  * 
@@ -340,6 +347,11 @@ class PostCanvas {
 function makeEditable(elem, editclass, editelem = null) {
     elem.addEventListener('dblclick', function () {
         el = editelem != null ? editelem : this;
+        el.classList.contains(editclass) ? finishEdit(el) : startEdit(el);
+    });
+
+    addLongPressListener(elem, function () {
+        el = editelem != null ? editelem : elem;
         el.classList.contains(editclass) ? finishEdit(el) : startEdit(el);
     });
 
@@ -391,4 +403,34 @@ function makeEditable(elem, editclass, editelem = null) {
         br.parentElement.focus();
     }
 }
+
+/**
+ * Add a long press listener for pointer and touch devices
+ * 
+ * @param {Element} element 
+ * @param {Function}} callback 
+ * @param {number} duration 
+ */
+function addLongPressListener(element, callback, duration = 500) {
+    let timerId = null;
+
+    const start = (event) => {
+        if (event.type === 'mousedown' && event.button !== 0) return;
+        timerId = setTimeout(() => callback(element), duration);
+    };
+
+    const cancel = () => {
+        clearTimeout(timerId);
+    };
+
+    // Attach listeners
+    element.addEventListener('mousedown', start);
+    element.addEventListener('touchstart', start, { passive: true });
+    element.addEventListener('mouseup', cancel);
+    element.addEventListener('mouseleave', cancel);
+    element.addEventListener('touchend', cancel);
+    element.addEventListener('touchcancel', cancel);
+}
+
+
 

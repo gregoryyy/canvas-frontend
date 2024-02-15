@@ -12,6 +12,7 @@ TODOs with A: are high-priority
     * DOM always updated to system state
     * How to do auto-updates
   * UX harmonized with conventions (dblclick etc.)
+  * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings
 * Canvas:
   * List available
@@ -22,40 +23,41 @@ TODOs with A: are high-priority
   * Different canvas types
 * Cells:
   * Help overlay on title double click DONE
-  * Bug: Only mobile allows single-click new cards
-  * Bug: 
+  * BUG: Only mobile allows single-click new cards FIXED
 * Cards:
   * A: Adjust cell to card DONE
   * A: Card
-  * A: Create card
+  * A: Create card DONE
   * A: Remove card
   * Card types in different colors
   * Drag cards up and down
   * Consider TinyMCE as card editor
-  * Bug: Double Enter when editing first time
+  * BUG: Double Enter when editing first time
 * Precanvas:
-  * Ok
+  * Load from instance not preseed.json
 * Postcanvas:
-  * Bug: Compute score always is 0
+  * BUG: Compute score always is 0
   * Compute score from 
   * Visualize partial scores (radar plot etc.)
   * 2 cells with Analysis and Scores
 
 # Apps Ideas
 
-## LLM copilot blog
-
-* Effort and quality analysis
-* What did work, what didn't
-
 ## App on webpage and IOS app store
 
 * Web-based: APIs on backend for key information (hosted elsewhere)
 * Hybrid app on IOS
 
+## LLM copilot blog
+
+* Effort and quality analysis of developing
+* What did work, what didn't
+* Insights into capabilities of GPT
+* With pi-check analyzer (below), report usage results
+
 ## Preseed Analyzer: pi-check
 
-AI system to read out the core information and create
+AI system to read out the core information and create an interactive analysis of the decks.
 
 * Input: 
   * Initial: PDF of pitch deck and other documents
@@ -95,3 +97,4 @@ AI system to read out the core information and create
       * 5 Forces of industry
       * Opportunity 
     * AI Suggestions
+

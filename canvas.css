@@ -42,11 +42,13 @@
     gap: 0px;
 }
 
-.canvas>div {
+div.cell {
     padding: 4px;
+    display: flex;
+    flex-direction: column;
 }
 
-.canvas>div h3,
+div.cell h3,
 .postcanvas h3 {
     margin-top: 0px;
     margin-bottom: 8px;
@@ -61,9 +63,9 @@ span.score-total  {
 }
 
 
-.canvas>div>h4,
-.postcanvas>h4,
-.canvas>div>h5 {
+div.cell>h4,
+div.cell>h5,
+.postcanvas>h4 {
     margin-top: 0px;
     margin-bottom: 0px;
     text-align: center;
@@ -71,7 +73,7 @@ span.score-total  {
     font-size: 12px;
 }
 
-.canvas>div>h5 {
+div.cell>h5 {
     font-weight: 400;
 }
 
@@ -103,7 +105,8 @@ span.score-total  {
 }
 
 .cell-card-container {
-    margin-bottom: 20px;
+    padding-bottom: 20px;
+    flex-grow: 1;
     overflow: auto;
 }
 
@@ -123,7 +126,7 @@ span.score-total  {
     -webkit-user-select: none;
 }
 
-.canvas>div>p,
+div.cell>p,
 .postcanvas>p {
     margin-top: 0px;
     font-size: 12px;
