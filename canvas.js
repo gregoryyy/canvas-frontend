@@ -299,7 +299,7 @@ class PostCanvas {
         const description = document.createElement('p');
         description.textContent = this.content;
         anaDiv.appendChild(description);
-        makeEditable(anaDiv, 'editing', description);
+        makeEditable(anaDiv, 'editing', false, description);
     }
 
     // TODO: this is hardcoded and should be read from the file
@@ -383,7 +383,8 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
         elem.contentEditable = true;
         elem.classList.add(editclass);
         elem.focus();
-    }
+        setCaretAtEnd(elem);
+    }    
 
     /**
      * Finish editing
@@ -462,6 +463,19 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-
+/**
+ * Places the caret at the end of the element text.
+ * 
+ * @param {Element} element 
+ */
+function setCaretAtEnd(element) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(element);
+    range.collapse(false); // false to collapse the range to its end
+    selection.removeAllRanges();
+    selection.addRange(range);
+    element.focus(); // Finally, focus the element to ensure cursor visibility
+}
 
 
