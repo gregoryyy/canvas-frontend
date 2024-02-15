@@ -24,11 +24,12 @@ TODOs with A: are high-priority
 * Cells:
   * Help overlay on title double click DONE
   * BUG: Only mobile allows single-click new cards FIXED
+  * prevent browser standard behaviour for double click and touch (select, overlay)
 * Cards:
   * A: Adjust cell to card DONE
   * A: Card
   * A: Create card DONE
-  * A: Remove card
+  * A: Remove card DONE
   * Card types in different colors
   * Drag cards up and down
   * Consider TinyMCE as card editor

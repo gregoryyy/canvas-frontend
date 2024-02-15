@@ -241,7 +241,7 @@ class Card {
         card.classList.add('card');
 
         this.dom = card;
-        makeEditable(card, 'card-editing');
+        makeEditable(card, 'card-editing', true);
         return card;
     }
 }
@@ -342,23 +342,24 @@ class PostCanvas {
  * 
  * @param {elem} elem dom element doubleclicked
  * @param {string} editclass the class label while editing
+ * @param {boolean} removeEmpty true if element should be removed if empty
  * @param {string} editelem dom element made editable
  */
-function makeEditable(elem, editclass, editelem = null) {
+function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
     elem.addEventListener('dblclick', function () {
         el = editelem != null ? editelem : this;
-        el.classList.contains(editclass) ? finishEdit(el) : startEdit(el);
+        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
     });
 
     addLongPressListener(elem, function () {
         el = editelem != null ? editelem : elem;
-        el.classList.contains(editclass) ? finishEdit(el) : startEdit(el);
+        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
     });
 
     // max one field editable at a time
     elem.addEventListener('blur', function () {
         el = editelem != null ? editelem : this;
-        finishEdit(el);
+        finishEdit(el, removeEmpty);
     });
 
     // allow multiline entries
@@ -384,9 +385,18 @@ function makeEditable(elem, editclass, editelem = null) {
         elem.focus();
     }
 
-    function finishEdit(elem) {
+    /**
+     * Finish editing
+     * 
+     * @param {} elem element being editable
+     * @param {} removeEmpty remove if empty string
+     */
+    function finishEdit(elem, removeEmpty = false) {
         elem.contentEditable = false;
         elem.classList.remove(editclass);
+        if (removeEmpty && elem.textContent.trim().length == 0) {
+            elem.remove();
+        }
     }
 
     function insertBr() {
@@ -415,7 +425,7 @@ function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
 
     const start = (event) => {
-        if (event.type === 'mousedown' && event.button !== 0) return;
+        if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
         timerId = setTimeout(() => callback(element), duration);
     };
 
