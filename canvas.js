@@ -13,9 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
             postcanvas.render();
 
             // load actual data
-            canvas.load('example.json');
-            canvas.initCards();
-            // canvas.computeScore();
+            canvas.load('example.json', postcanvas.computeScore);
 
         });
 });
@@ -24,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function () {
  * The main Canvas that contains all cells
  */
 class Canvas {
+    /**
+     * Create canvas with data and scoring function
+     * 
+     * @param {JSON} data 
+     */
+    //TODO: scoring function should be 
     constructor(data) {
         this.cells = data.canvas.map(cellData => new Cell(cellData));
     }
@@ -32,12 +36,6 @@ class Canvas {
         this.cells.push(cell);
     }
 
-    initCards() {
-        // TODO: only as a placeholder; remove
-        this.cells.forEach(cell => {
-            cell.addCard(new Card("Item 1"));
-        });
-    }
 
     render() {
         const canvas = document.querySelector('.canvas');
@@ -53,12 +51,14 @@ class Canvas {
      * should be a JSON with a canvas object
      * 
      * @param {string} file 
+     * @param {Function} callback after loading and rendering
      */
-    load(file) {
+    load(file, callback = undefined) {
         fetch(file)
             .then(response => response.json())
             .then(data => {
                 this.replaceContent(data.canvas);
+                if (callback) callback();
             });
     }
 
@@ -87,6 +87,11 @@ class Canvas {
  * A cell is a part of a Canvas
  */
 class Cell {
+    /**
+     * Create cell from data
+     * 
+     * @param {json} cellData 
+     */
     constructor(cellData) {
         this.id = cellData.id;
         this.title = cellData.title;
@@ -189,6 +194,11 @@ class Cell {
         addLongPressListener(parentElement, hoverHelp);
     }
 
+    /**
+     * Scoring dropdown in this cell
+     * 
+     * @param {Element} parentElement 
+     */
     addScoringDropdown(parentElement) {
         const select = document.createElement('select');
         select.id = "score" + this.id;
@@ -231,8 +241,9 @@ class Cell {
  * a card is an object in a cell
  */
 class Card {
-    constructor(text) {
+    constructor(text, id = -1) {
         this.text = text;
+        this.id = id;
     }
 
     render() {
@@ -278,6 +289,7 @@ class PostCanvas {
         this.canvas = canvas;
         this.total = data.scoring[0].total;
         this.scores = data.scoring[0].scores;
+        this.scoreSpan = undefined;
     }
 
     render() {
@@ -293,7 +305,7 @@ class PostCanvas {
 
         if (this.total) {
             this.scoreSpan = this.addScorer(cellTitle);
-            this.computeScore();
+            // score compute later due to async load
         }
 
         const description = document.createElement('p');
@@ -316,20 +328,15 @@ class PostCanvas {
         const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
 
         // Apply the specific formula
+        // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
         let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
         let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
         let Progress = score(3) * 1 / 2 + score(6) * 1 / 2;
         let Team = score(8) * 1;
         let total = Product * 3 / 10 + Market * 1 / 5 + Progress * 1 / 5 + Team * 3 / 10;
-        this.scoreSpan.textContent = total;
+        this.scoreSpan.textContent = total.toFixed(1);
 
-        // "scores": {
-        //     "Product": "score(1) * 1/3 + score(2) * 1/3 + score(7) * 1/3",
-        //     "Market": "score(4) * 1/3 + score(9) * 1/3 + score(5) * 1/3",
-        //     "Progress": "score(3) * 1/2 + score(6) * 1/2",
-        //     "Team": "score(8) * 1"
-        // }
-        // "total": "Product * 3/10 + Market * 1/5  + Progress * 1/5 + Team * 3/10",
+
         return total;
     }
 
@@ -384,7 +391,7 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
         elem.classList.add(editclass);
         elem.focus();
         setCaretAtEnd(elem);
-    }    
+    }
 
     /**
      * Finish editing

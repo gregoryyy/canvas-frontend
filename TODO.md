@@ -27,7 +27,7 @@ TODOs with A: are high-priority
   * prevent browser standard behaviour for double click and touch (select, overlay)
 * Cards:
   * A: Adjust cell to card DONE
-  * A: Card
+  * A: Edit card DONE
   * A: Create card DONE
   * A: Remove card DONE
   * Card types in different colors
