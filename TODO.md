@@ -12,6 +12,8 @@ TODOs with A: are high-priority
     * DOM always updated to system state
     * How to do auto-updates
   * UX harmonized with conventions (dblclick etc.)
+  * Style adjusted, e.g., using tailwindcss.com
+  * Background
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings
 * Canvas:

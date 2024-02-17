@@ -12,53 +12,64 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,900;1,400;1,500;1,600;1,900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../aurora.css">
     <link rel="stylesheet" href="canvas.css">
 </head>
 
 <body>
-    <!-- navigation -->
-    <div class="hhnav">
-        <div class="hamburger">
-            <span></span>
-        </div>
-        <div class="hhlogo">
-            <img src="../unlost.svg" />
-        </div>
+    <!-- background -->
+    <div class="bg">
+        <div class="auror_bg"></div>
+        <div class="aur_cont" id="auroraContainer"></div>
     </div>
-    <header>
-        <nav class="menu">
-            <ul>
-                <li><a href="../index.html" class="menu-link">Company</a></li>
-                <li><a href="../invest.html" class="menu-link">Investing</a></li>
-                <li><a href="../consult.html" class="menu-link">Consulting</a></li>
-                <li><a href="../contact.html" class="menu-link">Contact</a></li>
-            </ul>
-        </nav>
-        <div class="mmlogo">
-            <img src="../unlost.svg" />
+    <!-- foreground -->
+    <div class="fg">
+        <!-- navigation -->
+        <div class="hhnav">
+            <div class="hamburger">
+                <span></span>
+            </div>
+            <div class="hhlogo">
+                <img src="../unlost.svg" />
+            </div>
         </div>
-    </header>
-    <!-- main content -->
-    <div class="title">
-        <h1>Preseed canvas</h1>
+        <header>
+            <nav class="menu">
+                <ul>
+                    <li><a href="../index.html" class="menu-link">Company</a></li>
+                    <li><a href="../invest.html" class="menu-link">Investing</a></li>
+                    <li><a href="../consult.html" class="menu-link">Consulting</a></li>
+                    <li><a href="../contact.html" class="menu-link">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="mmlogo">
+                <img src="../unlost.svg" />
+            </div>
+        </header>
+        <!-- main content -->
+        <div class="title">
+            <h1>Preseed canvas</h1>
+        </div>
+        <div class="block">
+            <div class="precanvas"></div>
+            <div class="canvas"></div>
+            <div class="postcanvas"></div>
+            <p class="hint">Hints:
+                Double or long click/tap or Shift Enter: (1) in top heading + description + canvas cells = start/end
+                edit.
+                (2) on canvas headings = help. (3) on empty cell area = new card.
+                Enter = new line.
+                Shift-Enter/Done = end edit.
+                Esc = abort edit.
+                Empty card = delete.</p>
+            <p class="hint">Note: Developed using a coding LLM in less than two days.
+        </div>
+        <footer>
+            &copy; 2024 Unlost GmbH. All rights reserved. <a href="../contact.html">Imprint.</a>
+        </footer>
     </div>
-    <div class="block">
-        <div class="precanvas"></div>
-        <div class="canvas"></div>
-        <div class="postcanvas"></div>
-        <p class="hint">Hints: 
-            Double or long click/tap or Shift Enter: (1) in top heading + description + canvas cells = start/end edit.
-            (2) on canvas headings = help. (3) on empty cell area = new card.
-            Enter = new line.
-            Shift-Enter/Done = end edit. 
-            Esc = abort edit. 
-            Empty card = delete.</p>
-        <p class="hint">Note: Developed using a coding LLM in less than two days.
-    </div>
-    <footer>
-        &copy; 2024 Unlost GmbH. All rights reserved. <a href="../contact.html">Imprint.</a>
-    </footer>
     <script src="../script.js"></script>
+    <script src="../aurora.js"></script>
     <script src="canvas.js"></script>
 </body>
 
