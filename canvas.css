@@ -123,14 +123,6 @@ div.cell h3,
     font-size: 12px;
 }
 
-span.score-total {
-    border: 1px black solid;
-    margin-top: 0px;
-    margin-bottom: 8px;
-    font-size: 12px;
-}
-
-
 div.cell>h4,
 div.cell>h5,
 .postcanvas>h4 {
@@ -147,23 +139,38 @@ div.cell>h5 {
 
 .scoring-dropdown,
 .score-total {
-    font-size: 11px;
+    text-align: center;
+    position: relative;
     width: 10px;
-    position: absolute;
+    height: 1.5em;
     top: 0;
     right: 0;
     padding: 1px;
-    height: 1.5em;
-    margin-right: 2px;
+    font-size: 11px;
     appearance: none;
     color: #000;
     background-color: #ddf;
     border: 1px solid black;
 }
 
-.score-total {
+span.score-total {
+    display: flex;
+    flex: 1;
+    flex-grow: 0;
     width: 20px;
+    height: 1.2em;
     text-align: center;
+    align-items: center;
+    border: 1px #aaa solid; */
+    margin-top: -4px !important;
+    /* margin-bottom: 10px; */
+    font-size: 12px;
+}
+
+h3.score-total-label {
+    flex: 1;
+    margin-right: 5px;
+    text-align: right;
 }
 
 .cell-title-container {

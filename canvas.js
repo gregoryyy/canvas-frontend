@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
             canvas.render();
             postcanvas.render();
 
-            // load actual data
-            canvas.load('example.json', postcanvas.computeScore);
+            // bind(postcanvas) to keep object context in callback 
+            canvas.load('example.json', postcanvas.computeScore.bind(postcanvas));
 
         });
 });
@@ -289,7 +289,7 @@ class PostCanvas {
         this.canvas = canvas;
         this.total = data.scoring[0].total;
         this.scores = data.scoring[0].scores;
-        this.scoreSpan = undefined;
+        this.scoreSpan = document.querySelector('span.score-total');
     }
 
     render() {
@@ -316,6 +316,10 @@ class PostCanvas {
 
     // TODO: this is hardcoded and should be read from the file
     addScorer(parentElement) {
+        const scoreLabel = document.createElement('h3');
+        scoreLabel.className = 'score-total-label';
+        scoreLabel.textContent = 'Score:';
+        parentElement.appendChild(scoreLabel);
         const score = document.createElement('span');
         score.className = 'score-total';
         var num = 0.0;
