@@ -39,7 +39,6 @@ class Canvas {
         this.cells.push(cell);
     }
 
-
     render() {
         const canvas = document.querySelector('.canvas');
         this.cells.forEach(cell => {
@@ -72,7 +71,6 @@ class Canvas {
      */
     replaceContent(data) {
         data.forEach(cellData => {
-            // Find the corresponding cell in the canvas by ID
             let cell = this.findCellById(cellData.id);
             if (cell) {
                 cell.replaceContent(cellData.content, cellData.score);
