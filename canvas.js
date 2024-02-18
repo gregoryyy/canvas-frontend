@@ -14,7 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // bind(postcanvas) to keep object context in callback 
             canvas.load('example.json', postcanvas.computeScore.bind(postcanvas));
-
+            // custom event when score dropdowns change
+            document.addEventListener('scoreChanged', () => {
+                postcanvas.computeScore();
+            });
         });
 });
 
@@ -209,6 +212,10 @@ class Cell {
             option.text = i === 0 ? "-" : i;
             select.appendChild(option);
         }
+        select.addEventListener('change', (event) => {
+            this.score = event.target.value;
+            document.dispatchEvent(new CustomEvent('scoreChanged'));
+        });
         parentElement.appendChild(select);
     }
 
