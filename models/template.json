@@ -91,5 +91,11 @@
             "score": 0,
             "comment": ""
         }
-    ]
+    ],
+    "analysis": {
+        "content": [
+            "Analysis: ...",
+            "Decision: ..."
+        ]
+    }
 }

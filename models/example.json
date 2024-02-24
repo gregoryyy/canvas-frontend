@@ -123,5 +123,11 @@
                 "Competitor 2"
             ]
         }
-    ]
+    ],
+    "analysis": {
+        "content": [
+            "Analysis: ... ",
+            "Decision: ..."
+        ]
+    }
 }

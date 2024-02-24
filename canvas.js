@@ -4,26 +4,31 @@
 document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
     //const model_id = params.get('id');
-    const model_file = params.get('file');
-    const loadedFile = (model_file !== undefined) ? model_file : 'template.json';
-    fetch('preseed.json')
-        .then(response => response.json())
-        .then(data => {
-            const precanvas = new PreCanvas(data.meta);
-            const canvas = new Canvas(data);
-            const postcanvas = new PostCanvas(canvas, data);
-            precanvas.render();
-            canvas.render();
-            postcanvas.render();
+    const model_file = params.get('model');
+    const loadedFile = (model_file != null) ? model_file : 'template';
 
-            // bind(postcanvas) to keep object context in callback 
-            canvas.load('models/'+loadedFile, postcanvas.computeScore.bind(postcanvas));
-            // custom event when score dropdowns change
-            document.addEventListener('scoreChanged', () => {
-                postcanvas.computeScore();
-            });
+    Promise.all([
+        fetch('preseed.json').then(response => response.json()),
+        fetch(`models/${loadedFile}.json`).then(response => response.json())
+    ]).then(([structure, content]) => {
+
+        const precanvas = new PreCanvas(content.meta);
+        precanvas.render();
+        const canvas = new Canvas(structure);
+        canvas.render();
+        canvas.replaceContent(content.canvas);
+        const postcanvas = new PostCanvas(canvas, structure, content);
+        postcanvas.render();
+        postcanvas.computeScore();
+
+        document.addEventListener('scoreChanged', () => {
+            postcanvas.computeScore();
         });
+    }).catch(error => {
+        console.error('Error setting up canvas:', error);
+    });
 });
+
 
 /**
  * The main Canvas that contains all cells
@@ -50,22 +55,6 @@ class Canvas {
         });
         this.dom = canvas;
         return canvas;
-    }
-
-    /**
-     * update the canvas content with data from the file, which 
-     * should be a JSON with a canvas object
-     * 
-     * @param {string} file 
-     * @param {Function} callback after loading and rendering
-     */
-    load(file, callback = undefined) {
-        fetch(file)
-            .then(response => response.json())
-            .then(data => {
-                this.replaceContent(data.canvas);
-                if (callback) callback();
-            });
     }
 
     /**
@@ -277,7 +266,7 @@ class Card {
  */
 class PreCanvas {
     constructor(data) {
-        this.title = data.type;
+        this.title = data.title;
         this.content = data.description;
     }
 
@@ -298,12 +287,19 @@ class PreCanvas {
  * PostCanvas contains analysis from a Canvas and additional data
  */
 class PostCanvas {
-    constructor(canvas, data) {
+
+    /**
+     * 
+     * @param {Canvas} canvas 
+     * @param {JSON} structure 
+     * @param {JSON} content 
+     */
+    constructor(canvas, structure, content) {
         this.title = 'Analysis';
-        this.content = data.meta.description;
+        this.content = content.analysis.content;
         this.canvas = canvas;
-        this.total = data.scoring[0].total;
-        this.scores = data.scoring[0].scores;
+        this.total = structure.scoring[0].total;
+        this.scores = structure.scoring[0].scores;
         this.scoreSpan = document.querySelector('span.score-total');
     }
 
@@ -323,10 +319,12 @@ class PostCanvas {
             // score compute later due to async load
         }
 
-        const description = document.createElement('p');
-        description.textContent = this.content;
-        anaDiv.appendChild(description);
-        makeEditable(anaDiv, 'editing', false, description);
+        this.content.forEach(paragraphText => {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = paragraphText;
+            anaDiv.appendChild(paragraph);
+            makeEditable(anaDiv, 'editing', false, paragraph);
+        });
     }
 
     // TODO: this is hardcoded and should be read from the file
@@ -354,7 +352,6 @@ class PostCanvas {
         let Team = score(8) * 1;
         let total = Product * 3 / 10 + Market * 1 / 5 + Progress * 1 / 5 + Team * 3 / 10;
         this.scoreSpan.textContent = total.toFixed(1);
-
 
         return total;
     }
@@ -511,10 +508,10 @@ function setCaretAtEnd(element) {
  */
 function newCardName(name) {
     var s = "New " + name;
-    if (s.endsWith('ss')) 
+    if (s.endsWith('ss'))
         return s;
     // chop off the plural s
-    if (s.endsWith('s')) 
+    if (s.endsWith('s'))
         return s.substring(0, s.length - 1);
     return s;
 
