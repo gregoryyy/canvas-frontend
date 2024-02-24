@@ -162,7 +162,7 @@ span.score-total {
     text-align: center;
     align-items: center;
     border: 1px #aaa solid;
-    margin-top: -4px;
+    margin-top: 0px;
     /* margin-bottom: 10px; */
     font-size: 12px;
 }

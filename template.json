@@ -1,0 +1,95 @@
+{
+    "meta": {
+        "title": "New Startup",
+        "description": "Description.",
+        "canvas": "Preseed Canvas v0.1",
+        "version": "0.1",
+        "date": "20240219"
+    },
+    "canvas": [
+        {
+            "id": 1,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 2,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 6,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 7,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 8,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 9,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 10,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 11,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 12,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 13,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        },
+        {
+            "id": 14,
+            "content": [],
+            "score": 0,
+            "comment": ""
+        }
+    ]
+}

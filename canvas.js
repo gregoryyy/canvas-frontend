@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
             postcanvas.render();
 
             // bind(postcanvas) to keep object context in callback 
-            canvas.load('example.json', postcanvas.computeScore.bind(postcanvas));
+            canvas.load('template.json', postcanvas.computeScore.bind(postcanvas));
             // custom event when score dropdowns change
             document.addEventListener('scoreChanged', () => {
                 postcanvas.computeScore();
@@ -104,6 +104,17 @@ class Cell {
 
     addCard(card) {
         this.cards.push(card);
+    }
+
+    /**
+     * creates a new card
+     */
+    createCard(cardContainerDiv) {
+        const name = newCardName(this.title);
+        const newCard = new Card(name);
+        this.addCard(newCard);
+        cardContainerDiv.appendChild(newCard.render());
+        // Optional: focus the new card for immediate editing
     }
 
     /**
@@ -222,17 +233,12 @@ class Cell {
         // Existing render code...
         cardContainerDiv.addEventListener('dblclick', (e) => {
             if (e.target === cardContainerDiv) { // Ensures the container itself was clicked
-                const newCard = new Card("New Card Text");
-                this.addCard(newCard);
-                cardContainerDiv.appendChild(newCard.render());
-                // Optional: focus the new card for immediate editing
+                this.createCard(cardContainerDiv);
             }
         });
 
         addLongPressListener(cardContainerDiv, () => {
-            const newCard = new Card("New Card Text");
-            this.addCard(newCard);
-            cardContainerDiv.appendChild(newCard.render());
+            this.createCard(cardContainerDiv);
         });
 
         // Ensure the container is always clickable
@@ -492,6 +498,22 @@ function setCaretAtEnd(element) {
     selection.removeAllRanges();
     selection.addRange(range);
     element.focus(); // Finally, focus the element to ensure cursor visibility
+}
+
+/**
+ * create card with name in singular
+ * 
+ * @param {string} name 
+ */
+function newCardName(name) {
+    var s = "New " + name;
+    if (s.endsWith('ss')) 
+        return s;
+    // chop off the plural s
+    if (s.endsWith('s')) 
+        return s.substring(0, s.length - 1);
+    return s;
+
 }
 
 
