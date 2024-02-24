@@ -3,7 +3,7 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
     const params = new URLSearchParams(window.location.search);
-    const model_id = params.get('id');
+    //const model_id = params.get('id');
     const model_file = params.get('file');
     const loadedFile = (model_file !== undefined) ? model_file : 'template.json';
     fetch('preseed.json')
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
             postcanvas.render();
 
             // bind(postcanvas) to keep object context in callback 
-            canvas.load(loadedFile, postcanvas.computeScore.bind(postcanvas));
+            canvas.load('models/'+loadedFile, postcanvas.computeScore.bind(postcanvas));
             // custom event when score dropdowns change
             document.addEventListener('scoreChanged', () => {
                 postcanvas.computeScore();
