@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     let bookData = {
         preface: "Content for A",
         chapters: [
-            {content: "Paragraph 1 in Chapter 1\nParagraph 2 in Chapter 1"},
-            {content: "Paragraph 1 in Chapter 2\nParagraph 2 in Chapter 2"},
-            {content: "Paragraph 1 in Chapter 3"}
+            { content: "Paragraph 1 in Chapter 1\nParagraph 2 in Chapter 1" },
+            { content: "Paragraph 1 in Chapter 2\nParagraph 2 in Chapter 2" },
+            { content: "Paragraph 1 in Chapter 3" }
         ],
         references: ["Ref1", "Ref2"]
     };
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         bookData.chapters = [];
         document.querySelectorAll('.chapter').forEach(chapterDiv => {
-            bookData.chapters.push({content: chapterDiv.innerText});
+            bookData.chapters.push({ content: chapterDiv.innerText });
         });
 
         const references = [];
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addChapter() {
         updateBookDataFromDOM();
-        bookData.chapters.push({content: "New chapter content"});
+        bookData.chapters.push({ content: "New chapter content" });
         createBookStructure(bookData);
     }
 
