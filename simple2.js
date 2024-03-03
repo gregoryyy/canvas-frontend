@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // state
     let bookData = {
         preface: "Content for A",
         chapters: [
@@ -10,73 +11,58 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function createBookStructure() {
+        // only be called initially, all changes are done in-place
         const bookContainer = document.getElementById('bookContainer');
-        bookContainer.innerHTML = '<div class="editable preface" contenteditable="true" data-type="preface">' + bookData.preface + '</div>';
+        bookContainer.innerHTML = '';
 
+        const addDiv = (parent, contentClass, text, index = undefined) => {
+            const div = document.createElement('div');
+            div.className = 'editable ' + contentClass;
+            div.setAttribute('contenteditable', 'true');
+            if (index) div.setAttribute('data-index', index);
+            div.setAttribute('data-type', contentClass);
+            div.innerText = text;
+            parent.appendChild(div);
+        };
+
+        addDiv(bookContainer, 'preface', bookData.preface);
+
+        const chaptersDiv = document.createElement('div');
         bookData.chapters.forEach((chapter, index) => {
-            const chapterDiv = document.createElement('div');
-            chapterDiv.className = 'editable chapter';
-            chapterDiv.setAttribute('contenteditable', 'true');
-            chapterDiv.setAttribute('data-chapter-index', index);
-            chapterDiv.setAttribute('data-type', 'chapter');
-            chapterDiv.innerText = chapter.content;
-            bookContainer.appendChild(chapterDiv);
+            const chDiv = addDiv(chaptersDiv, 'chapter', chapter.content, index);
         });
+        bookContainer.appendChild(chaptersDiv);
 
         const referencesDiv = document.createElement('div');
         bookData.references.forEach((ref, index) => {
-            const refDiv = document.createElement('div');
-            refDiv.className = 'editable reference';
-            refDiv.setAttribute('contenteditable', 'true');
-            refDiv.setAttribute('data-reference-index', index);
-            refDiv.setAttribute('data-type', 'reference');
-            refDiv.innerText = ref;
-            referencesDiv.appendChild(refDiv);
+            addDiv(referencesDiv, 'reference', ref, index);
         });
         bookContainer.appendChild(referencesDiv);
-
-        attachGlobalEventListeners();
-    }
-
-    function attachGlobalEventListeners() {
-        document.getElementById('bookContainer').addEventListener('blur', function(event) {
-            if (event.target.matches('[contenteditable="true"]')) {
-                saveEdits(event.target);
-            }
-        }, true);
-
-        document.getElementById('addChapterBtn').addEventListener('click', addChapter);
-        document.getElementById('saveBtn').addEventListener('click', saveBookData);
-        document.getElementById('loadBtn').addEventListener('click', loadBookData);
     }
 
     function saveEdits(editedElement) {
         const type = editedElement.getAttribute('data-type');
         const content = editedElement.innerText.trim();
-        
+
         switch (type) {
             case 'preface':
                 bookData.preface = content;
                 break;
             case 'chapter':
-                const chapterIndex = editedElement.getAttribute('data-chapter-index');
+                const chapterIndex = editedElement.getAttribute('data-index');
                 if (content === '') {
+                    // remove from state
                     bookData.chapters.splice(chapterIndex, 1);
+                    // remove from DOM
+                    editedElement.remove();
                 } else {
                     bookData.chapters[chapterIndex].content = content;
                 }
                 break;
             case 'reference':
-                const referenceIndex = editedElement.getAttribute('data-reference-index');
+                const referenceIndex = editedElement.getAttribute('data-index');
                 bookData.references[referenceIndex] = content;
                 break;
-        }
-
-        // Directly update the DOM for empty chapters
-        if (content === '' && type === 'chapter') {
-            editedElement.remove();
-        } else {
-            createBookStructure(); // Optionally refresh the whole structure if necessary
         }
     }
 
@@ -97,5 +83,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    createBookStructure();
+    function init() {
+        document.getElementById('addChapterBtn').addEventListener('click', addChapter);
+        document.getElementById('saveBtn').addEventListener('click', saveBookData);
+        document.getElementById('loadBtn').addEventListener('click', loadBookData);
+        document.getElementById('bookContainer').addEventListener('blur', function (event) {
+            if (event.target.matches('[contenteditable="true"]')) {
+                saveEdits(event.target);
+            }
+        }, true);
+        createBookStructure();
+    }
+
+    init();
+    
 });
