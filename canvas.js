@@ -1,22 +1,28 @@
-/*
- * load data and populate canvas
- */
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
-    //const model_id = params.get('id');
-    const model_file = params.get('model');
-    const loadedFile = (model_file != null) ? model_file : 'template';
+    const modelParam = params.get('model');
+    init(modelParam || 'template');
 
-    Promise.all([
-        fetch('preseed.json').then(response => response.json()),
-        fetch(`models/${loadedFile}.json`).then(response => response.json())
-    ]).then(([structure, content]) => {
+
+    // load files and set up canvas
+    function init(contentFile) {
+        Promise.all([
+            fetch('preseed.json').then(response => response.json()),
+            fetch(`models/${contentFile}.json`).then(response => response.json())
+        ]).then(([structure, content]) => {
+            render(structure, content);
+        }).catch(error => {
+            console.error('Error setting up canvas:', error);
+        });
+    }
+
+    // initial rendering
+    function render(structure, content) {
 
         const precanvas = new PreCanvas(content.meta);
         precanvas.render();
-        const canvas = new Canvas(structure);
+        const canvas = new Canvas(structure, content);
         canvas.render();
-        canvas.replaceContent(content.canvas);
         const postcanvas = new PostCanvas(canvas, structure, content);
         postcanvas.render();
         postcanvas.computeScore();
@@ -24,51 +30,24 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('scoreChanged', () => {
             postcanvas.computeScore();
         });
-    }).catch(error => {
-        console.error('Error setting up canvas:', error);
-    });
+    }
 });
 
-
-/**
- * The main Canvas that contains all cells
- */
 class Canvas {
-    /**
-     * Create canvas with data and scoring function
-     * 
-     * @param {JSON} data 
-     */
-    //TODO: scoring function should be 
-    constructor(data) {
-        this.cells = data.canvas.map(cellData => new Cell(cellData));
-    }
 
-    addCell(cell) {
-        this.cells.push(cell);
+    constructor(structure, content) {
+        this.structure = structure;
+        this.content = content;
+        this.cells = structure.canvas.map((structData, index) => {
+            // INFO: assuming content is always stored in seq., then no need for indexes
+            return new Cell(index, structData, content.canvas[index]);
+        });
     }
 
     render() {
-        const canvas = document.querySelector('.canvas');
-        this.cells.forEach(cell => {
-            canvas.appendChild(cell.render());
-        });
-        this.dom = canvas;
-        return canvas;
-    }
-
-    /**
-     * update all content of the cell, incl. all cards and score
-     * 
-     * @param {*} data 
-     */
-    replaceContent(data) {
-        data.forEach(cellData => {
-            let cell = this.findCellById(cellData.id);
-            if (cell) {
-                cell.replaceContent(cellData.content, cellData.score);
-            }
-        });
+        const element = document.getElementById('canvas');
+        element.innerHTML = '';
+        this.cells.forEach(cell => element.appendChild(cell.render()));
     }
 
     findCellById(id) {
@@ -77,22 +56,19 @@ class Canvas {
     }
 }
 
-/**
- * A cell is a part of a Canvas
- */
 class Cell {
-    /**
-     * Create cell from data
-     * 
-     * @param {json} cellData 
-     */
-    constructor(cellData) {
-        this.id = cellData.id;
-        this.title = cellData.title;
-        this.helptitle = cellData.subtitle;
-        this.helptext = cellData.description;
-        this.score = cellData.score;
-        this.cards = [];
+
+    constructor(index, structure, content) {
+        this.index = index;
+        this.id = structure.id;
+        this.title = structure.title;
+        this.helptitle = structure.subtitle;
+        this.helptext = structure.description;
+        this.hasScore = structure.score;
+        this.score = content.score;
+        this.cards = content.content.map((cardData, index) => {
+            return new Card(index, cardData);
+        });
     }
 
     addCard(card) {
@@ -110,58 +86,20 @@ class Cell {
         // Optional: focus the new card for immediate editing
     }
 
-    /**
-     * Update all content of this card, incl. cards and score.
-     * @param {*} content list of text content
-     * @param {*} score numeric score
-     */
-    replaceContent(content, score) {
-        this.cards = [];
-        // TODO: store as fields
-        const cellDiv = document.getElementById(this.id);
-        if (cellDiv) {
-            const cardDiv = cellDiv.querySelector('.cell-card-container');
-            content.forEach(line => {
-                const card = new Card(line);
-                this.addCard(card);
-                cardDiv.appendChild(card.render());
-            });
-        }
-
-        this.score = score;
-        // TODO: auto-synchronize
-        const select = document.getElementById("score" + this.id);
-        if (select) {
-            select.value = score;
-        }
-    }
-
     render() {
-        const cellDiv = document.createElement('div');
-        cellDiv.className = 'cell';
-        cellDiv.id = this.id;
-
-        const cellTitle = document.createElement('div');
-        cellTitle.classList.add('cell-title-container');
-
-        const titleH3 = document.createElement('h3');
-        titleH3.classList.add('cell-title');
-        titleH3.textContent = this.title;
+        // TODO: replace id with data attr
+        const cellDiv = createElement('div', { class: "cell", id: this.id, 'data-index': this.index });
+        const cellTitle = createElement('div', { class: "cell-title-container" });
+        const titleH3 = createElement('h3', { class: "cell-title" }, this.title);
         cellTitle.appendChild(titleH3);
 
-        if (this.score === "yes") {
+        if (this.hasScore === "yes") {
             this.addScoringDropdown(cellTitle);
         }
-
         cellDiv.appendChild(cellTitle);
-
-        // hover help on title
         this.addHelpOverlay(titleH3);
 
-
-        // populate with cards
-        const cardContainerDiv = document.createElement('div');
-        cardContainerDiv.className = 'cell-card-container';
+        const cardContainerDiv = createElement('div', { class: 'cell-card-container' });
         cellDiv.appendChild(cardContainerDiv);
 
         this.cards.forEach(card => {
@@ -174,16 +112,13 @@ class Cell {
     }
 
     addHelpOverlay(parentElement) {
-        const helpDiv = document.createElement('div');
-        helpDiv.classList.add('hover-help');
+        const helpDiv = createElement('div', { class: 'hover-help' });
         if (this.helptitle) {
-            const helptitle = document.createElement('h4');
-            helptitle.textContent = this.helptitle;
+            const helptitle = createElement('h4', {}, this.helptitle);
             helpDiv.appendChild(helptitle);
         }
         if (this.helptext) {
-            const helptext = document.createElement('p');
-            helptext.textContent = this.helptext;
+            const helptext = createElement('p', {}, this.helptext);
             helpDiv.appendChild(helptext);
         }
         parentElement.appendChild(helpDiv);
@@ -191,7 +126,6 @@ class Cell {
         const hoverHelp = (elem) => {
             helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';
         }
-
         parentElement.addEventListener('dblclick', function () {
             hoverHelp();
         });
@@ -199,23 +133,17 @@ class Cell {
         addLongPressListener(parentElement, hoverHelp);
     }
 
-    /**
-     * Scoring dropdown in this cell
-     * 
-     * @param {Element} parentElement 
-     */
     addScoringDropdown(parentElement) {
         const select = document.createElement('select');
         select.id = "score" + this.id;
         select.className = 'scoring-dropdown';
         for (let i = 0; i <= 5; i++) {
-            let option = document.createElement('option');
-            option.value = i;
-            option.text = i === 0 ? "-" : i;
+            const option = createElement('option', { value: i }, i === 0 ? "-" : i);
             select.appendChild(option);
         }
+        select.value = this.score;
         select.addEventListener('change', (event) => {
-            this.score = event.target.value;
+            this.hasScore = event.target.value;
             document.dispatchEvent(new CustomEvent('scoreChanged'));
         });
         parentElement.appendChild(select);
@@ -234,26 +162,21 @@ class Cell {
             this.createCard(cardContainerDiv);
         });
 
-        // Ensure the container is always clickable
-        cardContainerDiv.style.minHeight = '50px'; // Example minimum height
-        cardContainerDiv.style.cursor = 'pointer'; // Change cursor on hover
-        // Existing render code continues...
+        cardContainerDiv.style.minHeight = '50px';
+        cardContainerDiv.style.cursor = 'pointer';
     }
 }
 
-/**
- * a card is an object in a cell
- */
 class Card {
-    constructor(text, id = -1) {
+
+    constructor(index, text, id = -1) {
+        this.index = index;
         this.text = text;
         this.id = id;
     }
 
     render() {
-        const card = document.createElement('div');
-        card.textContent = this.text;
-        card.classList.add('card');
+        const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
 
         this.dom = card;
         makeEditable(card, 'card-editing', true);
@@ -261,9 +184,6 @@ class Card {
     }
 }
 
-/**
- * PreCanvas displays meta information about the canvas
- */
 class PreCanvas {
     constructor(data) {
         this.title = data.title;
@@ -271,29 +191,18 @@ class PreCanvas {
     }
 
     render() {
-        const metaDiv = document.querySelector('.precanvas');
-        const title = document.createElement('h2');
-        title.textContent = this.title;
+        const metaDiv = document.getElementById('precanvas');
+        const title = createElement('h2', {}, this.title);
         makeEditable(title, 'editing');
-        const description = document.createElement('p');
-        description.textContent = this.content;
+        const description = createElement('p', {}, this.content);
         makeEditable(description, 'editing');
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
 }
 
-/**
- * PostCanvas contains analysis from a Canvas and additional data
- */
 class PostCanvas {
 
-    /**
-     * 
-     * @param {Canvas} canvas 
-     * @param {JSON} structure 
-     * @param {JSON} content 
-     */
     constructor(canvas, structure, content) {
         this.title = 'Analysis';
         this.content = content.analysis.content;
@@ -304,24 +213,19 @@ class PostCanvas {
     }
 
     render() {
-
-        const anaDiv = document.querySelector('.postcanvas');
-        const cellTitle = document.createElement('div');
-        cellTitle.classList.add('cell-title-container');
-        const titleH3 = document.createElement('h3');
-        titleH3.classList.add('cell-title');
-        titleH3.textContent = this.title;
+        const anaDiv = document.getElementById('postcanvas');
+        const cellTitle = createElement('div', { class: 'cell-title-container' });
+        const titleH3 = createElement('h3', { class: 'cell-title' }, this.title);
         cellTitle.appendChild(titleH3);
         anaDiv.appendChild(cellTitle);
 
         if (this.total) {
             this.scoreSpan = this.addScorer(cellTitle);
-            // score compute later due to async load
+            this.computeScore();
         }
 
         this.content.forEach(paragraphText => {
-            const paragraph = document.createElement('p');
-            paragraph.textContent = paragraphText;
+            const paragraph = createElement('p', {}, paragraphText);
             anaDiv.appendChild(paragraph);
             makeEditable(anaDiv, 'editing', false, paragraph);
         });
@@ -329,14 +233,11 @@ class PostCanvas {
 
     // TODO: this is hardcoded and should be read from the file
     addScorer(parentElement) {
-        const scoreLabel = document.createElement('h3');
-        scoreLabel.className = 'score-total-label';
-        scoreLabel.textContent = 'Score:';
+        const scoreLabel = createElement('h3', { class: 'score-total-label' }, 'Score');
         parentElement.appendChild(scoreLabel);
-        const score = document.createElement('span');
-        score.className = 'score-total';
+        // FIXME
         var num = 0.0;
-        score.textContent = num.toFixed(1);
+        const score = createElement('span', { class: 'score-total' }, num.toFixed(1));
         parentElement.appendChild(score);
         return score;
     }
@@ -344,7 +245,6 @@ class PostCanvas {
     computeScore() {
         const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
 
-        // Apply the specific formula
         // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
         let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
         let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
@@ -355,38 +255,52 @@ class PostCanvas {
 
         return total;
     }
-
 }
 
 /* static functions */
 
 /**
+ * create an element
+ * 
+ * @param {string} tagName 
+ * @param {object} attributes 
+ * @param {string} text 
+ * @returns 
+ */
+function createElement(tagName, attributes = {}, text = '') {
+    const element = document.createElement(tagName);
+    Object.keys(attributes).forEach(key => element.setAttribute(key, attributes[key]));
+    if (text) element.textContent = text;
+    return element;
+};
+
+/**
  * Toggle standard editing mode on element
  * 
  * @param {elem} elem dom element doubleclicked
- * @param {string} editclass the class label while editing
+ * @param {string} editClass the class label while editing
  * @param {boolean} removeEmpty true if element should be removed if empty
- * @param {string} editelem dom element made editable
+ * @param {string} editElem dom element made editable
  */
-function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
+function makeEditable(elem, editClass, removeEmpty = false, editElem = null) {
     elem.addEventListener('dblclick', function () {
-        el = editelem != null ? editelem : this;
-        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
+        el = editElem != null ? editElem : this;
+        el.classList.contains(editClass) ? finishEdit(el, removeEmpty) : startEdit(el);
     });
 
     addLongPressListener(elem, function () {
-        el = editelem != null ? editelem : elem;
-        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
+        el = editElem != null ? editElem : elem;
+        el.classList.contains(editClass) ? finishEdit(el, removeEmpty) : startEdit(el);
     });
 
     // max one field editable at a time
     elem.addEventListener('blur', function () {
-        el = editelem != null ? editelem : this;
+        el = editElem != null ? editElem : this;
         finishEdit(el, removeEmpty);
     });
 
     // allow multiline entries
-    el = editelem != null ? editelem : elem;
+    el = editElem != null ? editElem : elem;
     el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (e.shiftKey) {
@@ -404,7 +318,7 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
 
     function startEdit(elem) {
         elem.contentEditable = true;
-        elem.classList.add(editclass);
+        elem.classList.add(editClass);
         elem.focus();
         setCaretAtEnd(elem);
     }
@@ -417,12 +331,13 @@ function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
      */
     function finishEdit(elem, removeEmpty = false) {
         elem.contentEditable = false;
-        elem.classList.remove(editclass);
+        elem.classList.remove(editClass);
         if (removeEmpty && elem.textContent.trim().length == 0) {
             elem.remove();
         }
     }
 
+    // TODO: changing as textContent, this may not be necessary
     function insertBr() {
         // insert new line br at cursor
         console.log('BR');
@@ -487,7 +402,7 @@ function addLongPressListener(element, callback, duration = 500) {
 }
 
 /**
- * Places the caret at the end of the element text.
+ * Place the caret at the end of the element text.
  * 
  * @param {Element} element 
  */
@@ -514,7 +429,6 @@ function newCardName(name) {
     if (s.endsWith('s'))
         return s.substring(0, s.length - 1);
     return s;
-
 }
 
 

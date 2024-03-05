@@ -3,6 +3,17 @@
 > @author Gregor Heinrich
 > @date 20240214  originally created 2023
 
+# refactoring
+
+* changes:
+  * CSS simplification --> class to id
+  * initial render --> no replacecontent
+* concepts from simple2: 
+  * data attrs
+  * event delegation
+  * targeted DOM updates
+  * adaptive DOM manipulation
+
 # TODOs
 
 TODOs with A: are high-priority
