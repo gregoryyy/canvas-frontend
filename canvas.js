@@ -1,30 +1,67 @@
+let app = undefined;
+
 document.addEventListener('DOMContentLoaded', () => {
-    const init = (contentFile) => {
+
+    const load = (contentFile) => {
+        contentFile ||= 'template';
         Promise.all([
             fetch('preseed.json').then(res => res.json()),
-            fetch(`models/${contentFile || 'template'}.json`).then(res => res.json())
-        ]).then(([structure, content]) => render(structure, content))
-            .catch(error => console.error('Error setting up canvas:', error));
+            fetch(`models/${contentFile}.json`).then(res => res.json())
+        ]).then(([structure, content]) => {
+            init(structure, content);
+        }).catch(error => console.error('Error setting up canvas:', error));
     };
 
-    init(new URLSearchParams(window.location.search).get('model'));
+    load(new URLSearchParams(window.location.search).get('model'));
 });
 
-// initial rendering
-function render(structure, content) {
-
-    const precanvas = new PreCanvas(content.meta);
+function init(structure, content) {
+    const meta = new PreCanvas(content.meta);
     const canvas = new Canvas(structure, content);
-    const postcanvas = new PostCanvas(canvas, structure, content);
-
-    precanvas.render();
-    canvas.render();
-    postcanvas.render();
-    postcanvas.computeScore();
-
+    const analysis = new PostCanvas(canvas, structure, content);
+    app = new Application(meta, canvas, analysis);
+    app.render();
     document.addEventListener('scoreChanged', () => {
-        postcanvas.computeScore();
+        analysis.computeScore();
     });
+}
+
+class Application {
+
+    constructor(meta, canvas, analysis) {
+        this.meta = meta;
+        this.canvas = canvas;
+        this.analysis = analysis;
+    }
+
+    updateState() {
+        this.meta.updateState();
+        this.canvas.updateState();
+        this.analysis.updateState();
+    }
+
+    render() {
+        this.meta.render();
+        this.canvas.render();
+        this.analysis.render();
+    }
+
+    serialize() {
+        localStorage.setItem('canvas', JSON.stringify(this));
+    }
+
+    static deserialize() {
+        const json = localStorage.getItem('canvas');
+        if (!json) return;
+        content = JSON.parse(json);
+        fetch('preseed.json')
+            .then(response => response.json())
+            .then(structure => {
+                init(structure, content);
+            }).catch(error => console.error('Error loading canvas:', error));
+    }
+
+    toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
 }
 
 class Canvas {
@@ -36,16 +73,19 @@ class Canvas {
         this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
     }
 
+    updateState() {
+        this.cells.forEach(cell => cell.updateState());
+    }
+
     render() {
         const el = document.getElementById('canvas');
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
 
-    findCellById(id) {
-        // consider map id => cell
-        return this.cells.find(cell => cell.id === id);
-    }
+    findCellById(id) { return this.cells.find(cell => cell.id === id); }
+
+    toJSON() { return this.cells; }
 }
 
 class Cell {
@@ -58,18 +98,21 @@ class Cell {
         this.helptext = structure.description;
         this.hasScore = structure.score;
         this.score = content.score;
-        this.cards = content.content.map((cardData, index) => new Card(index, cardData));
-    }
-
-    addCard(card) {
-        this.cards.push(card);
+        this.cards = content.content.map(cardData => new Card(cardData));
     }
 
     createCard(cardContainerDiv) {
         const name = newCardName(this.title);
-        const newCard = new Card(name);
-        this.addCard(newCard);
-        cardContainerDiv.appendChild(newCard.render());
+        const card = new Card(name);
+        this.cards.push(card);
+        cardContainerDiv.appendChild(card.render());
+    }
+
+    updateState() {
+        const cards = document.querySelectorAll(`.cell[data-index=${this.index}] > .cell-card-container > .card`);
+        // assert cards.length == this.cards.lenth
+        cards.forEach((card, index) => this.cards[index].text = card.textContent);
+        if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
     }
 
     render() {
@@ -77,62 +120,72 @@ class Cell {
         const cellTitle = createElement('div', { class: "cell-title-container" });
         const titleH3 = createElement('h3', { class: "cell-title" }, this.title);
         cellTitle.appendChild(titleH3);
+        cellDiv.appendChild(cellTitle);
 
         if (this.hasScore === "yes") this.addScoringDropdown(cellTitle);
-        cellDiv.appendChild(cellTitle);
         this.addHelpOverlay(titleH3);
 
         const cardContainerDiv = createElement('div', { class: 'cell-card-container' });
         cellDiv.appendChild(cardContainerDiv);
-
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
         return cellDiv;
     }
 
-    addHelpOverlay(parentElement) {
+    addHelpOverlay(parent) {
         const helpDiv = createElement('div', { class: 'hover-help' });
         if (this.helptitle) helpDiv.appendChild(createElement('h4', {}, this.helptitle));
         if (this.helptext) helpDiv.appendChild(createElement('p', {}, this.helptext));
-        parentElement.appendChild(helpDiv);
+        parent.appendChild(helpDiv);
 
         const hoverHelp = elem => helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';
-        parentElement.addEventListener('dblclick', hoverHelp);
-        addLongPressListener(parentElement, hoverHelp);
+        parent.addEventListener('dblclick', hoverHelp);
+        addLongPressListener(parent, hoverHelp);
     }
 
-    addScoringDropdown(parentElement) {
+    addScoringDropdown(parent) {
         const select = createElement('select', { id: "score" + this.id, class: 'scoring-dropdown' });
         Array.from({ length: 6 }, (_, i) => select.appendChild(createElement('option', { value: i }, i === 0 ? "-" : i)));
         select.value = this.score;
         select.addEventListener('change', event => document.dispatchEvent(new CustomEvent('scoreChanged')));
-        parentElement.appendChild(select);
+        parent.appendChild(select);
     }
 
     makeBgClickable(cardContainerDiv) {
-
-        // Existing render code...
         cardContainerDiv.addEventListener('dblclick', e => e.target === cardContainerDiv ? this.createCard(cardContainerDiv) : undefined);
         addLongPressListener(cardContainerDiv, () => this.createCard(cardContainerDiv));
         cardContainerDiv.style.minHeight = '50px';
         cardContainerDiv.style.cursor = 'pointer';
     }
+
+    // TODO: handle id and comment
+    toJSON() { return { content: this.cards, score: this.score }; }
 }
 
 class Card {
 
-    constructor(index, text, id = -1) {
-        this.index = index;
+    static count = 0;
+
+    constructor(text) {
         this.text = text;
-        this.id = id;
+        this.index = Card.count++;
+    }
+
+    updateState() {
+        // global indexing
+        const card = document.querySelector(`.card[data-index='${this.index}']`);
+        if (card) this.text = card.textContent;
     }
 
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
-        makeEditable(card, true);
+        // bind this to Card state not DOM element 
+        makeEditable(card, true, this.updateState.bind(this));
         return card;
     }
+
+    toJSON() { return this.text; }
 }
 
 class PreCanvas {
@@ -142,12 +195,18 @@ class PreCanvas {
         this.content = data.description;
     }
 
+    updateState() {
+        const metaDiv = document.getElementById('precanvas');
+        app.meta.title = metaDiv.querySelector('h2').textContent;
+        app.meta.description = metaDiv.querySelector('p').textContent;
+    }
+
     render() {
         const metaDiv = document.getElementById('precanvas');
         const title = createElement('h2', {}, this.title);
-        makeEditable(title);
+        makeEditable(title, () => app.meta.title = title.textContent, this.updateState);
         const description = createElement('p', {}, this.content);
-        makeEditable(description);
+        makeEditable(description, () => app.meta.description = description.textContent);
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
@@ -164,6 +223,13 @@ class PostCanvas {
         this.scoreSpan = document.querySelector('span.score-total');
     }
 
+    updateState() {
+        const metaDiv = document.getElementById('postcanvas');
+        app.analysis.title = metaDiv.querySelector('h3').textContent;
+        // FIXME: array
+        app.analysis.description[0] = metaDiv.querySelector('p').textContent;
+    }
+
     render() {
         const anaDiv = document.getElementById('postcanvas');
         const cellTitle = createElement('div', { class: 'cell-title-container' });
@@ -176,11 +242,11 @@ class PostCanvas {
             this.computeScore();
         }
 
-        this.content.forEach(paragraphText => {
-            const paragraph = createElement('p', {}, paragraphText);
-            anaDiv.appendChild(paragraph);
-            makeEditable(paragraph);
-        });
+
+        const paragraph = createElement('p', {}, this.content);
+        anaDiv.appendChild(paragraph);
+        makeEditable(paragraph, () => app.analysis.content = paragraph.textContent);
+
     }
 
     addScorer(parentElement) {
@@ -189,10 +255,10 @@ class PostCanvas {
         parentElement.appendChild(score);
         return score;
     }
-    
+
     computeScore() {
         const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
-        
+
         // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
         let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
         let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
@@ -214,63 +280,11 @@ function createElement(tagName, attributes = {}, text = '') {
     return element;
 };
 
-/**
- * Toggle standard editing mode on element
- * 
- * @param {elem} elem dom element doubleclicked
- * @param {boolean} removeEmpty true if element should be removed if empty
- */
-function makeEditable(elem, removeEmpty = false) {
-    const editClass = 'editing';
-    elem.addEventListener('dblclick', () => elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
-    addLongPressListener(elem, () => elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
-    
-    // max one field editable at a time
-    elem.addEventListener('blur', () => finishEdit(this, removeEmpty));
-
-    // allow multiline entries
-    elem.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            if (e.shiftKey) {
-                // finalize editing by removing focus
-                finishEdit(elem);
-            } else {
-                e.preventDefault();
-                insertBr();
-            }
-        }
-        if (e.key === 'Escape') {
-            finishEdit(elem);
-        }
-    });
-
-    function startEdit(elem) {
-        elem.contentEditable = true;
-        elem.classList.add(editClass);
-        elem.focus();
-        setCaretAtEnd(elem);
-    }
-
-    function finishEdit(elem, removeEmpty = false) {
-        elem.contentEditable = false;
-        elem.classList.remove(editClass);
-        if (removeEmpty && elem.textContent.trim().length == 0) elem.remove();
-    }
-
-    // TODO: changing as textContent, this may not be necessary
-    function insertBr() {
-        // insert new line br at cursor
-        console.log('BR');
-        const br = document.createElement('br');
-        const range = window.getSelection().getRangeAt(0);
-        range.insertNode(br);
-        range.setStartAfter(br);
-        range.setEndAfter(br);
-        // clear selection, set new range
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        br.parentElement.focus();
-    }
+function makeEditable(elem, removeEmpty = false, callback) {
+    elem.setAttribute('contenteditable', 'true');
+    // Enable multiline entries by allowing default behavior for Enter key
+    // No additional handler needed for Enter if you want to keep the default behavior
+    if (callback) elem.addEventListener('blur', callback);
 }
 
 /**

@@ -6,13 +6,13 @@
 # refactoring
 
 * changes:
-  * CSS simplification --> class to id
-  * initial render --> no replacecontent
+  * CSS simplification --> class to id ok
+  * initial render --> no replacecontent ok
 * concepts from simple2: 
-  * data attrs
+  * data attrs --> for cells
   * event delegation
-  * targeted DOM updates
-  * adaptive DOM manipulation
+  * targeted DOM updates ok
+  * adaptive DOM manipulation ok
 
 # TODOs
 

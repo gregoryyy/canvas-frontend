@@ -230,9 +230,9 @@ div.cell>p,
     flex-shrink: 1;
 }
 
-.card-editing,
 .editing {
     background-color: #f44;
+    white-space: pre-wrap;
 }
 
 .helpcard {

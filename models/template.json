@@ -93,9 +93,6 @@
         }
     ],
     "analysis": {
-        "content": [
-            "Analysis: ...",
-            "Decision: ..."
-        ]
+        "content": "Analysis: ..."
     }
 }
