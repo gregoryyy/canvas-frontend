@@ -104,7 +104,7 @@ class Cell {
     }
 
     createCard(cardContainerDiv) {
-        const name = 'New' + trimPluralS(this.title);
+        const name = 'New ' + trimPluralS(this.title);
         const card = new Card(name);
         this.cards.push(card);
         cardContainerDiv.appendChild(card.render());
@@ -280,10 +280,63 @@ function createElement(tagName, attributes = {}, text = '') {
 };
 
 function makeEditable(elem, removeEmpty = false, callback) {
-    elem.setAttribute('contenteditable', 'true');
-    // Enable multiline entries by allowing default behavior for Enter key
-    // No additional handler needed for Enter if you want to keep the default behavior
-    if (callback) elem.addEventListener('blur', callback);
+    //elem.setAttribute('contenteditable', 'true');
+    const editClass = 'editing';
+    elem.addEventListener('dblclick', () => 
+        elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
+    addLongPressListener(elem, () => 
+        elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
+
+    // max one field editable at a time
+    elem.addEventListener('blur', () => finishEdit(this, removeEmpty));
+
+    // allow multiline entries
+    elem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (e.shiftKey) {
+                // finalize editing by removing focus
+                finishEdit(elem);
+            } else {
+                e.preventDefault();
+                insertBr();
+            }
+        }
+        if (e.key === 'Escape') {
+            finishEdit(elem);
+        }
+    });
+
+    function startEdit(elem) {
+        elem.contentEditable = true;
+        elem.classList.add(editClass);
+        elem.focus();
+        setCaretAtEnd(elem);
+    }
+
+    function finishEdit(elem, removeEmpty = false) {
+        // TODO: now duplicate; handle card removal in callback
+        // new
+        if (callback) elem.addEventListener('blur', callback);
+        // old
+        elem.contentEditable = false;
+        elem.classList.remove(editClass);
+        if (removeEmpty && elem.textContent.trim().length == 0) elem.remove();
+    }
+
+    // TODO: changing as textContent, this may not be necessary
+    function insertBr() {
+        // insert new line br at cursor
+        console.log('BR');
+        const br = document.createElement('br');
+        const range = window.getSelection().getRangeAt(0);
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        // clear selection, set new range
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        br.parentElement.focus();
+    }
 }
 
 /**
