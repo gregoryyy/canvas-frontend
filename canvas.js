@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('preseed.json').then(res => res.json()),
             fetch(`models/${contentFile}.json`).then(res => res.json())
         ]).then(([structure, content]) => {
+            structure = sanitizeJSON(structure);
+            content = sanitizeJSON(content)
             init(structure, content);
         }).catch(error => console.error('Error setting up canvas:', error));
     };
@@ -53,7 +55,7 @@ class Application {
     static deserialize() {
         const json = localStorage.getItem('canvas');
         if (!json) return;
-        content = JSON.parse(json);
+        content = JSON.parse(sanitizeJSON(json));
         fetch('preseed.json')
             .then(response => response.json())
             .then(structure => {
@@ -102,7 +104,7 @@ class Cell {
     }
 
     createCard(cardContainerDiv) {
-        const name = newCardName(this.title);
+        const name = 'New' + trimPluralS(this.title);
         const card = new Card(name);
         this.cards.push(card);
         cardContainerDiv.appendChild(card.render());
@@ -111,7 +113,7 @@ class Cell {
     updateState() {
         const cards = document.querySelectorAll(`.cell[data-index=${this.index}] > .cell-card-container > .card`);
         // assert cards.length == this.cards.lenth
-        cards.forEach((card, index) => this.cards[index].text = card.textContent);
+        cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
         if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
     }
 
@@ -175,7 +177,7 @@ class Card {
     updateState() {
         // global indexing
         const card = document.querySelector(`.card[data-index='${this.index}']`);
-        if (card) this.text = card.textContent;
+        if (card) this.text = sanitize(card.textContent);
     }
 
     render() {
@@ -197,16 +199,16 @@ class PreCanvas {
 
     updateState() {
         const metaDiv = document.getElementById('precanvas');
-        app.meta.title = metaDiv.querySelector('h2').textContent;
-        app.meta.description = metaDiv.querySelector('p').textContent;
+        app.meta.title = sanitize(metaDiv.querySelector('h2').textContent);
+        app.meta.description = sanitize(metaDiv.querySelector('p').textContent);
     }
 
     render() {
         const metaDiv = document.getElementById('precanvas');
         const title = createElement('h2', {}, this.title);
-        makeEditable(title, () => app.meta.title = title.textContent, this.updateState);
+        makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
         const description = createElement('p', {}, this.content);
-        makeEditable(description, () => app.meta.description = description.textContent);
+        makeEditable(description, () => app.meta.description = sanitize(description.textContent));
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
@@ -225,9 +227,8 @@ class PostCanvas {
 
     updateState() {
         const metaDiv = document.getElementById('postcanvas');
-        app.analysis.title = metaDiv.querySelector('h3').textContent;
-        // FIXME: array
-        app.analysis.description[0] = metaDiv.querySelector('p').textContent;
+        app.analysis.title = sanitize(metaDiv.querySelector('h3').textContent);
+        app.analysis.description = sanitize(metaDiv.querySelector('p').textContent);
     }
 
     render() {
@@ -242,11 +243,9 @@ class PostCanvas {
             this.computeScore();
         }
 
-
         const paragraph = createElement('p', {}, this.content);
+        makeEditable(paragraph, () => app.analysis.content = sanitize(paragraph.textContent));
         anaDiv.appendChild(paragraph);
-        makeEditable(paragraph, () => app.analysis.content = paragraph.textContent);
-
     }
 
     addScorer(parentElement) {
@@ -348,15 +347,24 @@ function setCaretAtEnd(element) {
     element.focus();
 }
 
-/**
- * create card with name in singular
- * 
- * @param {string} name 
- */
-function newCardName(name) {
-    var s = "New " + name;
+function sanitize(text) {
+    // TODO: sanitize using DOMPurify etc.
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '`': '&#x60;', '=': '&#x3D;' };
+    return text.replace(/[&<>"'`=]/g, m => map[m]);
+}
+
+function sanitizeJSON(value) {
+    if (typeof value === 'string') return sanitize(value);
+    else if (Array.isArray(value)) return value.map(sanitizeJSON);
+    else if (typeof value === 'object' && value !== null) {
+        const sanitizedObject = {};
+        for (const key in value) sanitizedObject[key] = sanitizeJSON(value[key]);
+        return sanitizedObject;
+    } else return value;
+}
+
+function trimPluralS(s) {
     if (s.endsWith('ss')) return s;
-    // chop off plural s
     if (s.endsWith('s')) return s.substring(0, s.length - 1);
     return s;
 }
