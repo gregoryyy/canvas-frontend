@@ -10,42 +10,39 @@ document.addEventListener('DOMContentLoaded', () => {
         ]).then(([structure, content]) => {
             structure = sanitizeJSON(structure);
             content = sanitizeJSON(content)
-            init(structure, content);
+            Application.create(structure, content);
         }).catch(error => console.error('Error setting up canvas:', error));
     };
 
     load(new URLSearchParams(window.location.search).get('model'));
 });
 
-function init(structure, content) {
-    const meta = new PreCanvas(content.meta);
-    const canvas = new Canvas(structure, content);
-    const analysis = new PostCanvas(canvas, structure, content);
-    app = new Application(meta, canvas, analysis);
-    app.render();
-    document.addEventListener('scoreChanged', () => {
-        analysis.computeScore();
-    });
-}
 
+// implicit interface { update(); render(); } to sync DOM to state and back
 class Application {
 
     constructor(meta, canvas, analysis) {
-        this.meta = meta;
-        this.canvas = canvas;
-        this.analysis = analysis;
+        Object.assign(this, { meta, canvas, analysis });
+        this.renderables = [meta, canvas, analysis];
     }
 
-    updateState() {
-        this.meta.updateState();
-        this.canvas.updateState();
-        this.analysis.updateState();
+    static create(structure, content) {
+        const meta = new PreCanvas(content.meta);
+        const canvas = new Canvas(structure, content);
+        const analysis = new PostCanvas(canvas, structure, content);
+        app = new Application(meta, canvas, analysis);
+        app.render();
+        document.addEventListener('scoreChanged', () => {
+            analysis.computeScore();
+        });
+    }
+
+    update() {
+        this.renderables.forEach(renderable => renderable.update());
     }
 
     render() {
-        this.meta.render();
-        this.canvas.render();
-        this.analysis.render();
+        this.renderables.forEach(renderable => renderable.render());
     }
 
     serialize() {
@@ -75,7 +72,7 @@ class Canvas {
         this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
     }
 
-    updateState() {
+    update() {
         this.cells.forEach(cell => cell.updateState());
     }
 
@@ -84,8 +81,6 @@ class Canvas {
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
-
-    findCellById(id) { return this.cells.find(cell => cell.id === id); }
 
     toJSON() { return this.cells; }
 }
@@ -110,7 +105,16 @@ class Cell {
         cardContainerDiv.appendChild(card.render());
     }
 
-    updateState() {
+    removeCard(domIndex) {
+        const cellElem = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
+        const stateIndex = Array.from(cellElem.children).findIndex(cardDiv => cardDiv.getAttribute('data-index') === String(domIndex));
+        if (stateIndex !== -1) {
+            this.cards.splice(stateIndex, 1);
+            document.querySelector(`.card[data-index='${domIndex}']`).remove();
+        }
+    }
+
+    update() {
         const cards = document.querySelectorAll(`.cell[data-index=${this.index}] > .cell-card-container > .card`);
         // assert cards.length == this.cards.lenth
         cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
@@ -132,6 +136,7 @@ class Cell {
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
+        cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
         return cellDiv;
     }
 
@@ -174,16 +179,19 @@ class Card {
         this.index = Card.count++;
     }
 
-    updateState() {
+    update() {
         // global indexing
-        const card = document.querySelector(`.card[data-index='${this.index}']`);
-        if (card) this.text = sanitize(card.textContent);
+        const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
+        if (cardElem) this.text = sanitize(cardElem.textContent);
+        if (!this.text.trim()) {
+            cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        }
     }
 
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
         // bind this to Card state not DOM element 
-        makeEditable(card, true, this.updateState.bind(this));
+        makeEditable(card, this.update.bind(this), true);
         return card;
     }
 
@@ -197,7 +205,7 @@ class PreCanvas {
         this.content = data.description;
     }
 
-    updateState() {
+    update() {
         const metaDiv = document.getElementById('precanvas');
         app.meta.title = sanitize(metaDiv.querySelector('h2').textContent);
         app.meta.description = sanitize(metaDiv.querySelector('p').textContent);
@@ -225,7 +233,7 @@ class PostCanvas {
         this.scoreSpan = document.querySelector('span.score-total');
     }
 
-    updateState() {
+    update() {
         const metaDiv = document.getElementById('postcanvas');
         app.analysis.title = sanitize(metaDiv.querySelector('h3').textContent);
         app.analysis.description = sanitize(metaDiv.querySelector('p').textContent);
@@ -279,16 +287,11 @@ function createElement(tagName, attributes = {}, text = '') {
     return element;
 };
 
-function makeEditable(elem, removeEmpty = false, callback) {
-    //elem.setAttribute('contenteditable', 'true');
-    const editClass = 'editing';
-    elem.addEventListener('dblclick', () => 
-        elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
-    addLongPressListener(elem, () => 
-        elem.classList.contains(editClass) ? finishEdit(elem, removeEmpty) : startEdit(elem));
+function makeEditable(elem, callback, removeEmpty = false) {
+    elem.setAttribute('contenteditable', 'true');
+    //const editClass = 'editing';
 
-    // max one field editable at a time
-    elem.addEventListener('blur', () => finishEdit(this, removeEmpty));
+    if (callback) elem.addEventListener('blur', callback);
 
     // allow multiline entries
     elem.addEventListener('keydown', (e) => {
@@ -305,23 +308,6 @@ function makeEditable(elem, removeEmpty = false, callback) {
             finishEdit(elem);
         }
     });
-
-    function startEdit(elem) {
-        elem.contentEditable = true;
-        elem.classList.add(editClass);
-        elem.focus();
-        setCaretAtEnd(elem);
-    }
-
-    function finishEdit(elem, removeEmpty = false) {
-        // TODO: now duplicate; handle card removal in callback
-        // new
-        if (callback) elem.addEventListener('blur', callback);
-        // old
-        elem.contentEditable = false;
-        elem.classList.remove(editClass);
-        if (removeEmpty && elem.textContent.trim().length == 0) elem.remove();
-    }
 
     // TODO: changing as textContent, this may not be necessary
     function insertBr() {
