@@ -191,7 +191,7 @@ class Card {
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
         // bind this to Card state not DOM element 
-        makeEditable(card, this.update.bind(this), true);
+        makeEditable(card, this.update.bind(this));
         return card;
     }
 
@@ -287,52 +287,43 @@ function createElement(tagName, attributes = {}, text = '') {
     return element;
 };
 
-function makeEditable(elem, callback, removeEmpty = false) {
+function makeEditable(elem, cbFinishEdit) {
     elem.setAttribute('contenteditable', 'true');
     //const editClass = 'editing';
 
-    if (callback) elem.addEventListener('blur', callback);
+    elem.addEventListener('blur', cbFinishEdit);
 
-    // allow multiline entries
     elem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (e.shiftKey) {
                 // finalize editing by removing focus
-                finishEdit(elem);
+                cbFinishEdit();
             } else {
                 e.preventDefault();
                 insertBr();
             }
         }
         if (e.key === 'Escape') {
-            finishEdit(elem);
+            cbFinishEdit();
         }
     });
 
-    // TODO: changing as textContent, this may not be necessary
     function insertBr() {
-        // insert new line br at cursor
-        console.log('BR');
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+    
+        const range = selection.getRangeAt(0);
+        range.deleteContents(); // Optional: clear selected content
         const br = document.createElement('br');
-        const range = window.getSelection().getRangeAt(0);
+        const zeroWidthSpace = document.createTextNode('\u200B');
+        range.insertNode(zeroWidthSpace);
         range.insertNode(br);
-        range.setStartAfter(br);
-        range.setEndAfter(br);
-        // clear selection, set new range
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        br.parentElement.focus();
+        range.setStartAfter(zeroWidthSpace);
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 }
 
-/**
- * Add a long press listener for pointer and touch devices.
- * The method separates this from touch-move events. 
- * 
- * @param {Element} element 
- * @param {Function}} callback 
- * @param {number} duration 
- */
 function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
     let startX = 0;
@@ -371,11 +362,6 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-/**
- * Place the caret at the end of the element text.
- * 
- * @param {Element} element 
- */
 function setCaretAtEnd(element) {
     const range = document.createRange();
     const selection = window.getSelection();
