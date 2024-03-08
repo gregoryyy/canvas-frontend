@@ -1,299 +1,287 @@
-/*
- * load data and populate canvas
- */
-document.addEventListener('DOMContentLoaded', function () {
-    const params = new URLSearchParams(window.location.search);
-    //const model_id = params.get('id');
-    const model_file = params.get('model');
-    const loadedFile = (model_file != null) ? model_file : 'template';
+let app = undefined;
+let ctl = undefined;
+const canvasLsKey = 'canvas';
+const canvasStructure = 'preseed.json';
 
-    Promise.all([
-        fetch('preseed.json').then(response => response.json()),
-        fetch(`models/${loadedFile}.json`).then(response => response.json())
-    ]).then(([structure, content]) => {
+document.addEventListener('DOMContentLoaded', () => {
 
-        const precanvas = new PreCanvas(content.meta);
-        precanvas.render();
-        const canvas = new Canvas(structure);
-        canvas.render();
-        canvas.replaceContent(content.canvas);
-        const postcanvas = new PostCanvas(canvas, structure, content);
-        postcanvas.render();
-        postcanvas.computeScore();
+    const load = (contentFile) => {
+        contentFile ||= 'template';
+        Promise.all([
+            fetch(canvasStructure).then(res => res.json()),
+            fetch(`models/${contentFile}.json`).then(res => res.json())
+        ]).then(([structure, content]) => {
+            structure = sanitizeJSON(structure);
+            content = sanitizeJSON(content);
+            Application.create(structure, content);
+            Controls.create();
+        }).catch(error => console.error('Error setting up canvas:', error));
+    };
 
-        document.addEventListener('scoreChanged', () => {
-            postcanvas.computeScore();
-        });
-    }).catch(error => {
-        console.error('Error setting up canvas:', error);
-    });
+    load(new URLSearchParams(window.location.search).get('model'));
 });
 
+// implicit interface { update(); render(); clear(); } to sync DOM to state and back and clear content
+class Application {
 
-/**
- * The main Canvas that contains all cells
- */
-class Canvas {
-    /**
-     * Create canvas with data and scoring function
-     * 
-     * @param {JSON} data 
-     */
-    //TODO: scoring function should be 
-    constructor(data) {
-        this.cells = data.canvas.map(cellData => new Cell(cellData));
+    constructor(meta, canvas, analysis) {
+        Object.assign(this, { meta, canvas, analysis });
+        this.renderables = [meta, canvas, analysis];
     }
 
-    addCell(cell) {
-        this.cells.push(cell);
+    static create(structure, content) {
+        const meta = new PreCanvas(content.meta);
+        const canvas = new Canvas(structure, content);
+        const analysis = new PostCanvas(canvas, structure, content);
+        app = new Application(meta, canvas, analysis);
+        app.render(canvasStructure);
+        document.addEventListener('scoreChanged', () => {
+            analysis.computeScore();
+        });
+    }
+
+    update() { this.renderables.forEach(renderable => renderable.update()); }
+
+    render() { this.renderables.forEach(renderable => renderable.render()); }
+
+    clear() { this.renderables.forEach(renderable => renderable.clear()); }
+
+    serialize() { localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
+    
+    static blank() { ['precanvas', 'canvas', 'postcanvas'].forEach(id => document.getElementById(id).innerHTML = ''); }
+
+    static deserialize() {
+        const json = localStorage.getItem(canvasLsKey);
+        if (!json || json.length == 0) return;
+        //const content = JSON.parse(sanitizeJSON(json));
+        const content = JSON.parse(json);
+        fetch(canvasStructure)
+            .then(response => response.json())
+            .then(structure => {
+                Application.blank();
+                Application.create(structure, content)
+            })
+            .catch(error => console.error('Error loading canvas:', error));
+    }
+
+    static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
+
+    toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
+}
+
+class Controls {
+
+    static create() {
+        ctl = new Controls();
+        ctl.render();
     }
 
     render() {
-        const canvas = document.querySelector('.canvas');
-        this.cells.forEach(cell => {
-            canvas.appendChild(cell.render());
+        const ctlElem = document.getElementById('controls');
+        const buttons = [
+            ['lsload', 'Load LS', Application.deserialize],
+            ['lssave', 'Save LS', app.serialize.bind(app)],
+            ['lsclear', 'Clear LS', Application.clearLocalStorage],
+            ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
+        buttons.forEach(button => {
+            const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
+            ctlElem.appendChild(btn);
+            btn.addEventListener('click', button[2]);
+            // btn.addEventListener('click', () => {
+            //     this.classList.add('clicked');
+            //     setTimeout(() => this.classList.remove('clicked'), 500);
+            // });
         });
-        this.dom = canvas;
-        return canvas;
-    }
-
-    /**
-     * update all content of the cell, incl. all cards and score
-     * 
-     * @param {*} data 
-     */
-    replaceContent(data) {
-        data.forEach(cellData => {
-            let cell = this.findCellById(cellData.id);
-            if (cell) {
-                cell.replaceContent(cellData.content, cellData.score);
-            }
-        });
-    }
-
-    findCellById(id) {
-        // consider map id => cell
-        return this.cells.find(cell => cell.id === id);
     }
 }
 
-/**
- * A cell is a part of a Canvas
- */
+class Canvas {
+
+    constructor(structure, content) {
+        this.structure = structure;
+        this.content = content;
+        // INFO: assuming content is always stored in seq., then no need for indexes
+        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
+    }
+
+    update() { this.cells.forEach(cell => cell.updateState()); }
+
+    render() {
+        const el = document.getElementById('canvas');
+        el.innerHTML = '';
+        this.cells.forEach(cell => el.appendChild(cell.render()));
+    }
+
+    clear() { 
+        this.cells.forEach(cell => cell.clear()); 
+        app.analysis.computeScore();
+    }
+
+    toJSON() { return this.cells; }
+}
+
 class Cell {
-    /**
-     * Create cell from data
-     * 
-     * @param {json} cellData 
-     */
-    constructor(cellData) {
-        this.id = cellData.id;
-        this.title = cellData.title;
-        this.helptitle = cellData.subtitle;
-        this.helptext = cellData.description;
-        this.score = cellData.score;
-        this.cards = [];
+
+    constructor(index, structure, content) {
+        this.index = index;
+        this.id = structure.id;
+        this.title = structure.title;
+        this.helptitle = structure.subtitle;
+        this.helptext = structure.description;
+        this.hasScore = structure.score;
+        this.score = content.score;
+        this.cards = content.content.map(cardData => new Card(cardData));
     }
 
-    addCard(card) {
-        this.cards.push(card);
-    }
-
-    /**
-     * creates a new card
-     */
     createCard(cardContainerDiv) {
-        const name = newCardName(this.title);
-        const newCard = new Card(name);
-        this.addCard(newCard);
-        cardContainerDiv.appendChild(newCard.render());
-        // Optional: focus the new card for immediate editing
+        const name = 'New ' + trimPluralS(this.title);
+        const card = new Card(name);
+        this.cards.push(card);
+        cardContainerDiv.appendChild(card.render());
     }
 
-    /**
-     * Update all content of this card, incl. cards and score.
-     * @param {*} content list of text content
-     * @param {*} score numeric score
-     */
-    replaceContent(content, score) {
-        this.cards = [];
-        // TODO: store as fields
-        const cellDiv = document.getElementById(this.id);
-        if (cellDiv) {
-            const cardDiv = cellDiv.querySelector('.cell-card-container');
-            content.forEach(line => {
-                const card = new Card(line);
-                this.addCard(card);
-                cardDiv.appendChild(card.render());
-            });
+    removeCard(domIndex) {
+        const cellElem = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
+        const stateIndex = Array.from(cellElem.children).findIndex(cardDiv => cardDiv.getAttribute('data-index') === String(domIndex));
+        if (stateIndex !== -1) {
+            this.cards.splice(stateIndex, 1);
+            document.querySelector(`.card[data-index='${domIndex}']`).remove();
         }
+    }
 
-        this.score = score;
-        // TODO: auto-synchronize
-        const select = document.getElementById("score" + this.id);
-        if (select) {
-            select.value = score;
+    clear() {
+        const cardElems = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
+        cardElems.forEach(card => this.removeCard(card.getAttribute('data-index')));
+        if (this.hasScore === "yes") {
+            const x = document.querySelector(`.cell[data-index='${this.index}'] select`);
+            x.value = 0;
+            this.score = 0;
         }
+    }
+
+    update() {
+        const cards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
+        // assert cards.length == this.cards.lenth
+        cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
+        if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
     }
 
     render() {
-        const cellDiv = document.createElement('div');
-        cellDiv.className = 'cell';
-        cellDiv.id = this.id;
-
-        const cellTitle = document.createElement('div');
-        cellTitle.classList.add('cell-title-container');
-
-        const titleH3 = document.createElement('h3');
-        titleH3.classList.add('cell-title');
-        titleH3.textContent = this.title;
+        const cellDiv = createElement('div', { class: "cell", id: this.id, 'data-index': this.index });
+        const cellTitle = createElement('div', { class: "cell-title-container" });
+        const titleH3 = createElement('h3', { class: "cell-title" }, this.title);
         cellTitle.appendChild(titleH3);
-
-        if (this.score === "yes") {
-            this.addScoringDropdown(cellTitle);
-        }
-
         cellDiv.appendChild(cellTitle);
 
-        // hover help on title
+        if (this.hasScore === "yes") this.addScoringDropdown(cellTitle);
         this.addHelpOverlay(titleH3);
 
-
-        // populate with cards
-        const cardContainerDiv = document.createElement('div');
-        cardContainerDiv.className = 'cell-card-container';
+        const cardContainerDiv = createElement('div', { class: 'cell-card-container' });
         cellDiv.appendChild(cardContainerDiv);
+        this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
-        this.cards.forEach(card => {
-            cardContainerDiv.appendChild(card.render());
-        });
-
-        this.dom = cellDiv;
         this.makeBgClickable(cardContainerDiv);
+        cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
         return cellDiv;
     }
 
-    addHelpOverlay(parentElement) {
-        const helpDiv = document.createElement('div');
-        helpDiv.classList.add('hover-help');
-        if (this.helptitle) {
-            const helptitle = document.createElement('h4');
-            helptitle.textContent = this.helptitle;
-            helpDiv.appendChild(helptitle);
-        }
-        if (this.helptext) {
-            const helptext = document.createElement('p');
-            helptext.textContent = this.helptext;
-            helpDiv.appendChild(helptext);
-        }
-        parentElement.appendChild(helpDiv);
+    addHelpOverlay(parent) {
+        const helpDiv = createElement('div', { class: 'hover-help' });
+        if (this.helptitle) helpDiv.appendChild(createElement('h4', {}, this.helptitle));
+        if (this.helptext) helpDiv.appendChild(createElement('p', {}, this.helptext));
+        parent.appendChild(helpDiv);
 
-        const hoverHelp = (elem) => {
-            helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';
-        }
-
-        parentElement.addEventListener('dblclick', function () {
-            hoverHelp();
-        });
-
-        addLongPressListener(parentElement, hoverHelp);
+        const hoverHelp = elem => helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';
+        parent.addEventListener('dblclick', hoverHelp);
+        addLongPressListener(parent, hoverHelp);
     }
 
-    /**
-     * Scoring dropdown in this cell
-     * 
-     * @param {Element} parentElement 
-     */
-    addScoringDropdown(parentElement) {
-        const select = document.createElement('select');
-        select.id = "score" + this.id;
-        select.className = 'scoring-dropdown';
-        for (let i = 0; i <= 5; i++) {
-            let option = document.createElement('option');
-            option.value = i;
-            option.text = i === 0 ? "-" : i;
-            select.appendChild(option);
-        }
-        select.addEventListener('change', (event) => {
-            this.score = event.target.value;
+    addScoringDropdown(parent) {
+        const select = createElement('select', { id: "score" + this.id, class: 'scoring-dropdown' });
+        Array.from({ length: 6 }, (_, i) => select.appendChild(createElement('option', { value: i }, i === 0 ? "-" : i)));
+        select.value = this.score;
+        select.addEventListener('change', event => {
+            this.score = select.value;
             document.dispatchEvent(new CustomEvent('scoreChanged'));
         });
-        parentElement.appendChild(select);
+        parent.appendChild(select);
     }
 
     makeBgClickable(cardContainerDiv) {
-
-        // Existing render code...
-        cardContainerDiv.addEventListener('dblclick', (e) => {
-            if (e.target === cardContainerDiv) { // Ensures the container itself was clicked
-                this.createCard(cardContainerDiv);
-            }
-        });
-
-        addLongPressListener(cardContainerDiv, () => {
-            this.createCard(cardContainerDiv);
-        });
-
-        // Ensure the container is always clickable
-        cardContainerDiv.style.minHeight = '50px'; // Example minimum height
-        cardContainerDiv.style.cursor = 'pointer'; // Change cursor on hover
-        // Existing render code continues...
+        cardContainerDiv.addEventListener('dblclick', e => e.target === cardContainerDiv ? this.createCard(cardContainerDiv) : undefined);
+        addLongPressListener(cardContainerDiv, () => this.createCard(cardContainerDiv));
+        cardContainerDiv.style.minHeight = '50px';
+        cardContainerDiv.style.cursor = 'pointer';
     }
+
+    // TODO: handle id and comment
+    toJSON() { return { content: this.cards, score: this.score }; }
 }
 
-/**
- * a card is an object in a cell
- */
 class Card {
-    constructor(text, id = -1) {
+
+    static count = 0;
+
+    constructor(text) {
         this.text = text;
-        this.id = id;
+        this.index = Card.count++;
+    }
+
+    update() {
+        // global indexing
+        const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
+        if (cardElem) this.text = sanitize(cardElem.textContent);
+        if (!this.text.trim()) {
+            cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        }
     }
 
     render() {
-        const card = document.createElement('div');
-        card.textContent = this.text;
-        card.classList.add('card');
-
-        this.dom = card;
-        makeEditable(card, 'card-editing', true);
+        const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
+        // bind this to Card state not DOM element 
+        makeEditable(card, this.update.bind(this));
         return card;
     }
+
+    toJSON() { return this.text; }
 }
 
-/**
- * PreCanvas displays meta information about the canvas
- */
 class PreCanvas {
+
     constructor(data) {
         this.title = data.title;
         this.content = data.description;
     }
 
+    update() {
+        const metaDiv = document.getElementById('precanvas');
+        app.meta.title = sanitize(metaDiv.querySelector('h2').textContent);
+        app.meta.description = sanitize(metaDiv.querySelector('p').textContent);
+    }
+
     render() {
-        const metaDiv = document.querySelector('.precanvas');
-        const title = document.createElement('h2');
-        title.textContent = this.title;
-        makeEditable(title, 'editing');
-        const description = document.createElement('p');
-        description.textContent = this.content;
-        makeEditable(description, 'editing');
+        const metaDiv = document.getElementById('precanvas');
+        const title = createElement('h2', {}, this.title);
+        makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
+        const description = createElement('p', {}, this.content);
+        makeEditable(description, () => app.meta.description = sanitize(description.textContent));
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
+
+
+    clear() {
+        document.getElementById('precanvas').innerHTML = '';
+        this.title = 'Company name';
+        this.content = 'Description';
+        this.render();
+    }
+
+    toJSON() { return { title: this.title, description: this.content }; }
 }
 
-/**
- * PostCanvas contains analysis from a Canvas and additional data
- */
 class PostCanvas {
 
-    /**
-     * 
-     * @param {Canvas} canvas 
-     * @param {JSON} structure 
-     * @param {JSON} content 
-     */
     constructor(canvas, structure, content) {
         this.title = 'Analysis';
         this.content = content.analysis.content;
@@ -303,40 +291,32 @@ class PostCanvas {
         this.scoreSpan = document.querySelector('span.score-total');
     }
 
-    render() {
+    update() {
+        const metaDiv = document.getElementById('postcanvas');
+        app.analysis.title = sanitize(metaDiv.querySelector('h3').textContent);
+        app.analysis.description = sanitize(metaDiv.querySelector('p').textContent);
+    }
 
-        const anaDiv = document.querySelector('.postcanvas');
-        const cellTitle = document.createElement('div');
-        cellTitle.classList.add('cell-title-container');
-        const titleH3 = document.createElement('h3');
-        titleH3.classList.add('cell-title');
-        titleH3.textContent = this.title;
+    render() {
+        const anaDiv = document.getElementById('postcanvas');
+        const cellTitle = createElement('div', { class: 'cell-title-container' });
+        const titleH3 = createElement('h3', { class: 'cell-title' }, this.title);
         cellTitle.appendChild(titleH3);
         anaDiv.appendChild(cellTitle);
 
         if (this.total) {
             this.scoreSpan = this.addScorer(cellTitle);
-            // score compute later due to async load
+            this.computeScore();
         }
 
-        this.content.forEach(paragraphText => {
-            const paragraph = document.createElement('p');
-            paragraph.textContent = paragraphText;
-            anaDiv.appendChild(paragraph);
-            makeEditable(anaDiv, 'editing', false, paragraph);
-        });
+        const paragraph = createElement('p', {}, this.content);
+        makeEditable(paragraph, () => app.analysis.content = sanitize(paragraph.textContent));
+        anaDiv.appendChild(paragraph);
     }
 
-    // TODO: this is hardcoded and should be read from the file
     addScorer(parentElement) {
-        const scoreLabel = document.createElement('h3');
-        scoreLabel.className = 'score-total-label';
-        scoreLabel.textContent = 'Score:';
-        parentElement.appendChild(scoreLabel);
-        const score = document.createElement('span');
-        score.className = 'score-total';
-        var num = 0.0;
-        score.textContent = num.toFixed(1);
+        parentElement.appendChild(createElement('h3', { class: 'score-total-label' }, 'Score'));
+        const score = createElement('span', { class: 'score-total' }, 0..toFixed(1));
         parentElement.appendChild(score);
         return score;
     }
@@ -344,7 +324,6 @@ class PostCanvas {
     computeScore() {
         const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
 
-        // Apply the specific formula
         // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
         let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
         let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
@@ -356,96 +335,61 @@ class PostCanvas {
         return total;
     }
 
+    clear() {
+        document.getElementById('postcanvas').innerHTML = '';
+        this.content = 'Analysis';
+        this.render();
+    }
+
+    toJSON() { return { content: this.content }; }
 }
 
 /* static functions */
 
-/**
- * Toggle standard editing mode on element
- * 
- * @param {elem} elem dom element doubleclicked
- * @param {string} editclass the class label while editing
- * @param {boolean} removeEmpty true if element should be removed if empty
- * @param {string} editelem dom element made editable
- */
-function makeEditable(elem, editclass, removeEmpty = false, editelem = null) {
-    elem.addEventListener('dblclick', function () {
-        el = editelem != null ? editelem : this;
-        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
-    });
+function createElement(tagName, attributes = {}, text = '') {
+    const element = document.createElement(tagName);
+    Object.keys(attributes).forEach(key => element.setAttribute(key, attributes[key]));
+    if (text) element.textContent = text;
+    return element;
+};
 
-    addLongPressListener(elem, function () {
-        el = editelem != null ? editelem : elem;
-        el.classList.contains(editclass) ? finishEdit(el, removeEmpty) : startEdit(el);
-    });
+function makeEditable(elem, cbFinishEdit) {
+    elem.setAttribute('contenteditable', 'true');
+    //const editClass = 'editing';
 
-    // max one field editable at a time
-    elem.addEventListener('blur', function () {
-        el = editelem != null ? editelem : this;
-        finishEdit(el, removeEmpty);
-    });
+    elem.addEventListener('blur', cbFinishEdit);
 
-    // allow multiline entries
-    el = editelem != null ? editelem : elem;
-    el.addEventListener('keydown', (e) => {
+    elem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (e.shiftKey) {
                 // finalize editing by removing focus
-                finishEdit(el);
+                cbFinishEdit();
             } else {
                 e.preventDefault();
                 insertBr();
             }
         }
         if (e.key === 'Escape') {
-            finishEdit(el);
+            cbFinishEdit();
         }
     });
 
-    function startEdit(elem) {
-        elem.contentEditable = true;
-        elem.classList.add(editclass);
-        elem.focus();
-        setCaretAtEnd(elem);
-    }
-
-    /**
-     * Finish editing
-     * 
-     * @param {} elem element being editable
-     * @param {} removeEmpty remove if empty string
-     */
-    function finishEdit(elem, removeEmpty = false) {
-        elem.contentEditable = false;
-        elem.classList.remove(editclass);
-        if (removeEmpty && elem.textContent.trim().length == 0) {
-            elem.remove();
-        }
-    }
-
     function insertBr() {
-        // insert new line br at cursor
-        console.log('BR');
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        range.deleteContents(); // Optional: clear selected content
         const br = document.createElement('br');
-        const range = window.getSelection().getRangeAt(0);
+        const zeroWidthSpace = document.createTextNode('\u200B');
+        range.insertNode(zeroWidthSpace);
         range.insertNode(br);
-        range.setStartAfter(br);
-        range.setEndAfter(br);
-        // clear selection, set new range
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        br.parentElement.focus();
+        range.setStartAfter(zeroWidthSpace);
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 }
 
-/**
- * Add a long press listener for pointer and touch devices.
- * The method separates this from touch-move events. 
- * 
- * @param {Element} element 
- * @param {Function}} callback 
- * @param {number} duration 
- */
 function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
     let startX = 0;
@@ -470,9 +414,7 @@ function addLongPressListener(element, callback, duration = 500) {
         let newY = event.type === 'touchmove' ? event.touches[0].pageY : event.pageY;
 
         // Calculate the distance moved
-        if (Math.abs(newX - startX) > 10 || Math.abs(newY - startY) > 10) {
-            cancel();
-        }
+        if (Math.abs(newX - startX) > 10 || Math.abs(newY - startY) > 10) cancel();
     };
 
     // Attach listeners
@@ -486,35 +428,36 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-/**
- * Places the caret at the end of the element text.
- * 
- * @param {Element} element 
- */
 function setCaretAtEnd(element) {
     const range = document.createRange();
     const selection = window.getSelection();
     range.selectNodeContents(element);
-    range.collapse(false); // false to collapse the range to its end
+    range.collapse(false);
     selection.removeAllRanges();
     selection.addRange(range);
-    element.focus(); // Finally, focus the element to ensure cursor visibility
+    element.focus();
 }
 
-/**
- * create card with name in singular
- * 
- * @param {string} name 
- */
-function newCardName(name) {
-    var s = "New " + name;
-    if (s.endsWith('ss'))
-        return s;
-    // chop off the plural s
-    if (s.endsWith('s'))
-        return s.substring(0, s.length - 1);
-    return s;
+function sanitize(text) {
+    // TODO: sanitize using DOMPurify etc.
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '`': '&#x60;', '=': '&#x3D;' };
+    return text.replace(/[&<>"'`=]/g, m => map[m]);
+}
 
+function sanitizeJSON(value) {
+    if (typeof value === 'string') return sanitize(value);
+    else if (Array.isArray(value)) return value.map(sanitizeJSON);
+    else if (typeof value === 'object' && value !== null) {
+        const sanitizedObject = {};
+        for (const key in value) sanitizedObject[key] = sanitizeJSON(value[key]);
+        return sanitizedObject;
+    } else return value;
+}
+
+function trimPluralS(s) {
+    if (s.endsWith('ss')) return s;
+    if (s.endsWith('s')) return s.substring(0, s.length - 1);
+    return s;
 }
 
 

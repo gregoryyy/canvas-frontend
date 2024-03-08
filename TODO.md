@@ -3,6 +3,17 @@
 > @author Gregor Heinrich
 > @date 20240214  originally created 2023
 
+# refactoring
+
+* changes:
+  * CSS simplification --> class to id ok
+  * initial render --> no replacecontent ok
+* concepts from simple2: 
+  * data attrs --> for cells
+  * event delegation
+  * targeted DOM updates ok
+  * adaptive DOM manipulation ok
+
 # TODOs
 
 TODOs with A: are high-priority
