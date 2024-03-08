@@ -87,10 +87,10 @@ class Controls {
             const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
             ctlElem.appendChild(btn);
             btn.addEventListener('click', button[2]);
-            // btn.addEventListener('click', () => {
-            //     this.classList.add('clicked');
-            //     setTimeout(() => this.classList.remove('clicked'), 500);
-            // });
+            btn.addEventListener('click', () => {
+                btn.classList.add('clicked');
+                setTimeout(() => btn.classList.remove('clicked'), 500);
+            });
         });
     }
 }
