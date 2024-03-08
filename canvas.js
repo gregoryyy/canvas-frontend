@@ -1,24 +1,27 @@
 let app = undefined;
+let ctl = undefined;
+const canvasLsKey = 'canvas';
+const canvasStructure = 'preseed.json';
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const load = (contentFile) => {
         contentFile ||= 'template';
         Promise.all([
-            fetch('preseed.json').then(res => res.json()),
+            fetch(canvasStructure).then(res => res.json()),
             fetch(`models/${contentFile}.json`).then(res => res.json())
         ]).then(([structure, content]) => {
             structure = sanitizeJSON(structure);
-            content = sanitizeJSON(content)
+            content = sanitizeJSON(content);
             Application.create(structure, content);
+            Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
 
     load(new URLSearchParams(window.location.search).get('model'));
 });
 
-
-// implicit interface { update(); render(); } to sync DOM to state and back
+// implicit interface { update(); render(); clear(); } to sync DOM to state and back and clear content
 class Application {
 
     constructor(meta, canvas, analysis) {
@@ -31,36 +34,65 @@ class Application {
         const canvas = new Canvas(structure, content);
         const analysis = new PostCanvas(canvas, structure, content);
         app = new Application(meta, canvas, analysis);
-        app.render();
+        app.render(canvasStructure);
         document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
     }
 
-    update() {
-        this.renderables.forEach(renderable => renderable.update());
+    update() { this.renderables.forEach(renderable => renderable.update()); }
+
+    render() { this.renderables.forEach(renderable => renderable.render()); }
+
+    clear() { this.renderables.forEach(renderable => renderable.clear()); }
+
+    serialize() { localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
+    
+    static blank() { ['precanvas', 'canvas', 'postcanvas'].forEach(id => document.getElementById(id).innerHTML = ''); }
+
+    static deserialize() {
+        const json = localStorage.getItem(canvasLsKey);
+        if (!json || json.length == 0) return;
+        //const content = JSON.parse(sanitizeJSON(json));
+        const content = JSON.parse(json);
+        fetch(canvasStructure)
+            .then(response => response.json())
+            .then(structure => {
+                Application.blank();
+                Application.create(structure, content)
+            })
+            .catch(error => console.error('Error loading canvas:', error));
+    }
+
+    static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
+
+    toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
+}
+
+class Controls {
+
+    static create() {
+        ctl = new Controls();
+        ctl.render();
     }
 
     render() {
-        this.renderables.forEach(renderable => renderable.render());
+        const ctlElem = document.getElementById('controls');
+        const buttons = [
+            ['lsload', 'Load LS', Application.deserialize],
+            ['lssave', 'Save LS', app.serialize.bind(app)],
+            ['lsclear', 'Clear LS', Application.clearLocalStorage],
+            ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
+        buttons.forEach(button => {
+            const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
+            ctlElem.appendChild(btn);
+            btn.addEventListener('click', button[2]);
+            // btn.addEventListener('click', () => {
+            //     this.classList.add('clicked');
+            //     setTimeout(() => this.classList.remove('clicked'), 500);
+            // });
+        });
     }
-
-    serialize() {
-        localStorage.setItem('canvas', JSON.stringify(this));
-    }
-
-    static deserialize() {
-        const json = localStorage.getItem('canvas');
-        if (!json) return;
-        content = JSON.parse(sanitizeJSON(json));
-        fetch('preseed.json')
-            .then(response => response.json())
-            .then(structure => {
-                init(structure, content);
-            }).catch(error => console.error('Error loading canvas:', error));
-    }
-
-    toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
 }
 
 class Canvas {
@@ -72,14 +104,17 @@ class Canvas {
         this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
     }
 
-    update() {
-        this.cells.forEach(cell => cell.updateState());
-    }
+    update() { this.cells.forEach(cell => cell.updateState()); }
 
     render() {
         const el = document.getElementById('canvas');
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
+    }
+
+    clear() { 
+        this.cells.forEach(cell => cell.clear()); 
+        app.analysis.computeScore();
     }
 
     toJSON() { return this.cells; }
@@ -114,8 +149,18 @@ class Cell {
         }
     }
 
+    clear() {
+        const cardElems = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
+        cardElems.forEach(card => this.removeCard(card.getAttribute('data-index')));
+        if (this.hasScore === "yes") {
+            const x = document.querySelector(`.cell[data-index='${this.index}'] select`);
+            x.value = 0;
+            this.score = 0;
+        }
+    }
+
     update() {
-        const cards = document.querySelectorAll(`.cell[data-index=${this.index}] > .cell-card-container > .card`);
+        const cards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
         // assert cards.length == this.cards.lenth
         cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
         if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
@@ -155,7 +200,10 @@ class Cell {
         const select = createElement('select', { id: "score" + this.id, class: 'scoring-dropdown' });
         Array.from({ length: 6 }, (_, i) => select.appendChild(createElement('option', { value: i }, i === 0 ? "-" : i)));
         select.value = this.score;
-        select.addEventListener('change', event => document.dispatchEvent(new CustomEvent('scoreChanged')));
+        select.addEventListener('change', event => {
+            this.score = select.value;
+            document.dispatchEvent(new CustomEvent('scoreChanged'));
+        });
         parent.appendChild(select);
     }
 
@@ -220,6 +268,16 @@ class PreCanvas {
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
+
+
+    clear() {
+        document.getElementById('precanvas').innerHTML = '';
+        this.title = 'Company name';
+        this.content = 'Description';
+        this.render();
+    }
+
+    toJSON() { return { title: this.title, description: this.content }; }
 }
 
 class PostCanvas {
@@ -276,6 +334,14 @@ class PostCanvas {
 
         return total;
     }
+
+    clear() {
+        document.getElementById('postcanvas').innerHTML = '';
+        this.content = 'Analysis';
+        this.render();
+    }
+
+    toJSON() { return { content: this.content }; }
 }
 
 /* static functions */
@@ -311,7 +377,7 @@ function makeEditable(elem, cbFinishEdit) {
     function insertBr() {
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
-    
+
         const range = selection.getRangeAt(0);
         range.deleteContents(); // Optional: clear selected content
         const br = document.createElement('br');

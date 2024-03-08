@@ -230,8 +230,8 @@ div.cell>p,
     flex-shrink: 1;
 }
 
-.editing {
-    background-color: #f44;
+.clicked {
+    background-color: #ccc;
     white-space: pre-wrap;
 }
 
@@ -241,6 +241,20 @@ div.cell>p,
 
 p.hint {
     font-size: 0.8em;
+}
+
+#controls {
+    display: flex;
+    flex-direction: row;
+}
+
+.control {
+    border: 1px solid black;
+    font-size: 0.8em;
+    text-align: center;
+    width: 80px;
+    margin: 2px;
+    cursor: pointer;
 }
 
 /* mobile menu */
