@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             structure = sanitizeJSON(structure);
             content = sanitizeJSON(content);
             Application.create(structure, content);
+            app.check();
             Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
@@ -47,19 +48,20 @@ class Application {
     clear() { this.renderables.forEach(renderable => renderable.clear()); }
 
     serialize() { localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
-    
+
     static blank() { ['precanvas', 'canvas', 'postcanvas'].forEach(id => document.getElementById(id).innerHTML = ''); }
 
     static deserialize() {
         const json = localStorage.getItem(canvasLsKey);
         if (!json || json.length == 0) return;
-        //const content = JSON.parse(sanitizeJSON(json));
+        // const content = JSON.parse(sanitizeJSON(json));
         const content = JSON.parse(json);
         fetch(canvasStructure)
             .then(response => response.json())
             .then(structure => {
                 Application.blank();
-                Application.create(structure, content)
+                Application.create(structure, content);
+                app.check();
             })
             .catch(error => console.error('Error loading canvas:', error));
     }
@@ -67,6 +69,9 @@ class Application {
     static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
+
+    // simple consistency test on cells
+    check() { this.canvas.cells.forEach(cell => cell.check()); }
 }
 
 class Controls {
@@ -112,8 +117,8 @@ class Canvas {
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
 
-    clear() { 
-        this.cells.forEach(cell => cell.clear()); 
+    clear() {
+        this.cells.forEach(cell => cell.clear());
         app.analysis.computeScore();
     }
 
@@ -144,8 +149,10 @@ class Cell {
         const cellElem = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
         const stateIndex = Array.from(cellElem.children).findIndex(cardDiv => cardDiv.getAttribute('data-index') === String(domIndex));
         if (stateIndex !== -1) {
+            lg(`>--> remove entry with state index ${stateIndex}, state entries ${this.cards.length}`);
             this.cards.splice(stateIndex, 1);
             document.querySelector(`.card[data-index='${domIndex}']`).remove();
+            lg(`-->| removed state entries ${this.cards.length}`);
         }
     }
 
@@ -214,8 +221,24 @@ class Cell {
         cardContainerDiv.style.cursor = 'pointer';
     }
 
-    // TODO: handle id and comment
-    toJSON() { return { content: this.cards, score: this.score }; }
+    // TODO: handle comment
+    toJSON() { return { id: this.id, content: this.cards, score: this.score }; }
+
+    check() {
+        const domCards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
+        const stateCards = this.cards;
+        if (domCards.length !== stateCards.length)
+            throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
+        Array.from(domCards).forEach((elem, index) => {
+            if (elem.textContent.trim() !== this.cards[index].text.trim())
+                throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
+                    `!= state.card ${index}: ${stateCards[index].text.trim()}`);
+        });
+        if (this.hasScore) {
+            const score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
+            if (score !== this.score) throw new Error(`Cell ${this.index}: dom.score: ${score} != state.score: ${this.score}`);
+        }
+    }
 }
 
 class Card {
@@ -231,12 +254,15 @@ class Card {
         // global indexing
         const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
         if (cardElem) this.text = sanitize(cardElem.textContent);
+        lg(`dom id ${this.index}: ${this.text}`);
         if (!this.text.trim()) {
+            lg(`--> remove card with dom id ${this.index}`);
             cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
         }
     }
 
     render() {
+        lg(`${this.text}`);
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
         // bind this to Card state not DOM element 
         makeEditable(card, this.update.bind(this));
@@ -268,7 +294,6 @@ class PreCanvas {
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
-
 
     clear() {
         document.getElementById('precanvas').innerHTML = '';
@@ -460,4 +485,14 @@ function trimPluralS(s) {
     return s;
 }
 
+function lg(message) {
+    const stack = new Error().stack;
+    const stackLines = stack.split("\n");
+    const callerLine = stackLines[2]; // Assuming logWithDetails is not wrapped
+    const functionNameMatch = callerLine.match(/at (\S+)/);
+    const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
+    //const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
+    //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
+    console.log(`${message} - ${functionName}()`);
+}
 
