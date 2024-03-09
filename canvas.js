@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
             structure = sanitizeJSON(structure);
             content = sanitizeJSON(content);
             Application.create(structure, content);
-            app.check();
             Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
@@ -39,6 +38,7 @@ class Application {
         document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
+        app.check();
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
@@ -54,14 +54,13 @@ class Application {
     static deserialize() {
         const json = localStorage.getItem(canvasLsKey);
         if (!json || json.length == 0) return;
-        // const content = JSON.parse(sanitizeJSON(json));
-        const content = JSON.parse(json);
+        const content = JSON.parse(sanitizeJSON(json));
+        //const content = JSON.parse(json);
         fetch(canvasStructure)
             .then(response => response.json())
             .then(structure => {
                 Application.blank();
                 Application.create(structure, content);
-                app.check();
             })
             .catch(error => console.error('Error loading canvas:', error));
     }
@@ -133,7 +132,7 @@ class Cell {
         this.title = structure.title;
         this.helptitle = structure.subtitle;
         this.helptext = structure.description;
-        this.hasScore = structure.score;
+        this.hasScore = structure.score === "yes";
         this.score = content.score;
         this.cards = content.content.map(cardData => new Card(cardData));
     }
@@ -149,17 +148,15 @@ class Cell {
         const cellElem = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
         const stateIndex = Array.from(cellElem.children).findIndex(cardDiv => cardDiv.getAttribute('data-index') === String(domIndex));
         if (stateIndex !== -1) {
-            lg(`>--> remove entry with state index ${stateIndex}, state entries ${this.cards.length}`);
             this.cards.splice(stateIndex, 1);
             document.querySelector(`.card[data-index='${domIndex}']`).remove();
-            lg(`-->| removed state entries ${this.cards.length}`);
         }
     }
 
     clear() {
         const cardElems = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
         cardElems.forEach(card => this.removeCard(card.getAttribute('data-index')));
-        if (this.hasScore === "yes") {
+        if (this.hasScore) {
             const x = document.querySelector(`.cell[data-index='${this.index}'] select`);
             x.value = 0;
             this.score = 0;
@@ -168,9 +165,9 @@ class Cell {
 
     update() {
         const cards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
-        // assert cards.length == this.cards.lenth
+        // assert cards.length == this.cards.length
         cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
-        if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
+        if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index='${this.index}'] .scoring-dropdown`).value;
     }
 
     render() {
@@ -180,7 +177,7 @@ class Cell {
         cellTitle.appendChild(titleH3);
         cellDiv.appendChild(cellTitle);
 
-        if (this.hasScore === "yes") this.addScoringDropdown(cellTitle);
+        if (this.hasScore) this.addScoringDropdown(cellTitle);
         this.addHelpOverlay(titleH3);
 
         const cardContainerDiv = createElement('div', { class: 'cell-card-container' });
@@ -235,8 +232,9 @@ class Cell {
                     `!= state.card ${index}: ${stateCards[index].text.trim()}`);
         });
         if (this.hasScore) {
-            const score = document.querySelector(`.cell[data-index=${this.index}] .scoring-dropdown`).value;
-            if (score !== this.score) throw new Error(`Cell ${this.index}: dom.score: ${score} != state.score: ${this.score}`);
+            const score = document.querySelector(`.cell[data-index='${this.index}'] .scoring-dropdown`).value;
+            if (score !== String(this.score))
+                throw new Error(`Cell ${this.index}: dom.score: ${score} != state.score: ${this.score}`);
         }
     }
 }
@@ -254,15 +252,12 @@ class Card {
         // global indexing
         const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
         if (cardElem) this.text = sanitize(cardElem.textContent);
-        lg(`dom id ${this.index}: ${this.text}`);
         if (!this.text.trim()) {
-            lg(`--> remove card with dom id ${this.index}`);
             cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
         }
     }
 
     render() {
-        lg(`${this.text}`);
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
         // bind this to Card state not DOM element 
         makeEditable(card, this.update.bind(this));
@@ -464,9 +459,10 @@ function setCaretAtEnd(element) {
 }
 
 function sanitize(text) {
-    // TODO: sanitize using DOMPurify etc.
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '`': '&#x60;', '=': '&#x3D;' };
-    return text.replace(/[&<>"'`=]/g, m => map[m]);
+    return DOMPurify.sanitize(text);
+    // return text.replace(/[&<>"'`=]/g, ch => ({
+    //     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '`': '&#x60;', '=': '&#x3D;'
+    // })[ch]);
 }
 
 function sanitizeJSON(value) {
