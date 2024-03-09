@@ -14,14 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
             structure = sanitizeJSON(structure);
             content = sanitizeJSON(content);
             app = Application.create(structure, content);
-            Controls.create();
+            ctl = Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
 
     load(new URLSearchParams(window.location.search).get('model'));
 });
 
-// implicit interface { update(); render(); clear(); } to sync DOM to state and back and clear content
+// implicit interface { update(); render(); rerender(); clear(); } 
+// to sync DOM to state, initial rendering, sync state to DOM and clear content
 class Application {
 
     constructor(meta, canvas, analysis) {
@@ -42,29 +43,39 @@ class Application {
         return newApp;
     }
 
+    repopulate(content) {
+        this.clear();
+        this.content = content;
+        this.meta.title = content.meta.title;
+        this.meta.description = content.meta.description;
+        content.canvas.forEach((cell, index) => {
+            const ccell = this.canvas.cells[index];
+            ccell.cards = content.canvas[index].content.map(text => new Card(text));
+            if (cell.hasScore === 'yes') ccell.score = cell.score;
+        });
+        this.analysis.content = content.analysis.content;
+    }
+
     update() { this.renderables.forEach(renderable => renderable.update()); }
 
     render() { this.renderables.forEach(renderable => renderable.render()); }
 
+    rerender() { this.renderables.forEach(renderable => renderable.rerender()); }
+
     clear() { this.renderables.forEach(renderable => renderable.clear()); }
 
-    serialize() { 
+    saveToLs() {
         this.check();
-        localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
+        localStorage.setItem(canvasLsKey, JSON.stringify(this));
+    }
 
-    static blank() { ['precanvas', 'canvas', 'postcanvas'].forEach(id => document.getElementById(id).innerHTML = ''); }
-
-    static deserialize() {
+    loadFromLs() {
         const json = localStorage.getItem(canvasLsKey);
         if (!json || json.length == 0) return;
         const content = JSON.parse(sanitizeJSON(json));
-        fetch(canvasStructure)
-            .then(response => response.json())
-            .then(structure => {
-                Application.blank();
-                app = Application.create(structure, content);
-            })
-            .catch(error => console.error('Error loading canvas:', error));
+        this.repopulate(content);
+        this.rerender();
+        this.check();
     }
 
     static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
@@ -78,15 +89,16 @@ class Application {
 class Controls {
 
     static create() {
-        ctl = new Controls();
-        ctl.render();
+        const newCtl = new Controls();
+        newCtl.render();
+        return newCtl;
     }
 
     render() {
         const ctlElem = document.getElementById('controls');
         const buttons = [
-            ['lsload', 'Load LS', Application.deserialize],
-            ['lssave', 'Save LS', app.serialize.bind(app)],
+            ['lsload', 'Load LS', app.loadFromLs.bind(app)],
+            ['lssave', 'Save LS', app.saveToLs.bind(app)],
             ['lsclear', 'Clear LS', Application.clearLocalStorage],
             ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
         buttons.forEach(button => {
@@ -117,6 +129,8 @@ class Canvas {
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
+
+    rerender() { this.cells.forEach(cell => cell.rerender()); }
 
     clear() {
         this.cells.forEach(cell => cell.clear());
@@ -221,6 +235,13 @@ class Cell {
         cardContainerDiv.style.cursor = 'pointer';
     }
 
+    rerender() {
+        // repopulates this cell
+        const cardContainerDiv = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
+        cardContainerDiv.innerHTML = '';
+        this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
+    }
+
     // TODO: handle comment
     toJSON() { return { id: this.id, content: this.cards, score: this.score }; }
 
@@ -267,6 +288,9 @@ class Card {
         return card;
     }
 
+    rerender() { /* done in cell */ }
+
+
     toJSON() { return this.text; }
 }
 
@@ -291,6 +315,11 @@ class PreCanvas {
         makeEditable(description, () => app.meta.description = sanitize(description.textContent), this.updateState);
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
+    }
+
+    rerender() {
+        document.querySelector(`#precanvas h2`).textContent = this.title;
+        document.querySelector(`#precanvas p`).textContent = this.description;
     }
 
     clear() {
@@ -336,6 +365,8 @@ class PostCanvas {
         makeEditable(paragraph, () => app.analysis.content = sanitize(paragraph.textContent));
         anaDiv.appendChild(paragraph);
     }
+
+    rerender() { document.querySelector(`#postcanvas p`).textContent = this.content; }
 
     addScorer(parentElement) {
         parentElement.appendChild(createElement('h3', { class: 'score-total-label' }, 'Score'));
@@ -422,25 +453,18 @@ function addLongPressListener(element, callback, duration = 500) {
         // For touch events, use the first touch point
         startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
         startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
-
         if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
         timerId = setTimeout(() => callback(element), duration);
     };
 
-    const cancel = () => {
-        clearTimeout(timerId);
-    };
+    const cancel = () => { clearTimeout(timerId); };
 
     const move = (event) => {
-        // Determine the new position
         let newX = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
         let newY = event.type === 'touchmove' ? event.touches[0].pageY : event.pageY;
-
-        // Calculate the distance moved
         if (Math.abs(newX - startX) > 10 || Math.abs(newY - startY) > 10) cancel();
     };
 
-    // Attach listeners
     element.addEventListener('mousedown', start);
     element.addEventListener('touchstart', start, { passive: true });
     element.addEventListener('mouseup', cancel);
