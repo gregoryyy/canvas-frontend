@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]).then(([structure, content]) => {
             structure = sanitizeJSON(structure);
             content = sanitizeJSON(content);
-            Application.create(structure, content);
+            app = Application.create(structure, content);
             Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
@@ -33,12 +33,13 @@ class Application {
         const meta = new PreCanvas(content.meta);
         const canvas = new Canvas(structure, content);
         const analysis = new PostCanvas(canvas, structure, content);
-        app = new Application(meta, canvas, analysis);
-        app.render(canvasStructure);
+        const newApp = new Application(meta, canvas, analysis);
+        newApp.render(canvasStructure);
         document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
-        app.check();
+        newApp.check();
+        return newApp;
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
@@ -47,7 +48,9 @@ class Application {
 
     clear() { this.renderables.forEach(renderable => renderable.clear()); }
 
-    serialize() { localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
+    serialize() { 
+        this.check();
+        localStorage.setItem(canvasLsKey, JSON.stringify(this)); }
 
     static blank() { ['precanvas', 'canvas', 'postcanvas'].forEach(id => document.getElementById(id).innerHTML = ''); }
 
@@ -55,12 +58,11 @@ class Application {
         const json = localStorage.getItem(canvasLsKey);
         if (!json || json.length == 0) return;
         const content = JSON.parse(sanitizeJSON(json));
-        //const content = JSON.parse(json);
         fetch(canvasStructure)
             .then(response => response.json())
             .then(structure => {
                 Application.blank();
-                Application.create(structure, content);
+                app = Application.create(structure, content);
             })
             .catch(error => console.error('Error loading canvas:', error));
     }
@@ -118,6 +120,7 @@ class Canvas {
 
     clear() {
         this.cells.forEach(cell => cell.clear());
+        Card.count = 0;
         app.analysis.computeScore();
     }
 
@@ -271,7 +274,7 @@ class PreCanvas {
 
     constructor(data) {
         this.title = data.title;
-        this.content = data.description;
+        this.description = data.description;
     }
 
     update() {
@@ -284,8 +287,8 @@ class PreCanvas {
         const metaDiv = document.getElementById('precanvas');
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
-        const description = createElement('p', {}, this.content);
-        makeEditable(description, () => app.meta.description = sanitize(description.textContent));
+        const description = createElement('p', {}, this.description);
+        makeEditable(description, () => app.meta.description = sanitize(description.textContent), this.updateState);
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
@@ -293,11 +296,11 @@ class PreCanvas {
     clear() {
         document.getElementById('precanvas').innerHTML = '';
         this.title = 'Company name';
-        this.content = 'Description';
+        this.description = 'Description';
         this.render();
     }
 
-    toJSON() { return { title: this.title, description: this.content }; }
+    toJSON() { return { title: this.title, description: this.description }; }
 }
 
 class PostCanvas {
@@ -448,22 +451,7 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-function setCaretAtEnd(element) {
-    const range = document.createRange();
-    const selection = window.getSelection();
-    range.selectNodeContents(element);
-    range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    element.focus();
-}
-
-function sanitize(text) {
-    return DOMPurify.sanitize(text);
-    // return text.replace(/[&<>"'`=]/g, ch => ({
-    //     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;', '`': '&#x60;', '=': '&#x3D;'
-    // })[ch]);
-}
+function sanitize(text) { return DOMPurify.sanitize(text); }
 
 function sanitizeJSON(value) {
     if (typeof value === 'string') return sanitize(value);

@@ -6,13 +6,19 @@
 # refactoring
 
 * changes:
-  * CSS simplification --> class to id ok
-  * initial render --> no replacecontent ok
+  * CSS simplification --> class to id DONE
+  * initial render --> no replacecontent DONE
 * concepts from simple2: 
-  * data attrs --> for cells
-  * event delegation
-  * targeted DOM updates ok
-  * adaptive DOM manipulation ok
+  * data attrs --> for cells DONE
+  * event delegation --> not needed
+  * targeted DOM updates DONE
+  * adaptive DOM manipulation DONE
+* storage bugs:
+  * BUG save not working after load
+    * v0 save/load v0 change v1 save v0 => bug
+    * v0 save v0 change v1 save v1 change v2 save v2 change v3 --> ok
+    * v0 save v0 change v1 clear load v1 save v-1 => bug
+  * BUG meta.description not stored FIXED
 
 # TODOs
 
@@ -20,17 +26,17 @@ TODOs with A: are high-priority
 
 * General Design:
   * A: Data management:
-    * DOM always updated to system state
+    * DOM always updated to system state DONE
     * How to do auto-updates
-  * UX harmonized with conventions (dblclick etc.)
-  * Style adjusted, e.g., using tailwindcss.com
-  * Background
+  * UX harmonized with conventions (dblclick etc.) DONE
+  * Style adjusted, e.g., using tailwindcss.com --> not needed
+  * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings
 * Canvas:
   * List available
-  * Load from JSON
-  * Save to JSON
+  * Load from JSON --> localstorage DONE
+  * Save to JSON --> localstorage DONE
   * Download/upload from file
   * Versioning
   * Different canvas types
@@ -45,13 +51,12 @@ TODOs with A: are high-priority
   * A: Remove card DONE
   * Card types in different colors
   * Drag cards up and down
-  * Consider TinyMCE as card editor
-  * BUG: Double Enter when editing first time
+  * Consider TinyMCE as card editor --> not needed
+  * BUG: Double Enter when editing first time FIXED
 * Precanvas:
-  * Load from instance not preseed.json
+  * Load from instance not preseed.json DONE
 * Postcanvas:
-  * BUG: Compute score always is 0
-  * Compute score from 
+  * BUG: Compute score always is 0 FIXED
   * Visualize partial scores (radar plot etc.)
   * 2 cells with Analysis and Scores
 
