@@ -51,7 +51,7 @@ class Application {
         content.canvas.forEach((cell, index) => {
             const ccell = this.canvas.cells[index];
             ccell.cards = content.canvas[index].content.map(text => new Card(text));
-            if (cell.hasScore === 'yes') ccell.score = cell.score;
+            if (ccell.hasScore) ccell.score = cell.score;
         });
         this.analysis.content = content.analysis.content;
     }
@@ -118,7 +118,7 @@ class Canvas {
     constructor(structure, content) {
         this.structure = structure;
         this.content = content;
-        // INFO: assuming content is always stored in seq., then no need for indexes
+        // INFO: assuming content is always stored in seq., then no need for cell ids
         this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
     }
 
@@ -154,6 +154,11 @@ class Cell {
         this.cards = content.content.map(cardData => new Card(cardData));
     }
 
+    // dom elements; TODO: cardsElem and scoreElem fixed after render()
+    cardsElem = () => document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
+    cardElems = () => document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container .card`);
+    scoreElem = () => document.querySelector(`.cell[data-index='${this.index}'] select.scoring-dropdown`);
+
     createCard(cardContainerDiv) {
         const name = 'New ' + trimPluralS(this.title);
         const card = new Card(name);
@@ -162,8 +167,8 @@ class Cell {
     }
 
     removeCard(domIndex) {
-        const cellElem = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
-        const stateIndex = Array.from(cellElem.children).findIndex(cardDiv => cardDiv.getAttribute('data-index') === String(domIndex));
+        const stateIndex = Array.from(this.cardsElem().children).findIndex(cardDiv =>
+            cardDiv.getAttribute('data-index') === String(domIndex));
         if (stateIndex !== -1) {
             this.cards.splice(stateIndex, 1);
             document.querySelector(`.card[data-index='${domIndex}']`).remove();
@@ -171,20 +176,16 @@ class Cell {
     }
 
     clear() {
-        const cardElems = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
-        cardElems.forEach(card => this.removeCard(card.getAttribute('data-index')));
+        this.cardElems().forEach(card => this.removeCard(card.getAttribute('data-index')));
         if (this.hasScore) {
-            const x = document.querySelector(`.cell[data-index='${this.index}'] select`);
-            x.value = 0;
+            this.scoreElem().value = 0;
             this.score = 0;
         }
     }
 
     update() {
-        const cards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
-        // assert cards.length == this.cards.length
-        cards.forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
-        if (this.hasScore) app.canvas.cells[this.index].score = document.querySelector(`.cell[data-index='${this.index}'] .scoring-dropdown`).value;
+        this.cardElems().forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
+        if (this.hasScore) app.canvas.cells[this.index].score = this.scoreElem().value;
     }
 
     render() {
@@ -236,17 +237,17 @@ class Cell {
     }
 
     rerender() {
-        // repopulates this cell
-        const cardContainerDiv = document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
+        const cardContainerDiv = this.cardsElem();
         cardContainerDiv.innerHTML = '';
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
+        if (this.hasScore) this.scoreElem().value = this.score;
     }
 
     // TODO: handle comment
     toJSON() { return { id: this.id, content: this.cards, score: this.score }; }
 
     check() {
-        const domCards = document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container > .card`);
+        const domCards = this.cardElems();
         const stateCards = this.cards;
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
@@ -256,7 +257,7 @@ class Cell {
                     `!= state.card ${index}: ${stateCards[index].text.trim()}`);
         });
         if (this.hasScore) {
-            const score = document.querySelector(`.cell[data-index='${this.index}'] .scoring-dropdown`).value;
+            const score = this.scoreElem().value;
             if (score !== String(this.score))
                 throw new Error(`Cell ${this.index}: dom.score: ${score} != state.score: ${this.score}`);
         }
@@ -283,7 +284,7 @@ class Card {
 
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
-        // bind this to Card state not DOM element 
+        // bind this to Card state not DOM element
         makeEditable(card, this.update.bind(this));
         return card;
     }
@@ -416,7 +417,6 @@ function makeEditable(elem, cbFinishEdit) {
     elem.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (e.shiftKey) {
-                // finalize editing by removing focus
                 cbFinishEdit();
             } else {
                 e.preventDefault();
@@ -433,7 +433,8 @@ function makeEditable(elem, cbFinishEdit) {
         if (!selection.rangeCount) return;
 
         const range = selection.getRangeAt(0);
-        range.deleteContents(); // Optional: clear selected content
+        // optional: clear selected content
+        range.deleteContents();
         const br = document.createElement('br');
         const zeroWidthSpace = document.createTextNode('\u200B');
         range.insertNode(zeroWidthSpace);
@@ -450,7 +451,7 @@ function addLongPressListener(element, callback, duration = 500) {
     let startY = 0;
 
     const start = (event) => {
-        // For touch events, use the first touch point
+        // first touch point
         startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
         startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
         if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
@@ -496,7 +497,7 @@ function trimPluralS(s) {
 function lg(message) {
     const stack = new Error().stack;
     const stackLines = stack.split("\n");
-    const callerLine = stackLines[2]; // Assuming logWithDetails is not wrapped
+    const callerLine = stackLines[2];
     const functionNameMatch = callerLine.match(/at (\S+)/);
     const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
     //const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
