@@ -13,11 +13,12 @@
   * event delegation --> not needed
   * targeted DOM updates DONE
   * adaptive DOM manipulation DONE
-* storage bugs:
-  * BUG save not working after load
+* storage bugs FIXED:
+  * BUG save not working after load FIXED
     * v0 save/load v0 change v1 save v0 => bug
     * v0 save v0 change v1 save v1 change v2 save v2 change v3 --> ok
     * v0 save v0 change v1 clear load v1 save v-1 => bug
+    * 
   * BUG meta.description not stored FIXED
 
 # TODOs
@@ -30,6 +31,7 @@ TODOs with A: are high-priority
     * How to do auto-updates
   * UX harmonized with conventions (dblclick etc.) DONE
   * Style adjusted, e.g., using tailwindcss.com --> not needed
+  * Formatted card content
   * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings
