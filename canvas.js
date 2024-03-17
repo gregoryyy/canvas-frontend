@@ -1,4 +1,4 @@
-import { FileUploader } from './upload.js';
+// import { FileUploader } from './upload.js';
 
 let app = undefined;
 let ctl = undefined;
@@ -32,6 +32,7 @@ class Application {
         this.renderables = [meta, canvas, analysis];
     }
 
+    // TODO: make singleton
     static create(structure, content) {
         const meta = new PreCanvas(content.meta);
         const canvas = new Canvas(structure, content);
@@ -94,6 +95,7 @@ class Application {
 
 class Controls {
 
+    // TODO: make singleton
     static create() {
         const newCtl = new Controls();
         newCtl.render();
@@ -102,13 +104,21 @@ class Controls {
 
     render() {
         const ctlElem = document.getElementById('controls');
+        
+        // TODO: from config
+        const host = "localhost";
+        const port = "8080";
+
+        ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
+        const fileUploader = new FileUploader(`https://${host}:${port}/upload/`, `wss://${host}:${port}/ws/`);
+        fileUploader.initFileInput('#fileInput');
 
         const buttons = [
             ['lsload', 'Load LS', app.loadFromLs.bind(app)],
             ['lssave', 'Save LS', app.saveToLs.bind(app)],
             ['lsclear', 'Clear LS', Application.clearLocalStorage],
             ['cvclear', 'Clear Canvas', app.clear.bind(app)],
-            ['upload', 'Upload File', fileInput.click]];
+            ['upload', 'Upload File', () => document.getElementById('fileInput').click()]];
         buttons.forEach(button => {
             const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
             ctlElem.appendChild(btn);
@@ -119,23 +129,6 @@ class Controls {
             });
         });
 
-        // TODO: from config
-        const fileUploader = new FileUploader('/upload', 'wss://localhost/ws');
-        fileUploader.initFileInput('#fileInput');
-        fileUploader.connectWebSocket();
-    }
-
-    async uploadFile(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        // server upload
-        const response = await fetch('/uploadfile/', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) throw new Error('Server responded with an error.');
-        return response.json();
     }
 }
 

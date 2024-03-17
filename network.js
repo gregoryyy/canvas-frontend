@@ -1,12 +1,10 @@
-export class FileUploader;
-
 // events sent: uploadsuccess, uploadmsg, uploaderror
 class FileUploader {
 
     // URLs for file upload (POST) and websocket notifications (wss://)
     constructor(uploadUrl, wsUrl) {
         this.uploadUrl = uploadUrl;
-        this.wsUrl = wsUrl; 
+        this.ws = WebSock.create(wsUrl);
     }
 
     initFileInput(fileElemId) {
@@ -34,15 +32,53 @@ class FileUploader {
             document.dispatchEvent(new CustomEvent('uploaderror', { detail: error }));
         }
     }
+}
 
-    connectWebSocket() {
-        this.socket = new WebSocket(this.wsUrl);
+class WebSock {
+
+    static instance = undefined;
+
+    // TODO: from config
+    maxReconAttempts = 2;
+    reconDelay = 5000;
+
+    constructor(wsUrl) {
+        this.wsUrl = wsUrl;
+        this.reconnectionAttempts = 0;
+    }
+
+    // singleton
+    static create(wsUrl) {
+        WebSock.instance = WebSock.instance || new WebSock(wsUrl);
+        WebSock.instance.connect();
+        return WebSock.instance;
+    }
+
+    connect() {
+        this.socket = new window.WebSocket(this.wsUrl);
+
         this.socket.onopen = () => console.log("WebSocket is open now.");
 
         this.socket.onmessage = event => {
             console.log("WebSocket message received:", event.data);
             document.dispatchEvent(new CustomEvent('uploadmsg', { detail: event.data }));
         }
+
         this.socket.onerror = error => console.error("WebSocket error:", error);
+
+        this.socket.onclose = event => {
+            console.log("WebSocket is closed now.", event.reason);
+            this.reconnect();
+        };
+    }
+
+    reconnect() {
+        if (this.reconnectionAttempts < this.maxReconAttempts) {
+            setTimeout(() => {
+                console.log(`Attempting to reconnect... (Attempt ${this.reconnectionAttempts + 1})`);
+                this.connect();
+                this.reconnectionAttempts++;
+            }, this.reconDelay);
+        } else console.log("Giving up. Max WebSocket reconnection attempts reached.");
     }
 }

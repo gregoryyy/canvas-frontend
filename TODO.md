@@ -18,7 +18,6 @@
     * v0 save/load v0 change v1 save v0 => bug
     * v0 save v0 change v1 save v1 change v2 save v2 change v3 --> ok
     * v0 save v0 change v1 clear load v1 save v-1 => bug
-    * 
   * BUG meta.description not stored FIXED
 
 # TODOs
@@ -28,7 +27,7 @@ TODOs with A: are high-priority
 * General Design:
   * A: Data management:
     * DOM always updated to system state DONE
-    * How to do auto-updates
+    * How to do auto-updates --> on every change or every minute
   * UX harmonized with conventions (dblclick etc.) DONE
   * Style adjusted, e.g., using tailwindcss.com --> not needed
   * Formatted card content
@@ -36,10 +35,11 @@ TODOs with A: are high-priority
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings
 * Canvas:
-  * List available
+  * List available --> branch v1_1_2_multi_canvas
   * Load from JSON --> localstorage DONE
   * Save to JSON --> localstorage DONE
-  * Download/upload from file
+  * Download/upload from file --> branch v1_1_2_upload
+    * inluding server: /devel/canvas-backend
   * Versioning
   * Different canvas types
 * Cells:
