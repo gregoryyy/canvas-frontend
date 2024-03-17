@@ -106,11 +106,12 @@ class Controls {
         const ctlElem = document.getElementById('controls');
         
         // TODO: from config
+        const tls = false;
         const host = "localhost";
-        const port = "8080";
-
+        const [port, sec] = tls ? ["8443", "s"] : ["8080", ""];
+        
         ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
-        const fileUploader = new FileUploader(`https://${host}:${port}/upload/`, `wss://${host}:${port}/ws/`);
+        const fileUploader = new FileUploader(`http${sec}://${host}:${port}/upload/`, `ws${sec}://${host}:${port}/ws/`);
         fileUploader.initFileInput('#fileInput');
 
         const buttons = [
@@ -128,7 +129,6 @@ class Controls {
                 setTimeout(() => btn.classList.remove('clicked'), 500);
             });
         });
-
     }
 }
 

@@ -26,7 +26,7 @@ class FileUploader {
             if (!response.ok) throw new Error('Server responded with an error.');
             console.log('Upload successful');
             document.dispatchEvent(new CustomEvent('uploadsuccess', { detail: file }));
-            this.socket.send('client: upload done');
+            this.ws.socket.send('client: upload done');
         } catch (error) {
             console.error('Error uploading file:', error);
             document.dispatchEvent(new CustomEvent('uploaderror', { detail: error }));
