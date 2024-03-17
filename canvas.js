@@ -1,3 +1,5 @@
+import { FileUploader } from './upload.js';
+
 let app = undefined;
 let ctl = undefined;
 const canvasLsKey = 'canvas';
@@ -78,6 +80,10 @@ class Application {
         this.check();
     }
 
+    loadFromFile() {
+        // this is called from the server
+    }
+
     static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
@@ -96,11 +102,13 @@ class Controls {
 
     render() {
         const ctlElem = document.getElementById('controls');
+
         const buttons = [
             ['lsload', 'Load LS', app.loadFromLs.bind(app)],
             ['lssave', 'Save LS', app.saveToLs.bind(app)],
             ['lsclear', 'Clear LS', Application.clearLocalStorage],
-            ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
+            ['cvclear', 'Clear Canvas', app.clear.bind(app)],
+            ['upload', 'Upload File', fileInput.click]];
         buttons.forEach(button => {
             const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
             ctlElem.appendChild(btn);
@@ -110,6 +118,24 @@ class Controls {
                 setTimeout(() => btn.classList.remove('clicked'), 500);
             });
         });
+
+        // TODO: from config
+        const fileUploader = new FileUploader('/upload', 'wss://localhost/ws');
+        fileUploader.initFileInput('#fileInput');
+        fileUploader.connectWebSocket();
+    }
+
+    async uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        // server upload
+        const response = await fetch('/uploadfile/', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) throw new Error('Server responded with an error.');
+        return response.json();
     }
 }
 
@@ -290,7 +316,6 @@ class Card {
     }
 
     rerender() { /* done in cell */ }
-
 
     toJSON() { return this.text; }
 }
