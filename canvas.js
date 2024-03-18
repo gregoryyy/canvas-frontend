@@ -268,29 +268,50 @@ class Card {
 
     static count = 0;
 
-    constructor(text) {
-        this.text = text;
+    // type is optional
+    constructor(text, type = undefined) {
         this.index = Card.count++;
+        this.type = type;
+        this.setTypeAndText(sanitize(text));
     }
+
+    cardElem = () => document.querySelector(`.card[data-index='${this.index}']`);
 
     update() {
         // global indexing
-        const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
-        if (cardElem) this.text = sanitize(cardElem.textContent);
-        if (!this.text.trim()) {
-            cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
-        }
+        const cardElem = this.cardElem();
+        if (!cardElem) return;
+        this.setTypeAndText(sanitize(cardElem.textContent));
+        this.rerender();
+        if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
     }
 
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
-        // bind this to Card state not DOM element
+        if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
         return card;
     }
 
-    rerender() { /* done in cell */ }
+    rerender() {
+        const cardElem = this.cardElem();
+        cardElem.textContent = this.text;
+        cardElem.className = 'card';
+        if (this.type) cardElem.classList.add(this.type);
+    }
 
+    setTypeAndText(text) {
+        const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':-': undefined };
+        const trimmed = text.trim();
+        for (const [cmd, type] of Object.entries(cardtypes)) {
+            if (trimmed.startsWith(cmd)) {
+                this.text = trimmed.substring(2).trim();
+                this.type = type;
+                return;
+            }
+        }
+        this.text = trimmed;
+    }
 
     toJSON() { return this.text; }
 }
