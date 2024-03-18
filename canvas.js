@@ -50,7 +50,7 @@ class Application {
         this.meta.description = content.meta.description;
         content.canvas.forEach((cell, index) => {
             const ccell = this.canvas.cells[index];
-            ccell.cards = content.canvas[index].content.map(text => new Card(text));
+            ccell.cards = content.canvas[index].cards.map(card => new Card(card.content, card.type));
             if (ccell.hasScore) ccell.score = cell.score;
         });
         this.analysis.content = content.analysis.content;
@@ -151,7 +151,7 @@ class Cell {
         this.helptext = structure.description;
         this.hasScore = structure.score === "yes";
         this.score = content.score;
-        this.cards = content.content.map(cardData => new Card(cardData));
+        this.cards = content.cards.map(card => new Card(card.content, card.type));
     }
 
     // dom elements; TODO: cardsElem and scoreElem fixed after render()
@@ -244,7 +244,7 @@ class Cell {
     }
 
     // TODO: handle comment
-    toJSON() { return { id: this.id, content: this.cards, score: this.score }; }
+    toJSON() { return { id: this.id, cards: this.cards, score: this.score }; }
 
     check() {
         const domCards = this.cardElems();
@@ -313,7 +313,7 @@ class Card {
         this.text = trimmed;
     }
 
-    toJSON() { return this.text; }
+    toJSON() { return { content: this.text, type: this.type }; }
 }
 
 class PreCanvas {
