@@ -3,91 +3,91 @@
         "title": "New Startup",
         "description": "Description.",
         "canvas": "Preseed Canvas v0.1",
-        "version": "0.1",
+        "version": "0.2",
         "date": "20240219"
     },
     "canvas": [
         {
             "id": 1,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 2,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 3,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 4,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 5,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 6,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 7,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 8,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 9,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 10,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 11,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 12,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 13,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         },
         {
             "id": 14,
-            "content": [],
+            "cards": [],
             "score": 0,
             "comment": ""
         }

@@ -230,6 +230,10 @@ div.cell>p,
     flex-shrink: 1;
 }
 
+.card.comment { background-color: #aaa; }
+.card.query { background-color: #dff; }
+.card.analysis { background-color: #fdd; }
+
 .clicked {
     background-color: #ccc;
     white-space: pre-wrap;

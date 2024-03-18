@@ -50,7 +50,7 @@ class Application {
         this.meta.description = content.meta.description;
         content.canvas.forEach((cell, index) => {
             const ccell = this.canvas.cells[index];
-            ccell.cards = content.canvas[index].content.map(text => new Card(text));
+            ccell.cards = content.canvas[index].cards.map(card => new Card(card.content, card.type));
             if (ccell.hasScore) ccell.score = cell.score;
         });
         this.analysis.content = content.analysis.content;
@@ -151,7 +151,7 @@ class Cell {
         this.helptext = structure.description;
         this.hasScore = structure.score === "yes";
         this.score = content.score;
-        this.cards = content.content.map(cardData => new Card(cardData));
+        this.cards = content.cards.map(card => new Card(card.content, card.type));
     }
 
     // dom elements; TODO: cardsElem and scoreElem fixed after render()
@@ -244,7 +244,7 @@ class Cell {
     }
 
     // TODO: handle comment
-    toJSON() { return { id: this.id, content: this.cards, score: this.score }; }
+    toJSON() { return { id: this.id, cards: this.cards, score: this.score }; }
 
     check() {
         const domCards = this.cardElems();
@@ -268,31 +268,52 @@ class Card {
 
     static count = 0;
 
-    constructor(text) {
-        this.text = text;
+    // type is optional
+    constructor(text, type = undefined) {
         this.index = Card.count++;
+        this.type = type;
+        this.setTypeAndText(sanitize(text));
     }
+
+    cardElem = () => document.querySelector(`.card[data-index='${this.index}']`);
 
     update() {
         // global indexing
-        const cardElem = document.querySelector(`.card[data-index='${this.index}']`);
-        if (cardElem) this.text = sanitize(cardElem.textContent);
-        if (!this.text.trim()) {
-            cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
-        }
+        const cardElem = this.cardElem();
+        if (!cardElem) return;
+        this.setTypeAndText(sanitize(cardElem.textContent));
+        this.rerender();
+        if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
     }
 
     render() {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
-        // bind this to Card state not DOM element
+        if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
         return card;
     }
 
-    rerender() { /* done in cell */ }
+    rerender() {
+        const cardElem = this.cardElem();
+        cardElem.textContent = this.text;
+        cardElem.className = 'card';
+        if (this.type) cardElem.classList.add(this.type);
+    }
 
+    setTypeAndText(text) {
+        const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':-': undefined };
+        const trimmed = text.trim();
+        for (const [cmd, type] of Object.entries(cardtypes)) {
+            if (trimmed.startsWith(cmd)) {
+                this.text = trimmed.substring(2).trim();
+                this.type = type;
+                return;
+            }
+        }
+        this.text = trimmed;
+    }
 
-    toJSON() { return this.text; }
+    toJSON() { return { content: this.text, type: this.type }; }
 }
 
 class PreCanvas {
@@ -398,110 +419,3 @@ class PostCanvas {
 
     toJSON() { return { content: this.content }; }
 }
-
-/* static functions */
-
-function createElement(tagName, attributes = {}, text = '') {
-    const element = document.createElement(tagName);
-    Object.keys(attributes).forEach(key => element.setAttribute(key, attributes[key]));
-    if (text) element.textContent = text;
-    return element;
-};
-
-function makeEditable(elem, cbFinishEdit) {
-    elem.setAttribute('contenteditable', 'true');
-    //const editClass = 'editing';
-
-    elem.addEventListener('blur', cbFinishEdit);
-
-    elem.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            if (e.shiftKey) {
-                cbFinishEdit();
-            } else {
-                e.preventDefault();
-                insertBr();
-            }
-        }
-        if (e.key === 'Escape') {
-            cbFinishEdit();
-        }
-    });
-
-    function insertBr() {
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        const range = selection.getRangeAt(0);
-        // optional: clear selected content
-        range.deleteContents();
-        const br = document.createElement('br');
-        const zeroWidthSpace = document.createTextNode('\u200B');
-        range.insertNode(zeroWidthSpace);
-        range.insertNode(br);
-        range.setStartAfter(zeroWidthSpace);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-}
-
-function addLongPressListener(element, callback, duration = 500) {
-    let timerId = null;
-    let startX = 0;
-    let startY = 0;
-
-    const start = (event) => {
-        // first touch point
-        startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
-        startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
-        if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
-        timerId = setTimeout(() => callback(element), duration);
-    };
-
-    const cancel = () => { clearTimeout(timerId); };
-
-    const move = (event) => {
-        let newX = event.type === 'touchmove' ? event.touches[0].pageX : event.pageX;
-        let newY = event.type === 'touchmove' ? event.touches[0].pageY : event.pageY;
-        if (Math.abs(newX - startX) > 10 || Math.abs(newY - startY) > 10) cancel();
-    };
-
-    element.addEventListener('mousedown', start);
-    element.addEventListener('touchstart', start, { passive: true });
-    element.addEventListener('mouseup', cancel);
-    element.addEventListener('mouseleave', cancel);
-    element.addEventListener('touchend', cancel);
-    element.addEventListener('touchcancel', cancel);
-    element.addEventListener('mousemove', move);
-    element.addEventListener('touchmove', move, { passive: true });
-}
-
-function sanitize(text) { return DOMPurify.sanitize(text); }
-
-function sanitizeJSON(value) {
-    if (typeof value === 'string') return sanitize(value);
-    else if (Array.isArray(value)) return value.map(sanitizeJSON);
-    else if (typeof value === 'object' && value !== null) {
-        const sanitizedObject = {};
-        for (const key in value) sanitizedObject[key] = sanitizeJSON(value[key]);
-        return sanitizedObject;
-    } else return value;
-}
-
-function trimPluralS(s) {
-    if (s.endsWith('ss')) return s;
-    if (s.endsWith('s')) return s.substring(0, s.length - 1);
-    return s;
-}
-
-function lg(message) {
-    const stack = new Error().stack;
-    const stackLines = stack.split("\n");
-    const callerLine = stackLines[2];
-    const functionNameMatch = callerLine.match(/at (\S+)/);
-    const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
-    //const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
-    //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
-    console.log(`${message} - ${functionName}()`);
-}
-
