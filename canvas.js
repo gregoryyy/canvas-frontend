@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctl = Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
-
+    console.log('canvas started');
     load(new URLSearchParams(window.location.search).get('model'));
 });
 
@@ -158,6 +158,12 @@ class Cell {
     cardsElem = () => document.querySelector(`.cell[data-index='${this.index}'] > .cell-card-container`);
     cardElems = () => document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container .card`);
     scoreElem = () => document.querySelector(`.cell[data-index='${this.index}'] select.scoring-dropdown`);
+
+    // cell position is 0-based
+    cardIndex(cellPos) {
+        const cells = this.cardElems()[cellPos];
+        if (cellPos < cells.length) return cells[cellPos].getAttribute('index');
+    }
 
     createCard(cardContainerDiv) {
         const name = 'New ' + trimPluralS(this.title);
