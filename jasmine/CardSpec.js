@@ -10,11 +10,17 @@ describe("Card manipulations", function () {
     afterEach(function () { });
 
     it("edits a card", function () {
-        // edit a card cell 0, card 0
-        const globalIndex = app.canvas.cells[4].cardIndex(1);
-        // TODO
-        expect(0).toEqual(0);
-        // assert changes in the DOM
+        const cellIndex = 4;
+        const cardIndex = 1;
+        // edit a card
+        const elem = Card.indexElem(app.canvas.cells[cellIndex].cardIndex(cardIndex));
+        elem.dispatchEvent(new MouseEvent('click'));
+        elem.textContent = elem.textContent + ' Test';
+        // finish editing
+        elem('blur');
+        // assert changes in the state
+        const cardState = app.canvas.cells[cellIndex].cards[cardIndex];
+        expect(cardState).toMatch(new RegExp('.+ Test$'));
     });
 
     // it("removes a card", function () {
