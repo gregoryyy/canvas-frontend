@@ -1,25 +1,34 @@
 let app = undefined;
 let ctl = undefined;
+let conf = undefined;
 const canvasLsKey = 'canvas';
-const canvasStructure = 'preseed.json';
+const configFile = 'config.json';
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const load = (contentFile) => {
         contentFile ||= 'template';
         Promise.all([
-            fetch(canvasStructure).then(res => res.json()),
+            fetch(configFile).then(res => res.json()),
             fetch(`models/${contentFile}.json`).then(res => res.json())
-        ]).then(([structure, content]) => {
-            structure = sanitizeJSON(structure);
+        ]).then(([config, content]) => {
+            config = sanitizeJSON(config);
             content = sanitizeJSON(content);
-            app = Application.create(structure, content);
+            conf = Settings.create(config);
+            app = Application.create(config, content);
             ctl = Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
 
     load(new URLSearchParams(window.location.search).get('model'));
 });
+
+class Settings {
+
+    constructor(settings) { Object.assign(this, settings); }
+
+    static create(structure) { return conf || new Settings(structure.settings); }
+}
 
 // implicit interface { update(); render(); rerender(); clear(); } 
 // to sync DOM to state, initial rendering, sync state to DOM and clear content
@@ -35,7 +44,7 @@ class Application {
         const canvas = new Canvas(structure, content);
         const analysis = new PostCanvas(canvas, structure, content);
         const newApp = new Application(meta, canvas, analysis);
-        newApp.render(canvasStructure);
+        newApp.render(configFile);
         document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
@@ -388,8 +397,8 @@ class PostCanvas {
         anaDiv.appendChild(paragraph);
     }
 
-    rerender() { 
-        document.querySelector(`#postcanvas p`).textContent = this.content; 
+    rerender() {
+        document.querySelector(`#postcanvas p`).textContent = this.content;
         this.computeScore();
     }
 
