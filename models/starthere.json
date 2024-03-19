@@ -1,129 +1,201 @@
 {
     "meta": {
-        "title": "Startup name... ↔️ Edit title",
-        "description": "This company does x for y. The team has unique experience in z... ↔️ Edit summary",
+        "title": "Startup name... ➡️ Edit title",
+        "description": "This company does x for y. The team has unique experience in z... ➡️ Edit summary",
         "canvas": "Preseed Canvas v0.1",
-        "version": "0.1",
+        "version": "0.2",
         "date": "20240207"
     },
     "canvas": [
         {
             "id": 1,
-            "content": [
-                "Problem aspect 1",
-                "Problem aspect 2",
-                "⬆️ Double-click (or long-click) on a cell title to get its questions and definition"
+            "cards": [
+                {
+                    "content": "Problem aspect 1"
+                },
+                {
+                    "content": "Problem aspect 2"
+                },
+                {
+                    "content": "⬆️ Double-click (or long-click) on a cell title to get its questions and definition",
+                    "type": "comment"
+                }
             ],
             "score": 5,
-            "comment": ""
+            "comment": "A comment"
         },
         {
             "id": 2,
-            "content": [
-                "Solution aspect 1",
-                "Solution aspect 2",
-                "➡️ Click card to edit"
+            "cards": [
+                {
+                    "content": "Solution aspect 1"
+                },
+                {
+                    "content": "Solution aspect 2"
+                },
+                {
+                    "content": "➡️ Click card to edit",
+                    "type": "comment"
+                }
             ],
             "score": 3,
             "comment": ""
         },
         {
             "id": 3,
-            "content": [
-                "Product market fit",
-                "Ability to build"
+            "cards": [
+                {
+                    "content": "Product market fit"
+                },
+                {
+                    "content": "Ability to build"
+                }
             ],
             "score": 3,
             "comment": ""
         },
         {
             "id": 4,
-            "content": [
-                "Customer benefit 1",
-                "Customer benefit 2",
-                "↗️ Fill score on the upper right. Scale: unknown -, worst 1, best 5"
+            "cards": [
+                {
+                    "content": "Customer benefit 1"
+                },
+                {
+                    "content": "Customer benefit 2"
+                },
+                {
+                    "content": "↗️ Fill score on the upper right. Scale: unknown -, worst 1, best 5",
+                    "type": "comment"
+                }
             ],
             "score": 5,
             "comment": ""
         },
         {
             "id": 5,
-            "content": [
-                "Strategy 1",
-                "Strategy 2",
-                "➡️ Empty text to remove the card"
+            "cards": [
+                {
+                    "content": "Strategy 1"
+                },
+                {
+                    "content": "Strategy 2"
+                },
+                {
+                    "content": "➡️ Empty text to remove the card",
+                    "type": "comment"
+                }
             ],
             "score": 3,
             "comment": ""
         },
         {
             "id": 6,
-            "content": [
-                "Sales pipeline and conversion",
-                "Reasons to buy"
+            "cards": [
+                {
+                    "content": "Sales pipeline and conversion"
+                },
+                {
+                    "content": "Reasons to buy"
+                },
+                {
+                    "content": "➡️ Change card color: :?, :!, := or :- at beginning of card for query, comment, analysis, or default",
+                    "type": "comment"
+                }
             ],
             "score": 5,
             "comment": ""
         },
         {
             "id": 7,
-            "content": [
-                "Customer segment/persona 1",
-                "Customer segment/persona 2",
-                "⬇️ Double-click below last card in cell to add a new card"
+            "cards": [
+                {
+                    "content": "Customer segment/persona 1"
+                },
+                {
+                    "content": "Customer segment/persona 2"
+                },
+                {
+                    "content": "⬇️ Double-click below last card in cell to add a new card",
+                    "type": "comment"
+                }
             ],
             "score": 4,
             "comment": ""
         },
         {
             "id": 8,
-            "content": [
-                "Founders",
-                "Coachable?"
+            "cards": [
+                {
+                    "content": "Founders"
+                },
+                {
+                    "content": "Coachable?"
+                }
             ],
             "score": 4,
             "comment": ""
         },
         {
             "id": 9,
-            "content": [
-                "Market definition",
-                "Market size and growth"
+            "cards": [
+                {
+                    "content": "Market definition"
+                },
+                {
+                    "content": "Market size and growth"
+                }
             ],
             "score": 5,
             "comment": ""
         },
         {
             "id": 10,
-            "content": [
-                "Optional: Solution"
+            "cards": [
+                {
+                    "content": "Optional: Solution"
+                }
             ]
         },
         {
             "id": 11,
-            "content": [
-                "Moat",
-                "Unfair advantagee"
+            "cards": [
+                {
+                    "content": "Moat"
+                },
+                {
+                    "content": "Unfair advantage"
+                }
             ]
         },
         {
             "id": 12,
-            "content": [
-                "Optional: Lead user"
+            "cards": [
+                {
+                    "content": "Optional: Lead user"
+                }
             ]
         },
         {
             "id": 13,
-            "content": [
-                "Optional: Investors",
-                "⬇️ Use storage menu below to save, load and clear canvas"
+            "cards": [
+                {
+                    "content": "Optional: Investors"
+                },
+                {
+                    "content": "⬇️ Use storage menu below to save, load and clear canvas",
+                    "type": "comment"
+                }
             ]
         },
         {
             "id": 14,
-            "content": [
-                "Competitor 1",
-                "Competitor 2"
+            "cards": [
+                {
+                    "content": "Competitor 1"
+                },
+                {
+                    "content": "Competitor 2"
+                }
             ]
         }
     ],

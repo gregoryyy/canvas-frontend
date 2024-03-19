@@ -71,7 +71,12 @@
             <div id="postcanvas"></div>
             <p class="hint"><strong>Usage:</strong> Click (or tap) to interact with all parts of the canvas.
                 Single click to edit cards, texts and scores, double-click (or long-click) on cell headings to get help,
-                on a cell background to create a new card. Remove all text from a card to remove that card.
+                on a cell background to create a new card. Remove all text from a card to remove that card. Add commands
+                at beginning of the text: convert to...
+                <strong>:!</strong> comment,
+                <strong>:?</strong> question (later query),
+                <strong>:=</strong> analysis,
+                <strong>:-</strong> default.
             </p>
             <p class="hint"><strong>Storage:</strong> You can load and save the model to the browser's local storage
                 (LS). Note that the data are not automatically deleted, so be careful about sensitive information.
@@ -79,8 +84,9 @@
                 <span id="controls"></span>
             </p>
             <p class="hint"><strong>Design:</strong>
-                This application is client-only, planning later addition of custom AI backends to pre-analyze a pitch
-                deck, perform RAG background analysis and other use cases like generating investment briefs.
+                This application is client-only, currently working on custom AI backends to pre-analyze a pitch
+                deck, perform RAG background analysis, auto-scoring according to custom investment criteria and other
+                use cases like generating investment briefs. At this point, a strong privacy policy will be introduced.
                 It is a prototype to collect user feedback. Development was done using "junior coding" by an LLM,
                 realizing there needs to be a clear set of requirements and a high-level design as the LLM does not know
                 the bigger picture. This also reflects on how the pitch deck analyzer will be realistically used: as a
@@ -95,6 +101,7 @@
     <script src="../aurora.js"></script>
     <script src="network.js"></script>
     <script src="purfy.min.js"></script>
+    <script src="util.js"></script>
     <script src="canvas.js"></script>
 </body>
 

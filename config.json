@@ -1,4 +1,16 @@
 {
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "interval": "30"
+        }
+    },
     "meta": {
         "type": "Preseed Canvas",
         "version": "0.1",

@@ -3,45 +3,28 @@
 > @author Gregor Heinrich
 > @date 20240214  originally created 2023
 
-# refactoring
-
-* changes:
-  * CSS simplification --> class to id DONE
-  * initial render --> no replacecontent DONE
-* concepts from simple2: 
-  * data attrs --> for cells DONE
-  * event delegation --> not needed
-  * targeted DOM updates DONE
-  * adaptive DOM manipulation DONE
-* storage bugs FIXED:
-  * BUG save not working after load FIXED
-    * v0 save/load v0 change v1 save v0 => bug
-    * v0 save v0 change v1 save v1 change v2 save v2 change v3 --> ok
-    * v0 save v0 change v1 clear load v1 save v-1 => bug
-  * BUG meta.description not stored FIXED
-
 # TODOs
 
 TODOs with A: are high-priority
 
 * General Design:
-  * A: Data management:
+  * A: Data management: DONE v1.1
     * DOM always updated to system state DONE
-    * How to do auto-updates --> on every change or every minute
-  * UX harmonized with conventions (dblclick etc.) DONE
+    * How to do auto-updates --> timer
+  * UX harmonized with conventions (dblclick etc.) DONE v1.1
   * Style adjusted, e.g., using tailwindcss.com --> not needed
   * Formatted card content
   * Background DONE
   * Add long press as interaction DONE
-  * Multitab: Canvas, analysis, files, settings
+  * Multitab: Canvas, analysis, files, settings --> TODO v1_2_x
 * Canvas:
-  * List available --> branch v1_1_2_multi_canvas
+  * List available --> TODO v1_2_x
   * Load from JSON --> localstorage DONE
   * Save to JSON --> localstorage DONE
   * Download/upload from file --> branch v1_1_2_upload
     * inluding server: /devel/canvas-backend
   * Versioning
-  * Different canvas types
+  * Different canvas types --> v2
 * Cells:
   * Help overlay on title double click DONE
   * BUG: Only mobile allows single-click new cards FIXED
@@ -51,9 +34,9 @@ TODOs with A: are high-priority
   * A: Edit card DONE
   * A: Create card DONE
   * A: Remove card DONE
-  * Card types in different colors
-  * Drag cards up and down
-  * Consider TinyMCE as card editor --> not needed
+  * Card types in different colors --> v1_1_2_cardtypes
+  * Drag cards up and down --> v1_1_2_dnd
+  * Consider TinyMCE as card editor --> not needed yet
   * BUG: Double Enter when editing first time FIXED
 * Precanvas:
   * Load from instance not preseed.json DONE
