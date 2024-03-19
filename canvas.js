@@ -388,7 +388,10 @@ class PostCanvas {
         anaDiv.appendChild(paragraph);
     }
 
-    rerender() { document.querySelector(`#postcanvas p`).textContent = this.content; }
+    rerender() { 
+        document.querySelector(`#postcanvas p`).textContent = this.content; 
+        this.computeScore();
+    }
 
     addScorer(parentElement) {
         parentElement.appendChild(createElement('h3', { class: 'score-total-label' }, 'Score'));

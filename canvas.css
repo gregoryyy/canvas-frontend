@@ -230,7 +230,7 @@ div.cell>p,
     flex-shrink: 1;
 }
 
-.card.comment { background-color: #aaa; }
+.card.comment { background-color: #eee; }
 .card.query { background-color: #dff; }
 .card.analysis { background-color: #fdd; }
 

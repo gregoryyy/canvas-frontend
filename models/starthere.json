@@ -1,7 +1,7 @@
 {
     "meta": {
-        "title": "Startup name... ↔️ Edit title",
-        "description": "This company does x for y. The team has unique experience in z... ↔️ Edit summary",
+        "title": "Startup name... ➡️ Edit title",
+        "description": "This company does x for y. The team has unique experience in z... ➡️ Edit summary",
         "canvas": "Preseed Canvas v0.1",
         "version": "0.2",
         "date": "20240207"
@@ -17,7 +17,8 @@
                     "content": "Problem aspect 2"
                 },
                 {
-                    "content": "⬆️ Double-click (or long-click) on a cell title to get its questions and definition"
+                    "content": "⬆️ Double-click (or long-click) on a cell title to get its questions and definition",
+                    "type": "comment"
                 }
             ],
             "score": 5,
@@ -33,7 +34,8 @@
                     "content": "Solution aspect 2"
                 },
                 {
-                    "content": "➡️ Click card to edit"
+                    "content": "➡️ Click card to edit",
+                    "type": "comment"
                 }
             ],
             "score": 3,
@@ -62,7 +64,8 @@
                     "content": "Customer benefit 2"
                 },
                 {
-                    "content": "↗️ Fill score on the upper right. Scale: unknown -, worst 1, best 5"
+                    "content": "↗️ Fill score on the upper right. Scale: unknown -, worst 1, best 5",
+                    "type": "comment"
                 }
             ],
             "score": 5,
@@ -78,7 +81,8 @@
                     "content": "Strategy 2"
                 },
                 {
-                    "content": "➡️ Empty text to remove the card"
+                    "content": "➡️ Empty text to remove the card",
+                    "type": "comment"
                 }
             ],
             "score": 3,
@@ -92,6 +96,10 @@
                 },
                 {
                     "content": "Reasons to buy"
+                },
+                {
+                    "content": "➡️ Change card color: :?, :!, := or :- at beginning of card for query, comment, analysis, or default",
+                    "type": "comment"
                 }
             ],
             "score": 5,
@@ -107,7 +115,8 @@
                     "content": "Customer segment/persona 2"
                 },
                 {
-                    "content": "⬇️ Double-click below last card in cell to add a new card"
+                    "content": "⬇️ Double-click below last card in cell to add a new card",
+                    "type": "comment"
                 }
             ],
             "score": 4,
@@ -173,7 +182,8 @@
                     "content": "Optional: Investors"
                 },
                 {
-                    "content": "⬇️ Use storage menu below to save, load and clear canvas"
+                    "content": "⬇️ Use storage menu below to save, load and clear canvas",
+                    "type": "comment"
                 }
             ]
         },
