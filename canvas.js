@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctl = Controls.create();
         }).catch(error => console.error('Error setting up canvas:', error));
     };
-
+    console.log('canvas started');
     load(new URLSearchParams(window.location.search).get('model'));
 });
 
@@ -190,6 +190,12 @@ class Cell {
     cardElems = () => document.querySelectorAll(`.cell[data-index='${this.index}'] > .cell-card-container .card`);
     scoreElem = () => document.querySelector(`.cell[data-index='${this.index}'] select.scoring-dropdown`);
 
+    // position in cell is 0-based
+    getCardIndex(cellPos) {
+        const cells = this.cardElems();
+        return cellPos < cells.length ? cells[cellPos].getAttribute('data-index') : -1;
+    }
+
     createCard(cardContainerDiv) {
         const name = 'New ' + trimPluralS(this.title);
         const card = new Card(name);
@@ -306,11 +312,14 @@ class Card {
         this.setTypeAndText(sanitize(text));
     }
 
-    cardElem = () => document.querySelector(`.card[data-index='${this.index}']`);
+    getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
+    
+    static getElement = (index) => document.querySelector(`.card[data-index='${index}']`);
 
     update() {
         // global indexing
-        const cardElem = this.cardElem();
+        console.log('card update' + this.index);
+        const cardElem = this.getElement();
         if (!cardElem) return;
         this.setTypeAndText(sanitize(cardElem.textContent));
         this.rerender();
@@ -325,7 +334,7 @@ class Card {
     }
 
     rerender() {
-        const cardElem = this.cardElem();
+        const cardElem = this.getElement();
         cardElem.textContent = this.text;
         cardElem.className = 'card';
         if (this.type) cardElem.classList.add(this.type);

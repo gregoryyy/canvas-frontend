@@ -1,0 +1,181 @@
+{
+    "meta": {
+        "title": "Example Startup",
+        "description": "Example company that does x for y.",
+        "canvas": "Preseed Canvas v0.1",
+        "version": "0.2",
+        "date": "20240318"
+    },
+    "canvas": [
+        {
+            "id": 1,
+            "cards": [
+                {
+                    "content": "Problem 1"
+                },
+                {
+                    "content": "Problem 2"
+                }
+            ],
+            "score": 5,
+            "comment": "super relevant"
+        },
+        {
+            "id": 2,
+            "cards": [
+                {
+                    "content": "Solution 1"
+                }
+            ],
+            "score": 3,
+            "comment": "innovative?"
+        },
+        {
+            "id": 3,
+            "cards": [],
+            "score": 3,
+            "comment": "prototype and PoC"
+        },
+        {
+            "id": 4,
+            "cards": [
+                {
+                    "content": "Value Proposition 1"
+                },
+                {
+                    "content": ""
+                },
+                {
+                    "content": "Value Proposition 2",
+                    "type": "comment"
+                }
+            ],
+            "score": 5,
+            "comment": "cool!"
+        },
+        {
+            "id": 5,
+            "cards": [
+                {
+                    "content": "GTM Strategy 1",
+                    "type": "illegal"
+                },
+                {
+                    "content": "GTM Strategy 2"
+                }
+            ],
+            "score": 3,
+            "comment": "needs improvement"
+        },
+        {
+            "id": 6,
+            "cards": [
+                {
+                    "content": "Traction KPI 1"
+                },
+                {
+                    "content": "Traction KPI 2"
+                }
+            ],
+            "score": 5,
+            "comment": "great progress"
+        },
+        {
+            "id": 7,
+            "cards": [
+                {
+                    "content": "Customer segment 1"
+                },
+                {
+                    "content": "Customer segment 2"
+                }
+            ],
+            "score": 4,
+            "comment": "do we know enough?"
+        },
+        {
+            "id": 8,
+            "cards": [
+                {
+                    "content": "Founder 1"
+                },
+                {
+                    "content": "Founder 2"
+                }
+            ],
+            "score": 4,
+            "comment": "great tech experties, but sales?"
+        },
+        {
+            "id": 9,
+            "cards": [
+                {
+                    "content": "Market definition"
+                },
+                {
+                    "content": "Market size and growth"
+                }
+            ],
+            "score": 5,
+            "comment": "huge market"
+        },
+        {
+            "id": 10,
+            "cards": [
+                {
+                    "content": "Existing solution 1"
+                },
+                {
+                    "content": "Existing solution 2"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "cards": [
+                {
+                    "content": "Moat"
+                },
+                {
+                    "content": "Unfair Advantage"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "cards": [
+                {
+                    "content": "Early adopter 1"
+                },
+                {
+                    "content": "Early adopter 2"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "cards": [
+                {
+                    "content": "Investor 1"
+                },
+                {
+                    "content": "Investor 2"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "cards": [
+                {
+                    "content": "Competitor 1"
+                },
+                {
+                    "content": "Competitor 2"
+                }
+            ]
+        }
+    ],
+    "analysis": {
+        "content": "Analysis: ... "
+    }
+}

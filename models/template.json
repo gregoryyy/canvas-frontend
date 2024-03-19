@@ -9,13 +9,25 @@
     "canvas": [
         {
             "id": 1,
-            "cards": [],
+            "cards": [
+                {
+                    "content": "Problem"
+                },
+                {
+                    "content": "Comment",
+                    "type": "comment"
+                }
+            ],
             "score": 0,
             "comment": ""
         },
         {
             "id": 2,
-            "cards": [],
+            "cards": [
+                {
+                    "content": "Solution"
+                }
+            ],
             "score": 0,
             "comment": ""
         },
