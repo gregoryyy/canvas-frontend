@@ -77,7 +77,37 @@ function addLongPressListener(element, callback, duration = 500) {
 
 // execute callback on item selected from list shown in overlay menu
 function overlayMenu(elem, list, callback) {
+    let menu = document.querySelector('.overlay-menu');
+    if (!menu) {
+        menu = createElement('div', { class: 'overlay-menu' });
+        document.addEventListener('click', (event) => {
+            if (!menu.contains(event.target)) menu.style.display = 'none';
+        });
+    } else {
+        menu.innerHTML = '';
+    }
 
+    list.forEach((itemText, index) => {
+        const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
+        item.addEventListener('click', () => {
+            callback(itemText);
+            menu.style.display = 'none';
+        });
+        menu.appendChild(item);
+    });
+
+    document.body.appendChild(menu);
+    const rect = elem.getBoundingClientRect();
+    menu.style.left = `${rect.left}px`;
+    //menu.style.top = `${rect.top - menu.offsetHeight}px`;
+    menu.style.top = `${window.scrollY + rect.top - menu.offsetHeight}px`;
+    menu.style.display = 'block'; // Show the menu
+
+    // close when clicked outside
+    document.addEventListener('click', (event) => {
+        if (!elem.contains(event.target) && !menu.contains(event.target)) menu.style.display = 'none';
+        // auto-remove listener
+    }, { once: true });
 }
 
 // user needs to press twice within timeframe to execute callback

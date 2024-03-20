@@ -17,14 +17,16 @@ TODOs with A: are high-priority
   * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings --> TODO v1_2_x
+  * Multiple canvases in local storate --> v1_2_2_multicanvas
+    * Load menu
 * Canvas:
   * List available --> TODO v1_2_x
   * Load from JSON --> localstorage DONE
   * Save to JSON --> localstorage DONE
   * Download/upload from file --> branch v1_1_2_upload
     * inluding server: /devel/canvas-backend
-  * Versioning
-  * Different canvas types --> v2
+  * Versioning --> via naming (v1_2_2_multicanvas)
+  * Different canvas types --> v2 (v1_2 labels via config file)
 * Cells:
   * Help overlay on title double click DONE
   * BUG: Only mobile allows single-click new cards FIXED
@@ -34,10 +36,11 @@ TODOs with A: are high-priority
   * A: Edit card DONE
   * A: Create card DONE
   * A: Remove card DONE
-  * Card types in different colors --> v1_1_2_cardtypes
-  * Drag cards up and down --> v1_1_2_dnd
+  * Card types in different colors --> v1_1_2_cardtypes DONE
+  * Drag cards up and down --> v1_2_2_ui_dragdrop
   * Consider TinyMCE as card editor --> not needed yet
   * BUG: Double Enter when editing first time FIXED
+  * BUG: All newlines get removed on save/load
 * Precanvas:
   * Load from instance not preseed.json DONE
 * Postcanvas:

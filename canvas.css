@@ -212,7 +212,6 @@ div.cell>p,
     font-size: 12px;
 }
 
-
 .card {
     padding: 5px;
     margin: 5px;
@@ -259,6 +258,28 @@ p.hint {
     width: 80px;
     margin: 2px;
     cursor: pointer;
+}
+
+.overlay-menu {
+    /* display: none; */
+    position: absolute;
+    width: 400px;
+    height: 200px;
+    background-color: eee;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    overflow: auto;
+}
+
+.overlay-menu-item {
+    padding: 5px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd; /* Optional: for styling */
+}
+
+.overlay-menu-item:hover {
+    background-color: #f1f1f1;
 }
 
 /* mobile menu */
