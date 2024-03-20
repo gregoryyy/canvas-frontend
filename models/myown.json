@@ -1,0 +1,195 @@
+{
+    "meta": {
+        "title": "pi-check",
+        "description": "Pi-Check is a AI-based \"junior analyst\" that does the leg work and learns from every deal."
+    },
+    "canvas": [
+        {
+            "id": 1,
+            "cards": [
+                {
+                    "content": "Startup funding based on qualitative factors"
+                },
+                {
+                    "content": "Claims in pitch decks require time-consuming analysis"
+                },
+                {
+                    "content": "Angel dealflow has increased 2024"
+                }
+            ],
+            "score": "4"
+        },
+        {
+            "id": 2,
+            "cards": [
+                {
+                    "content": "Preseed canvas: All pitch decks have a similar structure"
+                },
+                {
+                    "content": "Areas of research everywhere the same"
+                },
+                {
+                    "content": "AI-based pitch deck analysis"
+                }
+            ],
+            "score": 3
+        },
+        {
+            "id": 3,
+            "cards": [
+                {
+                    "content": "Prototype webapp"
+                },
+                {
+                    "content": "First usage commitments"
+                }
+            ],
+            "score": 3
+        },
+        {
+            "id": 4,
+            "cards": [
+                {
+                    "content": "Fast pitch deck overview to get the \"red\" and \"green\" flags."
+                },
+                {
+                    "content": "Can focus on the  \"yellow\" flags."
+                },
+                {
+                    "content": "Can invest in with additional domain knowledge"
+                },
+                {
+                    "content": "Long-term: Success factor database"
+                }
+            ],
+            "score": 5
+        },
+        {
+            "id": 5,
+            "cards": [
+                {
+                    "content": "Angel networks as multipliers"
+                },
+                {
+                    "content": "Startups share their pitch via Pi-Check"
+                },
+                {
+                    "content": "Inbound via webapp"
+                }
+            ],
+            "score": 3
+        },
+        {
+            "id": 6,
+            "cards": [
+                {
+                    "content": "No sales pipeline"
+                }
+            ],
+            "score": 5
+        },
+        {
+            "id": 7,
+            "cards": [
+                {
+                    "content": "Business Angels and their networks to handle dealflow"
+                },
+                {
+                    "content": "VC principals to handle dealflow"
+                },
+                {
+                    "content": "Founders: Check and do research for their ideas"
+                },
+                {
+                    "content": "Innovation managers to ideate (lean startup, stage-gate)"
+                }
+            ],
+            "score": 4
+        },
+        {
+            "id": 8,
+            "cards": [
+                {
+                    "content": "Gregor Heinrich,  PhD in AI, 15y+ CTO/CPO in growth companies, startup and exit experience, business angel"
+                },
+                {
+                    "content": "Konstantin Roethke, PhD in Data Science, CFA I"
+                }
+            ],
+            "score": "3"
+        },
+        {
+            "id": 9,
+            "cards": [
+                {
+                    "content": "TAM: Startup ecosystem"
+                },
+                {
+                    "content": "SAM: 1% funding round, cost percentage"
+                },
+                {
+                    "content": "SOM: 2y 5% of funding costs in Germany"
+                }
+            ],
+            "score": 5
+        },
+        {
+            "id": 10,
+            "cards": [
+                {
+                    "content": "Manual analysis"
+                },
+                {
+                    "content": "Research for domain knowledge"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "cards": [
+                {
+                    "content": "Over time: Acquire first-hand qualitative knowledge"
+                },
+                {
+                    "content": "Unfair advantage"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "cards": [
+                {
+                    "content": "Angel networks: BACB, BA-FRA"
+                },
+                {
+                    "content": "Croundfunding platforms?"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "cards": [
+                {
+                    "content": "Bootstrap via Unlost GmbH"
+                },
+                {
+                    "content": "Berlin Angel Fund"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "cards": [
+                {
+                    "content": "theresanaiforthat.com: PitchGrade, Pitch League, All In: No structured feedback, not targeted at investors but startups"
+                },
+                {
+                    "content": "Data-driven VC: Check"
+                }
+            ]
+        }
+    ],
+    "analysis": {
+        "content": "Pitch decks are the main communication means for the startup ecosystem. Angels and VCs get a flood of \"dealflow\" in their daily operations. 80% of the time they need to research things. using Google or specific databases.Theses: 1. Analysis of pitch decks and later data room information is indeed a big factor in their decisioning. The counter-argument would be that angels and VCs focus their decisions on the founders. Even then, reducing the grunt work of going through the material does allow them to focus.​​2. Automated analysis does indeed work for pitch decks. The main risk here is if information is contained in graphics and tables. This may be the reason why many tools on the market focus on improving existing decks rather than analyzing them.3. Automated market research using today's LLMs + RAG methods provides the right level of insight."
+    }
+}

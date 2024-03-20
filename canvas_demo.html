@@ -48,21 +48,13 @@
         </header>
         <!-- main content -->
         <div class="title">
-            <h1>Preseed canvas</h1>
-            <p><strong>Goals:</strong> Reduce analysis time and increase investment decision confidence &mdash; first by
-                structuring manual analysis, later by automating the process.</p>
-            <p><strong>Angel investors:</strong> Fill the canvas with the information and insights you get in the
-                different stages of interaction with a startup team: receiving a pitch deck, discussing in calls with
-                the team, doing market analysis and discussing with other investors.
-                In the end, there's a consolidated view of all information (including a score) that ideally leads to
-                more confident investment decisions.</p>
-            <p><strong>Founders:</strong> Fill the canvas to challenge yourself on the different aspects of your
-                business and make
-                yourself more attractive to investors.</p>
-            <p><strong>Future: </strong>Create an "AI junior analyst" who does the leg work:
-                Automatically fill canvas using AI-based extraction from pitch deck and other documents. Incrementally
-                add information and questions. The system does the research and answers what it knows. See a mock
-                preview <a href="canvas_demo.html?config=config2.json&model=future">here</a>.
+            <h1>P-Check: Preseed dealflow analyzer</h1>
+            <p><strong>A virtual analyst</strong> who does the leg work for you: screening pitch decks, pre-assessing
+                them and identifing dicussion points for the most important part of preseed investment decisions:
+                Exchange with the team.
+            </p>
+            <p><strong>Caveat: </str    ong>This is a mockup version while the AI backend is under development. See manual
+                preseed canvas <a href="canvas_demo.html?config=config2.json&model=future">here</a>.
             </p>
             <p>&nbsp;</p>
         </div>
@@ -85,12 +77,11 @@
                 <span id="controls"></span>
             </p>
             <p class="hint"><strong>Design:</strong>
-                This application is client-only, currently working on custom AI backends to pre-analyze a pitch
-                deck, perform RAG background analysis, auto-scoring according to custom investment criteria and other
-                use cases like generating investment briefs. At this point, a strong privacy policy will be introduced.
-                It is a prototype to collect user feedback. Development was done using "junior coding" by an LLM,
-                realizing there needs to be a clear set of requirements and a high-level design as the LLM does not know
-                the bigger picture. This also reflects on how the pitch deck analyzer will be realistically used: as a
+                This application is client-server, with custom AI backends to pre-analyze a pitch deck, perform RAG
+                background analysis (mocked here; currently under development). , auto-scoring according to custom
+                investment criteria and other
+                use cases like generating investment briefs. This also reflects on how the pitch deck analyzer will be
+                realistically used: as a
                 "junior analyst" that prepares a decision.
             </p>
         </div>
