@@ -1,4 +1,4 @@
-/* static functions */
+/* static UI functions */
 
 function createElement(tagName, attributes = {}, text = '') {
     const element = document.createElement(tagName);
@@ -75,6 +75,40 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
+// execute callback on item selected from list shown in overlay menu
+function overlayMenu(elem, list, callback) {
+
+}
+
+// user needs to press twice within timeframe to execute callback
+function confirmStep(elem, callback, timeout = 3000) {
+
+    const resetElem = () => {
+        elem.textContent = elem.originalText;
+        elem.style.color = '';
+        elem.confirming = false;
+    };
+
+    if (!elem.confirming) {
+        // first click: prompt for confirmation
+        elem.originalText = elem.textContent; // Save original button text
+        elem.textContent += '??';
+        elem.style.color = 'red';
+        elem.confirming = true;
+        elem.confirmTimeout = setTimeout(resetElem, timeout);
+    } else {
+        // second click: execute!
+        clearTimeout(elem.confirmTimeout);
+        callback();
+        resetElem();
+        elem.textContent = elem.originalText;
+        elem.style.color = '';
+        elem.confirming = false;
+    }
+}
+
+/* static non-UI functions */
+
 function sanitize(text) { return DOMPurify.sanitize(text); }
 
 function sanitizeJSON(value) {
@@ -103,4 +137,5 @@ function lg(message) {
     //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
     console.log(`${message} - ${functionName}()`);
 }
+
 

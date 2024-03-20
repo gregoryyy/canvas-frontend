@@ -1,7 +1,7 @@
 {
     "settings": {
         "canvasd": {
-            "mode": "txt",
+            "mode": "off",
             "host": "localhost",
             "tls": "no",
             "port": "8080"
