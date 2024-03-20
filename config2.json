@@ -1,0 +1,133 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "txt",
+            "host": "localhost",
+            "tls": "no",
+            "port": "8080"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "interval": "30"
+        }
+    },
+    "meta": {
+        "type": "Preseed Canvas",
+        "version": "0.1",
+        "date": "20240207",
+        "description": "Experimental canvas to assess startups."
+    },
+    "scoring": [
+        {
+            "name": "UnlostScore",
+            "description": "Score that focuses on balanced criteria without legal and financial",
+            "total": "Product * 3/10 + Market * 1/5  + Progress * 1/5 + Team * 3/10",
+            "scores": {
+                "Product": "score(1) * 1/3 + score(2) * 1/3 + score(7) * 1/3",
+                "Market": "score(4) * 1/3 + score(9) * 1/3 + score(5) * 1/3",
+                "Progress": "score(3) * 1/2 + score(6) * 1/2",
+                "Team": "score(8) * 1"
+            }
+        }
+    ],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Problem",
+            "subtitle": "Why?",
+            "description": "What is the problem addressed? Why is this important for customers? Do we align with the purpose?",
+            "score": "yes"
+        },
+        {
+            "id": 2,
+            "title": "Solution",
+            "subtitle": "What?",
+            "description": "What is the solution? Is it new and can it move the needle? Why is now good timing?",
+            "score": "yes"
+        },
+        {
+            "id": 3,
+            "title": "Product Progress",
+            "subtitle": "How much proven?",
+            "description": "Implementation status? What validation of Product Market Fit exists? Ability to execute?",
+            "score": "yes"
+        },
+        {
+            "id": 4,
+            "title": "Value Propositions",
+            "subtitle": "Why buy? Unique?",
+            "description": "What are the main benefits for customers? USPs and differentiators? Optional: High-level concept: 'The A for B.'",
+            "score": "yes"
+        },
+        {
+            "id": 5,
+            "title": "Go-to-Market",
+            "subtitle": "How sold?",
+            "description": "How are customers reached and retained? Partners and multipliers? Network effects?",
+            "score": "yes"
+        },
+        {
+            "id": 6,
+            "title": "Sales Traction",
+            "subtitle": "How much sold?",
+            "description": "Sales pipeline and conversion? Reasons for customers to (not) buy? Current and target unit economics?",
+            "score": "yes"
+        },
+        {
+            "id": 7,
+            "title": "Customers",
+            "subtitle": "For whom?",
+            "description": "Target customer segments and user/buyer personas? How well do we know their needs?",
+            "score": "yes"
+        },
+        {
+            "id": 8,
+            "title": "Team",
+            "subtitle": "Who?",
+            "description": "Skills and proven experience in the founder team? Ability to pivot if needed? Openness to coaching?",
+            "score": "yes"
+        },
+        {
+            "id": 9,
+            "title": "Market",
+            "subtitle": "How big?",
+            "description": "What is the defiition, size and growth of the market (TAM, SAM, SOM)?",
+            "score": "yes"
+        },
+        {
+            "id": 10,
+            "title": "Existing Solutions",
+            "subtitle": "What if not?",
+            "description": "Optional: How is the problem addressed today?",
+            "score": "no"
+        },
+        {
+            "id": 11,
+            "title": "Defensibility",
+            "subtitle": "How to stay ahead?",
+            "description": "Optional: Is there a moat and how can market advantage be defended? What unfair advantage exists?",
+            "score": "no"
+        },
+        {
+            "id": 12,
+            "title": "Early adopters",
+            "subtitle": "Prove with whom?",
+            "description": "Optional: Pilot users, product validation?",
+            "score": "no"
+        },
+        {
+            "id": 13,
+            "title": "Support",
+            "subtitle": "Who supports?",
+            "description": "Optional: Who co-invests, advises, offers access?",
+            "score": "no"
+        },
+        {
+            "id": 14,
+            "title": "Competition",
+            "subtitle": "Who else?",
+            "description": "Competitive landscape? Market dynamics (P5F)?",
+            "score": "no"
+        }
+    ]
+}

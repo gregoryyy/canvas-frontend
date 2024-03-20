@@ -3,12 +3,15 @@
 let app = undefined;
 let ctl = undefined;
 let conf = undefined;
-const canvasLsKey = 'canvas';
-const configFile = 'config.json';
+const defaultCanvasLsKey = 'canvas';
+const defaultConfigFile = 'config.json';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const load = (contentFile) => {
+    const param = (key) => new URLSearchParams(window.location.search).get(key);
+
+    const load = (configFile, contentFile) => {
+        configFile ||= defaultConfigFile;
         contentFile ||= 'template';
         Promise.all([
             fetch(configFile).then(res => res.json()),
@@ -22,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(error => console.error('Error setting up canvas:', error));
     };
     console.log('canvas started');
-    load(new URLSearchParams(window.location.search).get('model'));
+    load(param('config'), param('model'));
 });
 
 class Settings {
@@ -47,7 +50,7 @@ class Application {
         const canvas = new Canvas(structure, content);
         const analysis = new PostCanvas(canvas, structure, content);
         const newApp = new Application(meta, canvas, analysis);
-        newApp.render(configFile);
+        newApp.render(defaultConfigFile);
         document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
@@ -78,11 +81,11 @@ class Application {
 
     saveToLs() {
         this.check();
-        localStorage.setItem(canvasLsKey, JSON.stringify(this));
+        localStorage.setItem(defaultCanvasLsKey, JSON.stringify(this));
     }
 
     loadFromLs() {
-        const json = localStorage.getItem(canvasLsKey);
+        const json = localStorage.getItem(defaultCanvasLsKey);
         if (!json || json.length == 0) return;
         const content = JSON.parse(sanitizeJSON(json));
         this.repopulate(content);
@@ -94,7 +97,7 @@ class Application {
         // this is called from the server
     }
 
-    static clearLocalStorage() { localStorage.removeItem(canvasLsKey); }
+    static clearLocalStorage() { localStorage.removeItem(defaultCanvasLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
 
