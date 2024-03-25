@@ -8,7 +8,7 @@
         },
         "localstorage": {
             "mode": "manual",
-            "interval": "30"
+            "filemenu": "no"
         }
     },
     "meta": {

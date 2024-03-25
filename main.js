@@ -99,6 +99,10 @@ class Application {
         this.check();
     }
 
+    downloadLs() { downloadLs(defaultLsKey); }
+
+    uploadLs() { uploadLs(defaultLsKey); }
+
     delFromLs(title) {
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
@@ -150,6 +154,13 @@ class Controls {
             buttons.push(['upload', 'Upload File', () => document.getElementById('fileInput').click()]);
         };
 
+        if (conf.localstorage.filemenu === 'yes') {
+            buttons.push(['lsdown', 'Download LS', confirmDownloadLs]);
+            buttons.push(['lsup', 'Upload LS', uploadLsFile]);
+            ctlElem.appendChild(createElement('input',
+                { type: 'file', id: 'lsFileInput', onchange: `uploadLs(event, '${defaultLsKey}')`, style: 'display: none;' }));
+        }
+
         buttons.forEach(button => {
             const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
             ctlElem.appendChild(btn);
@@ -160,12 +171,16 @@ class Controls {
             });
         });
 
-        function loadMenu(event) { overlayMenu(event.target, 'Load canvas', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
+        function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 
         function save(event) { app.saveToLs(); }
 
         function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
 
         function confirmLsClear(event) { confirmStep(event.target, Application.clearLocalStorage); }
+
+        function confirmDownloadLs(event) { confirmStep(event.target, app.downloadLs.bind(app)); }
+
+        function uploadLsFile(event) { document.getElementById('lsFileInput').click(); }
     }
 }

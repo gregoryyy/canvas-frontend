@@ -77,19 +77,23 @@ function addLongPressListener(element, callback, duration = 500) {
 
 // execute callback on item selected from list shown in overlay menu
 function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
+
+    const closeMenu = () => {
+        menu.remove();
+        elem.classList.remove('menuopen');
+    };
+
     let menu = document.querySelector('.overlay-menu');
     if (!menu) {
         menu = createElement('div', { class: 'overlay-menu' });
         menu.appendChild(createElement('h3', {}, title));
         elem.classList.add('menuopen');
     } else {
+        closeMenu();
         return;
     }
 
-    const closeMenu = () => { 
-        menu.remove(); 
-        elem.classList.remove('menuopen'); 
-    };
+    if (list.length == 0) menu.appendChild(createElement('div', { class: 'overlay-menu-item' }, '(empty)'));
 
     list.forEach((itemText, index) => {
         const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
@@ -154,6 +158,48 @@ function confirmStep(elem, callback, timeout = 3000) {
 
 /* static non-UI functions */
 
+function downloadLs(key) {
+    // Retrieve the data from Local Storage
+    const data = localStorage.getItem(key);
+    if (data) {
+        const blob = new Blob([data], { type: 'application/json' });
+        // link to download the blob
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${key}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(a.href);
+    } else console.log('No data to download!');
+}
+
+// TODO: security hardening and error handling
+function uploadLs(event, key, replace = false) {
+    const input = event.target;
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            try {
+                const data = sanitizeJSON(JSON.parse(event.target.result));
+                const storedCanvases = localStorage.getItem(defaultLsKey);
+                if (!storedCanvases || replace) {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } else {
+                    const canvases = sanitizeJSON(JSON.parse(storedCanvases));
+                    Object.entries(data).forEach(([key, value]) => {
+                        // TODO: check input
+                        canvases[key] = value;
+                    });
+                    localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
+                }
+            } catch (e) { console.log('Failed to upload data'); }
+        };
+        reader.readAsText(file);
+    } else console.log('No file selected!');
+}
+
 function sanitize(text) { return DOMPurify.sanitize(text); }
 
 function sanitizeJSON(value) {
@@ -182,5 +228,6 @@ function lg(message) {
     //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
     console.log(`${message} - ${functionName}()`);
 }
+
 
 
