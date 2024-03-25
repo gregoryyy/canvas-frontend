@@ -97,6 +97,14 @@ class Application {
         this.check();
     }
 
+    delFromLs(title) {
+        const storedCanvases = localStorage.getItem(defaultLsKey);
+        if (!storedCanvases) return;
+        const canvases = JSON.parse(storedCanvases);
+        canvases[title] = undefined;
+        localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
+    }
+
     getCanvasNames() {
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
         return Object.keys(canvases);
@@ -128,7 +136,7 @@ class Controls {
         const sec = conf.canvasd.tls === 'yes' ? "s" : "";
 
         let buttons = [
-            ['lsload', 'Load LS', loadMenu],
+            ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', app.saveToLs.bind(app)],
             ['lsclear', 'Clear LS', confirmLsClear],
             ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
@@ -150,7 +158,7 @@ class Controls {
             });
         });
 
-        function loadMenu(event) { overlayMenu(event.target, app.getCanvasNames(), app.loadFromLs); }
+        function loadMenu(event) { overlayMenu(event.target, app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 
         function confirmLsClear(event) { confirmStep(event.target, Application.clearLocalStorage); }
     }
