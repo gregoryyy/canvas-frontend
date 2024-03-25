@@ -76,22 +76,26 @@ function addLongPressListener(element, callback, duration = 500) {
 }
 
 // execute callback on item selected from list shown in overlay menu
-function overlayMenu(elem, list, cbLoad, cbDel = undefined) {
+function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
     let menu = document.querySelector('.overlay-menu');
     if (!menu) {
         menu = createElement('div', { class: 'overlay-menu' });
-        document.addEventListener('click', (event) => {
-            //if (!menu.contains(event.target)) menu.style.display = 'none';
-        });
+        menu.appendChild(createElement('h3', {}, title));
+        elem.classList.add('menuopen');
     } else {
-        menu.innerHTML = '';
+        return;
     }
+
+    const closeMenu = () => { 
+        menu.remove(); 
+        elem.classList.remove('menuopen'); 
+    };
 
     list.forEach((itemText, index) => {
         const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
         item.addEventListener('click', () => {
             cbLoad(itemText);
-            menu.style.display = 'none';
+            closeMenu();
         });
         if (cbDel) {
             const delBtn = createElement('span', { class: 'overlay-menu-item-delete' }, 'Delete');
@@ -117,7 +121,7 @@ function overlayMenu(elem, list, cbLoad, cbDel = undefined) {
     // close when clicked outside
     document.addEventListener('click', (event) => {
         if (!elem.contains(event.target) && !menu.contains(event.target))
-            menu.style.display = 'none';
+            closeMenu();
     });
 }
 
@@ -133,7 +137,7 @@ function confirmStep(elem, callback, timeout = 3000) {
     if (!elem.confirming) {
         // first click: prompt for confirmation
         elem.originalText = elem.textContent; // Save original button text
-        elem.textContent += '??';
+        elem.textContent += '?';
         elem.style.color = 'red';
         elem.confirming = true;
         elem.confirmTimeout = setTimeout(resetElem, timeout);

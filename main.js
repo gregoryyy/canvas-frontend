@@ -81,12 +81,14 @@ class Application {
 
     saveToLs(title = this.meta.title) {
         this.check();
+        title = title.toLowerCase();
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
         canvases[this.meta.title] = JSON.stringify(this.toJSON());
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
     loadFromLs(title = this.meta.title) {
+        title = title.toLowerCase();
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
@@ -137,9 +139,9 @@ class Controls {
 
         let buttons = [
             ['lsload', 'Load LS', loadMenu.bind(app)],
-            ['lssave', 'Save LS', app.saveToLs.bind(app)],
+            ['lssave', 'Save LS', save],
             ['lsclear', 'Clear LS', confirmLsClear],
-            ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
+            ['cvclear', 'Clear Canvas', confirmCanvasClear]];
 
         if (useServer) {
             ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
@@ -158,7 +160,11 @@ class Controls {
             });
         });
 
-        function loadMenu(event) { overlayMenu(event.target, app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
+        function loadMenu(event) { overlayMenu(event.target, 'Load canvas', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
+
+        function save(event) { app.saveToLs(); }
+
+        function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
 
         function confirmLsClear(event) { confirmStep(event.target, Application.clearLocalStorage); }
     }
