@@ -1,21 +1,24 @@
 let dragSrcEl = null;
+let allowCrossContainerDrag = true; // Scenario B: true, Scenario A: false
 
 function handleDragStart(e) {
-    this.style.opacity = '0.4';
     dragSrcEl = this;
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', this.innerHTML);
+    e.dataTransfer.setData('text/html', this.outerHTML);
+    this.classList.add('dragging');
 }
 
 function handleDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
+    e.preventDefault(); // Necessary for allowing drops
     e.dataTransfer.dropEffect = 'move';
     return false;
 }
 
 function handleDragEnter(e) {
+    // Check if cross-container drag is allowed or if the drag is within the same container
+    if (!allowCrossContainerDrag && dragSrcEl.parentNode !== this.parentNode) {
+        return; // Exit if not allowed and it's a cross-container drag
+    }
     this.classList.add('over');
 }
 
@@ -24,31 +27,42 @@ function handleDragLeave(e) {
 }
 
 function handleDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
+    e.stopPropagation(); // Stop the browser from redirecting
+    e.preventDefault();
+    this.classList.remove('over');
+
+    // Again, check for allowed movement
+    if (!allowCrossContainerDrag && dragSrcEl.parentNode !== this.parentNode) {
+        return; // Exit without doing anything if dropping in a different container is not allowed
     }
 
     if (dragSrcEl !== this) {
-        dragSrcEl.innerHTML = this.innerHTML;
-        this.innerHTML = e.dataTransfer.getData('text/html');
+        // Remove the item from the original list
+        dragSrcEl.parentNode.removeChild(dragSrcEl);
+        // Add the dragged item into its new spot
+        const dropHTML = e.dataTransfer.getData('text/html');
+        this.insertAdjacentHTML('beforebegin', dropHTML);
+        const dropElem = this.previousSibling;
+        addDnDHandlers(dropElem);
     }
-
-    return false;
 }
 
 function handleDragEnd(e) {
-    this.style.opacity = '1';
-    items.forEach(function (item) {
+    this.classList.remove('dragging');
+    let items = document.querySelectorAll('.container .item');
+    items.forEach(function(item) {
         item.classList.remove('over');
     });
 }
 
+function addDnDHandlers(elem) {
+    elem.addEventListener('dragstart', handleDragStart, false);
+    elem.addEventListener('dragenter', handleDragEnter, false);
+    elem.addEventListener('dragover', handleDragOver, false);
+    elem.addEventListener('dragleave', handleDragLeave, false);
+    elem.addEventListener('drop', handleDrop, false);
+    elem.addEventListener('dragend', handleDragEnd, false);
+}
+
 let items = document.querySelectorAll('.container .item');
-items.forEach(function(item) {
-    item.addEventListener('dragstart', handleDragStart);
-    item.addEventListener('dragenter', handleDragEnter);
-    item.addEventListener('dragover', handleDragOver);
-    item.addEventListener('dragleave', handleDragLeave);
-    item.addEventListener('drop', handleDrop);
-    item.addEventListener('dragend', handleDragEnd);
-});
+items.forEach(addDnDHandlers);
