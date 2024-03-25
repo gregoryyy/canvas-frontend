@@ -45,78 +45,11 @@ function makeEditable(elem, cbFinishEdit) {
 }
 
 function makeDraggable(card) {
-    const handleDragStart = (e) => {
-        card.classList.add('dragging');
-        // Prevent scrolling and other touch defaults
-        if (e.type === 'touchstart') e.preventDefault();
-    };
-
-    const handleDragEnd = () => card.classList.remove('dragging');
-
-    card.addEventListener('mousedown', handleDragStart);
-    card.addEventListener('touchstart', handleDragStart, { passive: false });
-    card.addEventListener('mouseup', handleDragEnd);
-    card.addEventListener('touchend', handleDragEnd);
 }
-
-// FIXME: prevents editing, no easy dragging
-// function makeDroppable(container) {
-//     const getTargetCard = (pointerY) => {
-//         const cards = container.querySelectorAll('.card:not(.dragging)');
-//         return [...cards].reduce((closest, card) => {
-//             const box = card.getBoundingClientRect();
-//             const offset = pointerY - box.top - box.height / 2;
-//             if (offset < 0 && offset > closest.offset) {
-//                 return { offset: offset, element: card };
-//             } else {
-//                 return closest;
-//             }
-//         }, { offset: Number.NEGATIVE_INFINITY }).element;
-//     };
-
-//     const handleDragOver = (e) => {
-//         // allow drop, prevent touch defaults
-//         e.preventDefault(); 
-//         const draggingCard = document.querySelector('.dragging');
-//         if (!draggingCard) return;
-
-//         // extract position according to event type
-//         const pointerY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-//         const targetCard = getTargetCard(pointerY);
-
-//         if (targetCard) {
-//             container.insertBefore(draggingCard, 
-//                 pointerY < targetCard.getBoundingClientRect().top ? targetCard : targetCard.nextSibling);
-//         } else {
-//             container.appendChild(draggingCard);
-//         }
-//     };
-
-//     container.addEventListener('dragover', handleDragOver);
-//     container.addEventListener('touchmove', handleDragOver, { passive: false });
-// }
 
 
 // allowOthers = any card container droppable
 function makeDroppable(container, allowOthers = false) {
-    container.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const draggingCard = document.querySelector('.dragging');
-        if (allowOthers || (e.target.closest('.cell-card-container') === container)) {
-            const cards = [...container.querySelectorAll('.card:not(.dragging)')];
-            const closestCard = cards.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = e.clientY - box.top - box.height / 2;
-                return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-
-            if (closestCard) {
-                container.insertBefore(draggingCard, closestCard);
-            } else {
-                container.appendChild(draggingCard);
-            }
-        }
-    });
 }
 
 function addLongPressListener(element, callback, duration = 500) {

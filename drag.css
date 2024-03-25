@@ -1,0 +1,24 @@
+.container {
+    border: 2px dashed #ccc;
+    padding: 10px;
+    margin: 20px;
+    width: 200px;
+    min-height: 150px;
+}
+
+.item {
+    border: 1px solid #888;
+    padding: 5px;
+    margin: 5px;
+    background-color: #f9f9f9;
+    cursor: grab;
+    transition: all 0.2s ease-out;
+}
+
+.item:active {
+    cursor: grabbing;
+}
+
+.item:hover {
+    background-color: #eaeaea;
+}
