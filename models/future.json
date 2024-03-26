@@ -1,0 +1,207 @@
+{
+    "meta": {
+        "title": "🤖 Pi-Check: Sample Startup",
+        "description": "🤖 . The team has unique experience in z... ➡️ Edit summary",
+        "canvas": "Preseed Canvas v0.1",
+        "version": "0.2",
+        "date": "20240207"
+    },
+    "canvas": [
+        {
+            "id": 1,
+            "cards": [
+                {
+                    "content": "🤖 Problem 1: Extracted from pitch deck",
+                    "type": "analysis"
+                },
+                {
+                    "content": "🤖 Problem 2: Added by user",
+                    "type": "analysis"
+                },
+                {
+                    "content": "🤖 Background research using RAG and LLM",
+                    "type": "query"
+                }
+            ],
+            "score": 5,
+            "comment": "A comment"
+        },
+        {
+            "id": 2,
+            "cards": [
+                {
+                    "content": "🤖 Solution aspect 1 from pitch deck",
+                    "type": "analysis"
+                },
+                {
+                    "content": "🤖 Solution aspect 2 from pitch deck",
+                    "type": "analysis"
+                },
+                {
+                    "content": "Manual comment"
+                }
+            ],
+            "score": 3,
+            "comment": ""
+        },
+        {
+            "id": 3,
+            "cards": [
+                {
+                    "content": "🤖 Product market fit"
+                },
+                {
+                    "content": "🤖 Ability to build"
+                }
+            ],
+            "score": 3,
+            "comment": ""
+        },
+        {
+            "id": 4,
+            "cards": [
+                {
+                    "content": "🤖 Customer benefit 1",
+                    "type": "analysis"
+                },
+                {
+                    "content": "🤖 Customer benefit 2",
+                    "type": "analysis"
+                },
+                {
+                    "content": "Manual value proposition"
+                }
+            ],
+            "score": 5,
+            "comment": ""
+        },
+        {
+            "id": 5,
+            "cards": [
+                {
+                    "content": "🤖 Strategy 1",
+                    "type": "analysis"
+                },
+                {
+                    "content": "🤖 Strategy 2",
+                    "type": "analysis"
+                }
+            ],
+            "score": 3,
+            "comment": ""
+        },
+        {
+            "id": 6,
+            "cards": [
+                {
+                    "content": "Sales pipeline and conversion"
+                },
+                {
+                    "content": "Reasons to buy"
+                },
+                {
+                    "content": "➡️ Change card color: :?, :!, := or :- at beginning of card for query, comment, analysis, or default",
+                    "type": "comment"
+                }
+            ],
+            "score": 5,
+            "comment": ""
+        },
+        {
+            "id": 7,
+            "cards": [
+                {
+                    "content": "Customer segment/persona 1"
+                },
+                {
+                    "content": "Customer segment/persona 2"
+                },
+                {
+                    "content": "⬇️ Double-click below last card in cell to add a new card",
+                    "type": "comment"
+                }
+            ],
+            "score": 4,
+            "comment": ""
+        },
+        {
+            "id": 8,
+            "cards": [
+                {
+                    "content": "Founders"
+                },
+                {
+                    "content": "Coachable?"
+                }
+            ],
+            "score": 4,
+            "comment": ""
+        },
+        {
+            "id": 9,
+            "cards": [
+                {
+                    "content": "Market definition"
+                },
+                {
+                    "content": "Market size and growth"
+                }
+            ],
+            "score": 5,
+            "comment": ""
+        },
+        {
+            "id": 10,
+            "cards": [
+                {
+                    "content": "Optional: Solution"
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "cards": [
+                {
+                    "content": "Moat"
+                },
+                {
+                    "content": "Unfair advantage"
+                }
+            ]
+        },
+        {
+            "id": 12,
+            "cards": [
+                {
+                    "content": "Optional: Lead user"
+                }
+            ]
+        },
+        {
+            "id": 13,
+            "cards": [
+                {
+                    "content": "Optional: Investors"
+                },
+                {
+                    "content": "⬇️ Use storage menu below to save, load and clear canvas",
+                    "type": "comment"
+                }
+            ]
+        },
+        {
+            "id": 14,
+            "cards": [
+                {
+                    "content": "Competitor 1"
+                },
+                {
+                    "content": "Competitor 2"
+                }
+            ]
+        }
+    ],
+    "analysis": {
+        "content": "Analysis: ... ➡️ Add an analysis of the canvas. ➡️ A score is computed from the individual scores in the cells."
+    }
+}
