@@ -18,6 +18,11 @@
     text-align: center;
 }
 
+[contenteditable="true"]:focus {
+    text-transform: none;
+    color: #33d;
+} 
+
 #precanvas>p {
     margin-top: 0px;
     font-size: 1rem;

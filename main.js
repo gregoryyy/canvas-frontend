@@ -81,14 +81,12 @@ class Application {
 
     saveToLs(title = this.meta.title) {
         this.check();
-        title = title.toLowerCase();
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
         canvases[this.meta.title] = JSON.stringify(this.toJSON());
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
     loadFromLs(title = this.meta.title) {
-        title = title.toLowerCase();
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
