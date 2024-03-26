@@ -1,47 +1,29 @@
 /* static functions */
 
-function createElement(tagName, attributes = {}, text = '') {
+function createElement(tagName, attributes = {}, text = '', format = 'text') {
     const element = document.createElement(tagName);
     Object.keys(attributes).forEach(key => element.setAttribute(key, attributes[key]));
-    if (text) element.textContent = text;
+    if (text) {
+        switch (format) {
+            case 'text': element.textContent = text; break;
+            case 'html': element.innerHTML = text; break;
+            default: /* none */
+        }
+    }
     return element;
 };
 
 function makeEditable(elem, cbFinishEdit) {
     elem.setAttribute('contenteditable', 'true');
-    //const editClass = 'editing';
-
     elem.addEventListener('blur', cbFinishEdit);
 
-    elem.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            if (e.shiftKey) {
-                cbFinishEdit();
-            } else {
-                e.preventDefault();
-                insertBr();
-            }
-        }
-        if (e.key === 'Escape') {
-            cbFinishEdit();
+    // Handle Enter key for line breaks
+    elem.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            document.execCommand('insertHTML', false, '<br><br>');
+            e.preventDefault();
         }
     });
-
-    function insertBr() {
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        const range = selection.getRangeAt(0);
-        // optional: clear selected content
-        range.deleteContents();
-        const br = document.createElement('br');
-        const zeroWidthSpace = document.createTextNode('\u200B');
-        range.insertNode(zeroWidthSpace);
-        range.insertNode(br);
-        range.setStartAfter(zeroWidthSpace);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
 }
 
 function addLongPressListener(element, callback, duration = 500) {
@@ -75,7 +57,13 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-function sanitize(text) { return DOMPurify.sanitize(text); }
+function md2html(markdown) { return marked.parse(convertBR(markdown)); }
+
+function convertBR(text) { return text.replace(/<br\s*\/?>/gi, '\n').replace(/[\u200B]/g, ''); }
+
+function convertNL(text) { return text.replace(/\n/g, '<br>'); }
+
+function sanitize(text) { return DOMPurify.sanitize(text, { ALLOWED_TAGS: ['br', 'p', 'i', 'b'] }); }
 
 function sanitizeJSON(value) {
     if (typeof value === 'string') return sanitize(value);

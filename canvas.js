@@ -143,7 +143,7 @@ class Cell {
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
         Array.from(domCards).forEach((elem, index) => {
-            if (elem.textContent.trim() !== this.cards[index].text.trim())
+            if (convertBR(elem.innerHTML.trim()) !== this.cards[index].text.trim())
                 throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
                     `!= state.card ${index}: ${stateCards[index].text.trim()}`);
         });
@@ -167,7 +167,7 @@ class Card {
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
-    
+
     static getElement = (index) => document.querySelector(`.card[data-index='${index}']`);
 
     update() {
@@ -175,13 +175,13 @@ class Card {
         console.log('card update' + this.index);
         const cardElem = this.getElement();
         if (!cardElem) return;
-        this.setTypeAndText(sanitize(cardElem.textContent));
+        this.setTypeAndText(sanitize(convertBR(cardElem.innerHTML)));
         this.rerender();
         if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
     }
 
     render() {
-        const card = createElement('div', { class: 'card', 'data-index': this.index }, this.text);
+        const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
         return card;
@@ -189,7 +189,7 @@ class Card {
 
     rerender() {
         const cardElem = this.getElement();
-        cardElem.textContent = this.text;
+        cardElem.htmlContent = convertNL(this.text);
         cardElem.className = 'card';
         if (this.type) cardElem.classList.add(this.type);
     }
@@ -199,12 +199,12 @@ class Card {
         const trimmed = text.trim();
         for (const [cmd, type] of Object.entries(cardtypes)) {
             if (trimmed.startsWith(cmd)) {
-                this.text = trimmed.substring(2).trim();
+                this.text = convertBR(trimmed.substring(2).trim());
                 this.type = type;
                 return;
             }
         }
-        this.text = trimmed;
+        this.text = convertBR(trimmed);
     }
 
     toJSON() { return { content: this.text, type: this.type }; }
@@ -220,7 +220,7 @@ class PreCanvas {
     update() {
         const metaDiv = document.getElementById('precanvas');
         app.meta.title = sanitize(metaDiv.querySelector('h2').textContent);
-        app.meta.description = sanitize(metaDiv.querySelector('p').textContent);
+        app.meta.description = sanitize(convertBR(metaDiv.querySelector('p').innerHTML));
     }
 
     render() {
@@ -228,14 +228,14 @@ class PreCanvas {
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
         const description = createElement('p', {}, this.description);
-        makeEditable(description, () => app.meta.description = sanitize(description.textContent), this.updateState);
+        makeEditable(description, () => app.meta.description = sanitize(convertBR(description.innerHTML)), this.updateState);
         metaDiv.appendChild(title);
         metaDiv.appendChild(description);
     }
 
     rerender() {
         document.querySelector(`#precanvas h2`).textContent = this.title;
-        document.querySelector(`#precanvas p`).textContent = this.description;
+        document.querySelector(`#precanvas p`).innerHTML = convertNL(this.description);
     }
 
     clear() {
@@ -262,7 +262,7 @@ class PostCanvas {
     update() {
         const metaDiv = document.getElementById('postcanvas');
         app.analysis.title = sanitize(metaDiv.querySelector('h3').textContent);
-        app.analysis.description = sanitize(metaDiv.querySelector('p').textContent);
+        app.analysis.description = sanitize(convertBR(metaDiv.querySelector('p').innerHTML));
     }
 
     render() {
@@ -278,12 +278,12 @@ class PostCanvas {
         }
 
         const paragraph = createElement('p', {}, this.content);
-        makeEditable(paragraph, () => app.analysis.content = sanitize(paragraph.textContent));
+        makeEditable(paragraph, () => app.analysis.content = sanitize(convertBR(paragraph.innerHTML)));
         anaDiv.appendChild(paragraph);
     }
 
     rerender() {
-        document.querySelector(`#postcanvas p`).textContent = this.content;
+        document.querySelector(`#postcanvas p`).innerHTML = convertNL(this.content);
         this.computeScore();
     }
 

@@ -13,7 +13,13 @@ TODOs with A: are high-priority
     * How to do auto-updates --> timer
   * UX harmonized with conventions (dblclick etc.) DONE v1.1
   * Style adjusted, e.g., using tailwindcss.com --> not needed
-  * Formatted card content
+  * Formatted card content --> 1.2.2 ui text
+    * version 1: card.text = text with BR and NL conversion for update/render,
+      rendering pipeline: text --> convertNL --> sanitize --> elem.innerHTML
+      updateing pipeline: innerHTML --> convertBR --> sanitize --> card.text
+      BUG: DOMPurify strips br
+    * version 2: card.text = markdown = storage and edit format (textarea for edit, 
+      rendering pipeline: marked.parse --> sanitize --> elem.innerHTML.
   * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings --> TODO v1_2_x
