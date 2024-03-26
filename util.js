@@ -1,4 +1,4 @@
-/* static functions */
+/* static UI functions */
 
 function createElement(tagName, attributes = {}, text = '', format = 'text') {
     const element = document.createElement(tagName);
@@ -57,7 +57,130 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-function md2html(markdown) { return marked.parse(convertBR(markdown)); }
+// execute callback on item selected from list shown in overlay menu
+function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
+
+    const closeMenu = () => {
+        menu.remove();
+        elem.classList.remove('menuopen');
+    };
+
+    let menu = document.querySelector('.overlay-menu');
+    if (!menu) {
+        menu = createElement('div', { class: 'overlay-menu' });
+        menu.appendChild(createElement('h3', {}, title));
+        elem.classList.add('menuopen');
+    } else {
+        closeMenu();
+        return;
+    }
+
+    if (list.length == 0) menu.appendChild(createElement('div', { class: 'overlay-menu-item' }, '(empty)'));
+
+    list.forEach((itemText, index) => {
+        const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
+        item.addEventListener('click', () => {
+            cbLoad(itemText);
+            closeMenu();
+        });
+        if (cbDel) {
+            const delBtn = createElement('span', { class: 'overlay-menu-item-delete' }, 'Delete');
+            delBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                confirmStep(delBtn, () => {
+                    cbDel(itemText);
+                    delBtn.parentElement.remove();
+                });
+            });
+            item.appendChild(delBtn);
+        }
+        menu.appendChild(item);
+    });
+
+    document.body.appendChild(menu);
+    const rect = elem.getBoundingClientRect();
+    menu.style.left = `${rect.left}px`;
+    menu.style.top = `${rect.top - menu.offsetHeight}px`;
+    menu.style.top = `${window.scrollY + rect.top - menu.offsetHeight}px`;
+    menu.style.display = 'block';
+
+    // close when clicked outside
+    document.addEventListener('click', (event) => {
+        if (!elem.contains(event.target) && !menu.contains(event.target))
+            closeMenu();
+    });
+}
+
+// user needs to press twice within timeframe to execute callback
+function confirmStep(elem, callback, timeout = 3000) {
+
+    const resetElem = () => {
+        elem.textContent = elem.originalText;
+        elem.style.color = '';
+        elem.confirming = false;
+    };
+
+    if (!elem.confirming) {
+        // first click: prompt for confirmation
+        elem.originalText = elem.textContent; // Save original button text
+        elem.textContent += '?';
+        elem.style.color = 'red';
+        elem.confirming = true;
+        elem.confirmTimeout = setTimeout(resetElem, timeout);
+    } else {
+        // second click: execute!
+        clearTimeout(elem.confirmTimeout);
+        callback();
+        resetElem();
+        elem.textContent = elem.originalText;
+        elem.style.color = '';
+        elem.confirming = false;
+    }
+}
+
+/* static non-UI functions */
+
+function downloadLs(key) {
+    // Retrieve the data from Local Storage
+    const data = localStorage.getItem(key);
+    if (data) {
+        const blob = new Blob([data], { type: 'application/json' });
+        // link to download the blob
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${key}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(a.href);
+    } else console.log('No data to download!');
+}
+
+// TODO: security hardening and error handling
+function uploadLs(event, key, replace = false) {
+    const input = event.target;
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            try {
+                const data = sanitizeJSON(JSON.parse(event.target.result));
+                const storedCanvases = localStorage.getItem(defaultLsKey);
+                if (!storedCanvases || replace) {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } else {
+                    const canvases = sanitizeJSON(JSON.parse(storedCanvases));
+                    Object.entries(data).forEach(([key, value]) => {
+                        // TODO: check input
+                        canvases[key] = value;
+                    });
+                    localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
+                }
+            } catch (e) { console.log('Failed to upload data'); }
+        };
+        reader.readAsText(file);
+    } else console.log('No file selected!');
+}
 
 function convertBR(text) { return text.replace(/<br\s*\/?>/gi, '\n').replace(/[\u200B]/g, ''); }
 
@@ -91,4 +214,6 @@ function lg(message) {
     //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
     console.log(`${message} - ${functionName}()`);
 }
+
+
 

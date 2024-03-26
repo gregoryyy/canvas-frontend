@@ -1,9 +1,9 @@
-// import { FileUploader } from './upload.js';
+// import { FileUploader } from './network.js';
 
 let app = undefined;
 let ctl = undefined;
 let conf = undefined;
-const defaultCanvasLsKey = 'canvas';
+const defaultLsKey = 'preseedcanvas';
 const defaultConfigFile = 'config.json';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -79,25 +79,42 @@ class Application {
 
     clear() { this.renderables.forEach(renderable => renderable.clear()); }
 
-    saveToLs() {
+    saveToLs(title = this.meta.title) {
         this.check();
-        localStorage.setItem(defaultCanvasLsKey, JSON.stringify(this));
+        const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
+        canvases[this.meta.title] = JSON.stringify(this.toJSON());
+        localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
-    loadFromLs() {
-        const json = localStorage.getItem(defaultCanvasLsKey);
-        if (!json || json.length == 0) return;
-        const content = JSON.parse(sanitizeJSON(json));
+    loadFromLs(title = this.meta.title) {
+        const storedCanvases = localStorage.getItem(defaultLsKey);
+        if (!storedCanvases) return;
+        const canvases = JSON.parse(storedCanvases);
+        if (!canvases[title]) return;
+        const content = sanitizeJSON(JSON.parse(canvases[title]));
         this.repopulate(content);
         this.rerender();
         this.check();
     }
 
-    loadFromFile() {
-        // this is called from the server
+    downloadLs() { downloadLs(defaultLsKey); }
+
+    uploadLs() { uploadLs(defaultLsKey); }
+
+    delFromLs(title) {
+        const storedCanvases = localStorage.getItem(defaultLsKey);
+        if (!storedCanvases) return;
+        const canvases = JSON.parse(storedCanvases);
+        canvases[title] = undefined;
+        localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
-    static clearLocalStorage() { localStorage.removeItem(defaultCanvasLsKey); }
+    getCanvasNames() {
+        const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
+        return Object.keys(canvases);
+    }
+
+    static clearLocalStorage() { localStorage.removeItem(defaultLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
 
@@ -123,10 +140,10 @@ class Controls {
         const sec = conf.canvasd.tls === 'yes' ? "s" : "";
 
         let buttons = [
-            ['lsload', 'Load LS', app.loadFromLs.bind(app)],
-            ['lssave', 'Save LS', app.saveToLs.bind(app)],
-            ['lsclear', 'Clear LS', Application.clearLocalStorage],
-            ['cvclear', 'Clear Canvas', app.clear.bind(app)]];
+            ['lsload', 'Load LS', loadMenu.bind(app)],
+            ['lssave', 'Save LS', save],
+            ['lsclear', 'Clear LS', confirmLsClear],
+            ['cvclear', 'Clear Canvas', confirmCanvasClear]];
 
         if (useServer) {
             ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
@@ -134,6 +151,13 @@ class Controls {
             fileUploader.initFileInput('#fileInput');
             buttons.push(['upload', 'Upload File', () => document.getElementById('fileInput').click()]);
         };
+
+        if (conf.localstorage.filemenu === 'yes') {
+            buttons.push(['lsdown', 'Download LS', confirmDownloadLs]);
+            buttons.push(['lsup', 'Upload LS', uploadLsFile]);
+            ctlElem.appendChild(createElement('input',
+                { type: 'file', id: 'lsFileInput', onchange: `uploadLs(event, '${defaultLsKey}')`, style: 'display: none;' }));
+        }
 
         buttons.forEach(button => {
             const btn = createElement('div', { id: button[0], class: 'control' }, button[1])
@@ -144,6 +168,17 @@ class Controls {
                 setTimeout(() => btn.classList.remove('clicked'), 500);
             });
         });
+
+        function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
+
+        function save(event) { app.saveToLs(); }
+
+        function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
+
+        function confirmLsClear(event) { confirmStep(event.target, Application.clearLocalStorage); }
+
+        function confirmDownloadLs(event) { confirmStep(event.target, app.downloadLs.bind(app)); }
+
+        function uploadLsFile(event) { document.getElementById('lsFileInput').click(); }
     }
 }
-

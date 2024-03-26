@@ -18,6 +18,11 @@
     text-align: center;
 }
 
+[contenteditable="true"]:focus {
+    text-transform: none;
+    color: #33d;
+} 
+
 #precanvas>p {
     margin-top: 0px;
     font-size: 1rem;
@@ -212,7 +217,6 @@ div.cell>p,
     font-size: 12px;
 }
 
-
 .card {
     padding: 5px;
     margin: 5px;
@@ -234,7 +238,7 @@ div.cell>p,
 .card.query { background-color: #dff; }
 .card.analysis { background-color: #fdd; }
 
-.clicked {
+.clicked, .menuopen {
     background-color: #ccc;
     white-space: pre-wrap;
 }
@@ -256,9 +260,48 @@ p.hint {
     border: 1px solid black;
     font-size: 0.8em;
     text-align: center;
-    width: 80px;
+    width: 90px;
     margin: 2px;
     cursor: pointer;
+}
+
+.overlay-menu {
+    /* display: none; */
+    position: absolute;
+    min-width: 300px;
+    min-height: 50px;
+    padding: 5px;
+    border: 1px solid black;
+    background-color: #eee;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 100;
+    overflow: auto;
+}
+
+.overlay-menu > h3 {
+    font-size: 10pt;
+    margin-top: 0px;
+}
+
+.overlay-menu-item {
+    position: relative;
+    padding: 5px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd; /* Optional: for styling */
+}
+
+.overlay-menu-item:hover {
+    background-color: #f1f1f1;
+}
+
+.overlay-menu-item-delete {
+    position: absolute;
+    right: 10px;
+    text-align: center;
+    width: 50px;
+    font-size: 8pt;
+    border: 1px solid black;
 }
 
 /* mobile menu */

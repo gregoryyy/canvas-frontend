@@ -1,14 +1,14 @@
 {
     "settings": {
         "canvasd": {
-            "mode": "txt",
+            "mode": "off",
             "host": "localhost",
             "tls": "no",
             "port": "8080"
         },
         "localstorage": {
             "mode": "manual",
-            "interval": "30"
+            "filemenu": "no"
         }
     },
     "meta": {
