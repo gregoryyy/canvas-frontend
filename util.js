@@ -26,6 +26,14 @@ function makeEditable(elem, cbFinishEdit) {
     });
 }
 
+function makeDraggable(card) {
+}
+
+
+// allowOthers = any card container droppable
+function makeDroppable(container, allowOthers = false) {
+}
+
 function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
     let startX = 0;
