@@ -26,7 +26,9 @@ function makeEditable(elem, cbFinishEdit) {
     });
 }
 
-function makeDraggable(card) {
+function makeDraggable(elem) {
+    elem.setAttribute('draggable', 'true');
+
 }
 
 
