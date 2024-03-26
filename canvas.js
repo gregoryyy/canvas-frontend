@@ -143,7 +143,7 @@ class Cell {
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
         Array.from(domCards).forEach((elem, index) => {
-            if (convertBR(elem.innerHTML.trim()) !== this.cards[index].text.trim())
+            if (elem.textContent.trim() !== this.cards[index].text.trim())
                 throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
                     `!= state.card ${index}: ${stateCards[index].text.trim()}`);
         });
