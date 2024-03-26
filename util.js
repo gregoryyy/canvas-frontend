@@ -186,6 +186,10 @@ function convertBR(text) { return text.replace(/<br\s*\/?>/gi, '\n').replace(/[\
 
 function convertNL(text) { return text.replace(/\n/g, '<br>'); }
 
+function decodeHtml(html) { return new DOMParser().parseFromString(html, "text/html").documentElement.textContent; }
+
+function encodeHtml(text) { return document.createElement('div').appendChild(document.createTextNode(text)).outerHTML; }
+
 function sanitize(text) { return DOMPurify.sanitize(text, { ALLOWED_TAGS: ['br', 'p', 'i', 'b'] }); }
 
 function sanitizeJSON(value) {
