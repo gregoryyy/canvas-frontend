@@ -9,6 +9,46 @@ class Canvas {
 
     update() { this.cells.forEach(cell => cell.updateState()); }
 
+    updateDragDrop() {
+        // find the location of the source card.
+
+
+        lg(`update after dnd: ${Cell.dragSource}.${Card.dragSource} --> before ${Cell.dragDest}.${Card.dragDest}`);
+        lg(` = card index ${Card.dragSourceIndex} --> before ${Card.dragDestIndex}`);
+        lg(`DOM cards in source cell ${Cell.dragSource}: ` +
+            Array.from(this.cells[Cell.dragSource].cardElems()).map(card => card.getAttribute('data-index')));
+        lg(`DOM cards in destination cell ${Cell.dragDest}: ` +
+            Array.from(this.cells[Cell.dragDest].cardElems()).map(card => card.getAttribute('data-index')));
+
+
+        lg(`STATE cards in source cell ${Cell.dragSource}: ` + this.cells[Cell.dragSource].cards.map(card => card.index));
+        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + this.cells[Cell.dragDest].cards.map(card => card.index));
+
+        if (Cell.dragSource === Cell.dragDest) {
+            if (Card.dragSource === Card.dragDest) return;
+            const cell = this.cells[Cell.dragSource];
+            const [card] = cell.cards.splice(Card.dragSource, 1);
+            // back to front
+            if (Card.dragSource > Card.dragDest) cell.cards.splice(Card.dragDest - 1, 0, card);
+            if (Card.dragSource < Card.dragDest) cell.cards.splice(Card.dragDest + 1, 0, card);
+            //cell.check();
+            //cell.rerender();
+        } else {
+            const cell = this.cells[Cell.dragSource];
+            const [card] = cell.cards.splice(Card.dragSource, 1);
+            const cell2 = this.cells[Cell.dragDest];
+            cell2.cards.splice(Card.dragDest, 0, card);
+            //cell.check();
+            //cell.rerender();
+            //cell2.check();
+            //cell2.rerender();
+        }
+
+        lg(`STATE cards in source cell ${Cell.dragSource}: ` + this.cells[Cell.dragSource].cards.map(card => card.index));
+        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + this.cells[Cell.dragDest].cards.map(card => card.index));
+
+    }
+
     render() {
         const el = document.getElementById('canvas');
         el.innerHTML = '';
@@ -27,6 +67,9 @@ class Canvas {
 }
 
 class Cell {
+
+    static dragSource = undefined;
+    static dragDest = undefined;
 
     constructor(index, structure, content) {
         this.index = index;
@@ -94,7 +137,11 @@ class Cell {
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
-        makeDroppable(cardContainerDiv);
+        makeDroppable(cardContainerDiv, () => {
+            Cell.dragDest = this.index;
+            lg(`drag end (cell): ${Cell.dragDest}.${Card.dragDest}`);
+            app.canvas.updateDragDrop();
+        });
         cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
         return cellDiv;
     }
@@ -159,6 +206,10 @@ class Cell {
 class Card {
 
     static count = 0;
+    static dragSourceIndex = undefined;
+    static dragDestIndex = undefined;
+    static dragSource = undefined;
+    static dragDest = undefined;
 
     // type is optional
     constructor(text, type = undefined) {
@@ -168,8 +219,15 @@ class Card {
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
-
     static getElement = (index) => document.querySelector(`.card[data-index='${index}']`);
+    static getCellCardPos = (index) => { const elem = Card.getElement(index); return [elem.cellIndex(), elem.cardCellPos()]; }
+    //static getCellCardIndex = (cell, pos) => { app.canvas.cells[cell].getCardIndex(pos); }
+
+    getParentCell = () => this.getElement().parentElement.parentElement;
+
+    // parent cell and position within parent cell
+    cellIndex = () => this.getParentCell().getAttribute('data-index');
+    cardCellPos = () => { const card = this.getElement(); return Array.from(card.parentNode.children).indexOf(card); };
 
     update() {
         // global indexing
@@ -185,7 +243,18 @@ class Card {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
-        makeDraggable(card, 500);
+        makeDraggable(card, 500, (e) => {
+            Cell.dragSource = this.cellIndex();
+            Card.dragSource = this.cardCellPos();
+            Card.dragSourceIndex = this.index;
+            lg(`drag start: ${this.index}, ${Cell.dragSource}.${Card.dragSource}`);
+        }, (e) => {
+            Cell.dragDest = this.cellIndex();
+            Card.dragDest = this.cardCellPos();
+            Card.dragDestIndex = this.index;
+            lg(`drag end: ${this.index}, ${Cell.dragDest}.${Card.dragDest}`);
+            app.canvas.updateDragDrop();
+        });
         return card;
     }
 

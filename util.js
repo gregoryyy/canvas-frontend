@@ -27,6 +27,11 @@ function makeEditable(elem, cbFinishEdit) {
 }
 
 function addLongPressListener(element, callback, duration = 500) {
+    generateLongPressEvents(element, duration);
+    element.addEventListener('longpress', () => { callback(); });
+}
+
+function generateLongPressEvents(element, duration = 500) {
     let timerId = null;
     let startX = 0;
     let startY = 0;
@@ -36,7 +41,10 @@ function addLongPressListener(element, callback, duration = 500) {
         startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
         startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
         if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
-        timerId = setTimeout(() => callback(element), duration);
+        timerId = setTimeout(() => {
+            const longPressEvent = new CustomEvent('longpress', { detail: { startX, startY }, bubbles: true, cancelable: true });
+            element.dispatchEvent(longPressEvent);
+        }, duration);
     };
 
     const cancel = () => { clearTimeout(timerId); };
@@ -58,33 +66,35 @@ function addLongPressListener(element, callback, duration = 500) {
 }
 
 const highlightClass = 'highlight';
-const dragClass = 'dragging'
+const dragClass = 'dragging';
 
 const eventOnClass = (e, c) => e.target.classList.contains(c);
 const eventAddClass = (e, c) => e.target.classList.add(c);
 const eventRemoveClass = (e, c) => e.target.classList.remove(c);
 
 // optionally listen to nonzero milliseconds long-press gesture
-function makeDraggable(elem, longPressMillis = 0) {
+function makeDraggable(elem, longPressMillis = 0, cbStart = undefined, cbFinish = undefined) {
     elem.setAttribute('draggable', 'true');
-    const onLongPress = (el) => { el.classList.add(dragClass); lg(el + ' drag start') };
-    const onDragStart = (e) => { eventAddClass(e, dragClass); setTimeout(() => e.target.style.display = 'none', 200); };
+    const onPressStart = (e) => { e.stopPropagation(); eventAddClass(e, dragClass); if (cbStart) cbStart(); };
+    const onDragStart = (e) => { eventAddClass(e, dragClass); if (cbStart) cbStart(); setTimeout(() => e.target.style.display = 'none', 200); };
     const onDragEnd = (e) => { setTimeout(() => { e.target.style.display = 'block'; eventRemoveClass(e, dragClass); }, 200); };
     const onDragOver = (e) => e.preventDefault();
     const onDragEnter = (e) => { if (eventOnClass(e, 'card')) eventAddClass(e, highlightClass); };
     const onDragLeave = (e) => { if (eventOnClass(e, 'card') && eventOnClass(e, highlightClass)) eventRemoveClass(e, highlightClass); };
     const onDropOnCard = (e) => {
         e.preventDefault();
-        if (eventOnClass(e, 'card') && eventOnClass(e, highlightClass)) {
-            const draggedCard = document.querySelector('.dragging');
+        const draggedElem = document.querySelector('.' + dragClass);
+        if (eventOnClass(e, 'card') && draggedElem && eventOnClass(e, highlightClass)) {
             eventRemoveClass(e, highlightClass);
             eventRemoveClass(e, dragClass);
-            e.target.parentNode.insertBefore(draggedCard, e.target);
+            e.target.parentNode.insertBefore(draggedElem, e.target);
+            if (cbFinish) cbFinish();
         }
     };
 
     if (longPressMillis > 0) {
-        addLongPressListener(elem, onLongPress);
+        generateLongPressEvents(elem, longPressMillis);
+        elem.addEventListener('longpress', onPressStart);
     } else {
         elem.addEventListener('dragstart', onDragStart);
     }
@@ -95,14 +105,16 @@ function makeDraggable(elem, longPressMillis = 0) {
     elem.addEventListener('drop', onDropOnCard);
 };
 
-function makeDroppable(elem) {
+function makeDroppable(elem, cbFinish = undefined) {
     const onDropOnCell = (e) => {
         e.preventDefault();
-        const draggedCard = document.querySelector('.dragging');
-        if (!eventOnClass(e, 'card') && draggedCard) {
-            e.target.appendChild(draggedCard);
+        const draggedElem = document.querySelector('.' + dragClass);
+        if (!eventOnClass(e, 'card') && draggedElem) {
+            e.target.appendChild(draggedElem);
+            e.target.style.cursor = '';
             elem.classList.remove(highlightClass);
-            draggedCard.style.display = 'block';
+            draggedElem.style.display = 'block';
+            if (cbFinish) cbFinish();
         }
     };
     const onDragEnter = (e) => { if (!eventOnClass(e, 'card')) elem.classList.add(highlightClass); };
@@ -266,15 +278,16 @@ function trimPluralS(s) {
     return s;
 }
 
-function lg(message) {
+function lg(message, verbose = false) {
     const stack = new Error().stack;
     const stackLines = stack.split("\n");
     const callerLine = stackLines[2];
     const functionNameMatch = callerLine.match(/at (\S+)/);
     const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
-    const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
-    console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
-    //console.log(`${message} - ${functionName}()`);
+    if (verbose) {
+        const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
+        console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
+    } else { console.log(`${message} - ${functionName}()`); }
 }
 
 

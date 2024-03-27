@@ -219,6 +219,7 @@ div.cell>p,
 
 .card {
     padding: 5px;
+    cursor: text;
     margin: 5px;
     background: #ffd;
     color: #000;
@@ -239,6 +240,8 @@ div.cell>p,
 .card.analysis { background-color: #fdd; }
 
 .card.highlight, .cell-card-container.highlight { border: dashed black 1px; }
+
+.card.dragging { cursor: grabbing; }
 
 .clicked, .menuopen {
     background-color: #ccc;
