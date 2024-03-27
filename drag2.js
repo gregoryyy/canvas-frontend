@@ -2,7 +2,22 @@
 document.addEventListener('DOMContentLoaded', (event) => {
     let draggedCard = null;
 
-    document.querySelectorAll('.card').forEach(item => {
+    document.querySelectorAll('.card').forEach(makeDraggable);
+
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        cell.addEventListener('drop', e => {
+            if (!e.target.classList.contains('card')) {
+                cell.appendChild(draggedCard);
+            }
+        });
+    });
+
+    function makeDraggable(item) {
+
         item.addEventListener('dragstart', e => {
             draggedCard = item;
             setTimeout(() => item.style.display = 'none', 0);
@@ -38,17 +53,5 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 e.target.parentNode.insertBefore(draggedCard, e.target);
             }
         });
-    });
-
-    document.querySelectorAll('.cell').forEach(cell => {
-        cell.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        cell.addEventListener('drop', e => {
-            if (!e.target.classList.contains('card')) {
-                cell.appendChild(draggedCard);
-            }
-        });
-    });
+    }
 });

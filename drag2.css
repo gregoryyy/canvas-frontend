@@ -17,4 +17,5 @@
 
 .card.highlight {
     border-color: red;
+    border-style: dashed;
 }
