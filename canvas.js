@@ -91,7 +91,6 @@ class Cell {
 
         const cardContainerDiv = createElement('div', { class: 'cell-card-container' });
         cellDiv.appendChild(cardContainerDiv);
-        makeDroppable(cardContainerDiv, true);
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
@@ -122,9 +121,7 @@ class Cell {
     }
 
     makeBgClickable(cardContainerDiv) {
-        cardContainerDiv.addEventListener('dblclick', e => {
-            e.target === cardContainerDiv ? this.createCard(cardContainerDiv) : undefined;
-        });
+        cardContainerDiv.addEventListener('dblclick', e => e.target === cardContainerDiv ? this.createCard(cardContainerDiv) : undefined);
         addLongPressListener(cardContainerDiv, () => this.createCard(cardContainerDiv));
         cardContainerDiv.style.minHeight = '50px';
         cardContainerDiv.style.cursor = 'pointer';
@@ -187,7 +184,6 @@ class Card {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
-        makeDraggable(card);
         return card;
     }
 
@@ -320,5 +316,3 @@ class PostCanvas {
 
     toJSON() { return { content: this.content }; }
 }
-
-

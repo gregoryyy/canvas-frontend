@@ -16,7 +16,7 @@ TODOs with A: are high-priority
   * Formatted card content --> 1.2.2 ui text
     * version 1: card.text = text with BR and NL conversion for update/render,
       rendering pipeline: text --> convertNL --> sanitize --> elem.innerHTML
-      updateing pipeline: innerHTML --> convertBR --> sanitize --> card.text
+      updating pipeline: elem.innerHTML --> convertBR --> sanitize --> card.text
       BUG: DOMPurify strips br
     * version 2: card.text = markdown = storage and edit format (textarea for edit, 
       rendering pipeline: marked.parse --> sanitize --> elem.innerHTML.
@@ -43,7 +43,8 @@ TODOs with A: are high-priority
   * A: Create card DONE
   * A: Remove card DONE
   * Card types in different colors --> v1_1_2_cardtypes DONE
-  * Drag cards up and down --> v1_2_2_ui_dragdrop
+  * Drag cards up and down --> v1_2_2_ui_dragdrop --> v1_3_1_dragdrop
+    * only for desktop DONE
   * Consider TinyMCE as card editor --> not needed yet
   * BUG: Double Enter when editing first time FIXED
   * BUG: All newlines get removed on save/load

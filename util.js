@@ -224,9 +224,9 @@ function lg(message) {
     const callerLine = stackLines[2];
     const functionNameMatch = callerLine.match(/at (\S+)/);
     const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
-    //const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
-    //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
-    console.log(`${message} - ${functionName}()`);
+    const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
+    console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
+    //console.log(`${message} - ${functionName}()`);
 }
 
 
