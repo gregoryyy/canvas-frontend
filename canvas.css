@@ -238,6 +238,8 @@ div.cell>p,
 .card.query { background-color: #dff; }
 .card.analysis { background-color: #fdd; }
 
+.card.highlight, .cell-card-container.highlight { border: dashed black 1px; }
+
 .clicked, .menuopen {
     background-color: #ccc;
     white-space: pre-wrap;

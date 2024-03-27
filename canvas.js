@@ -94,6 +94,7 @@ class Cell {
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
+        makeDroppable(cardContainerDiv);
         cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
         return cellDiv;
     }
@@ -184,6 +185,7 @@ class Card {
         const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
+        makeDraggable(card, 500);
         return card;
     }
 

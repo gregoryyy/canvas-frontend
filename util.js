@@ -26,16 +26,6 @@ function makeEditable(elem, cbFinishEdit) {
     });
 }
 
-function makeDraggable(elem) {
-    elem.setAttribute('draggable', 'true');
-
-}
-
-
-// allowOthers = any card container droppable
-function makeDroppable(container, allowOthers = false) {
-}
-
 function addLongPressListener(element, callback, duration = 500) {
     let timerId = null;
     let startX = 0;
@@ -66,6 +56,64 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('mousemove', move);
     element.addEventListener('touchmove', move, { passive: true });
 }
+
+const highlightClass = 'highlight';
+const dragClass = 'dragging'
+
+const eventOnClass = (e, c) => e.target.classList.contains(c);
+const eventAddClass = (e, c) => e.target.classList.add(c);
+const eventRemoveClass = (e, c) => e.target.classList.remove(c);
+
+// optionally listen to nonzero milliseconds long-press gesture
+function makeDraggable(elem, longPressMillis = 0) {
+    elem.setAttribute('draggable', 'true');
+    const onLongPress = (el) => { el.classList.add(dragClass); lg(el + ' drag start') };
+    const onDragStart = (e) => { eventAddClass(e, dragClass); setTimeout(() => e.target.style.display = 'none', 200); };
+    const onDragEnd = (e) => { setTimeout(() => { e.target.style.display = 'block'; eventRemoveClass(e, dragClass); }, 200); };
+    const onDragOver = (e) => e.preventDefault();
+    const onDragEnter = (e) => { if (eventOnClass(e, 'card')) eventAddClass(e, highlightClass); };
+    const onDragLeave = (e) => { if (eventOnClass(e, 'card') && eventOnClass(e, highlightClass)) eventRemoveClass(e, highlightClass); };
+    const onDropOnCard = (e) => {
+        e.preventDefault();
+        if (eventOnClass(e, 'card') && eventOnClass(e, highlightClass)) {
+            const draggedCard = document.querySelector('.dragging');
+            eventRemoveClass(e, highlightClass);
+            eventRemoveClass(e, dragClass);
+            e.target.parentNode.insertBefore(draggedCard, e.target);
+        }
+    };
+
+    if (longPressMillis > 0) {
+        addLongPressListener(elem, onLongPress);
+    } else {
+        elem.addEventListener('dragstart', onDragStart);
+    }
+    elem.addEventListener('dragend', onDragEnd);
+    elem.addEventListener('dragover', onDragOver);
+    elem.addEventListener('dragenter', onDragEnter);
+    elem.addEventListener('dragleave', onDragLeave);
+    elem.addEventListener('drop', onDropOnCard);
+};
+
+function makeDroppable(elem) {
+    const onDropOnCell = (e) => {
+        e.preventDefault();
+        const draggedCard = document.querySelector('.dragging');
+        if (!eventOnClass(e, 'card') && draggedCard) {
+            e.target.appendChild(draggedCard);
+            elem.classList.remove(highlightClass);
+            draggedCard.style.display = 'block';
+        }
+    };
+    const onDragEnter = (e) => { if (!eventOnClass(e, 'card')) elem.classList.add(highlightClass); };
+    const onDragLeave = (e) => { if (!eventOnClass(e, 'card')) elem.classList.remove(highlightClass); };
+    elem.addEventListener('dragover', (e) => e.preventDefault());
+    elem.addEventListener('dragenter', onDragEnter);
+    elem.addEventListener('dragleave', onDragLeave);
+    elem.addEventListener('drop', onDropOnCell);
+}
+
+// TODO: touch gestures for drag and drop
 
 // execute callback on item selected from list shown in overlay menu
 function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
