@@ -1,6 +1,6 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.card').forEach(makeDraggable);
+    document.querySelectorAll('.card').forEach(makeDraggable, 500);
+    document.querySelectorAll('.card').forEach(card => makeEditable(card, (e) => { console.log(e.target.textContent) }));
     document.querySelectorAll('.cell').forEach(makeDroppable);
 });
 
@@ -11,7 +11,9 @@ const eventOnClass = (e, c) => e.target.classList.contains(c);
 const eventAddClass = (e, c) => e.target.classList.add(c);
 const eventRemoveClass = (e, c) => e.target.classList.remove(c);
 
-function makeDraggable(elem) {
+// optionally listen to nonzero milliseconds long-press gesture
+function makeDraggable(elem, longPressMillis = 0) {
+    const onLongPress = (el) => { el.classList.add(dragClass); };
     const onDragStart = (e) => { eventAddClass(e, dragClass); setTimeout(() => e.target.style.display = 'none', 200); };
     const onDragEnd = (e) => { setTimeout(() => { e.target.style.display = 'block'; eventRemoveClass(e, dragClass); }, 200); };
     const onDragOver = (e) => e.preventDefault();
@@ -27,7 +29,11 @@ function makeDraggable(elem) {
         }
     };
 
-    elem.addEventListener('dragstart', onDragStart);
+    if (longPressMillis > 0) {
+        addLongPressListener(elem, onLongPress);
+    } else {
+        elem.addEventListener('dragstart', onDragStart);
+    }
     elem.addEventListener('dragend', onDragEnd);
     elem.addEventListener('dragover', onDragOver);
     elem.addEventListener('dragenter', onDragEnter);
