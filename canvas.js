@@ -12,41 +12,40 @@ class Canvas {
     updateDragDrop() {
         // find the location of the source card.
 
+        const domCardIds = (cell) => Array.from(this.cells[cell].cardElems()).map(card => card.getAttribute('data-index'));
+        const stateCardIds = (cell) => this.cells[cell].cards.map(card => card.index);
 
         lg(`update after dnd: ${Cell.dragSource}.${Card.dragSource} --> before ${Cell.dragDest}.${Card.dragDest}`);
         lg(` = card index ${Card.dragSourceIndex} --> before ${Card.dragDestIndex}`);
-        lg(`DOM cards in source cell ${Cell.dragSource}: ` +
-            Array.from(this.cells[Cell.dragSource].cardElems()).map(card => card.getAttribute('data-index')));
-        lg(`DOM cards in destination cell ${Cell.dragDest}: ` +
-            Array.from(this.cells[Cell.dragDest].cardElems()).map(card => card.getAttribute('data-index')));
+        lg(`DOM cards in source cell ${Cell.dragSource}: ` + domCardIds(Cell.dragSource));
+        lg(`DOM cards in destination cell ${Cell.dragDest}: ` + domCardIds(Cell.dragDest));
 
 
-        lg(`STATE cards in source cell ${Cell.dragSource}: ` + this.cells[Cell.dragSource].cards.map(card => card.index));
-        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + this.cells[Cell.dragDest].cards.map(card => card.index));
+        lg(`STATE cards in source cell ${Cell.dragSource}: ` + stateCardIds(Cell.dragSource));
+        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + stateCardIds(Cell.dragDest));
 
         if (Cell.dragSource === Cell.dragDest) {
-            if (Card.dragSource === Card.dragDest) return;
+            if (Card.dragDestIndex === Card.dragSourceIndex) return;
+            if (Card.dragDest === Card.dragSource + 1) return;
             const cell = this.cells[Cell.dragSource];
+
+            lg('dest = src ' + Card.dragDest - Card.dragSource)
+            lg(cell.cards.map(card => card.index));
             const [card] = cell.cards.splice(Card.dragSource, 1);
-            // back to front
-            if (Card.dragSource > Card.dragDest) cell.cards.splice(Card.dragDest - 1, 0, card);
-            if (Card.dragSource < Card.dragDest) cell.cards.splice(Card.dragDest + 1, 0, card);
-            //cell.check();
-            //cell.rerender();
+            cell.cards.splice(Card.dragDest - 1, 0, card);
+            lg(cell.cards.map(card => card.index));
         } else {
             const cell = this.cells[Cell.dragSource];
             const [card] = cell.cards.splice(Card.dragSource, 1);
             const cell2 = this.cells[Cell.dragDest];
-            cell2.cards.splice(Card.dragDest, 0, card);
-            //cell.check();
-            //cell.rerender();
-            //cell2.check();
-            //cell2.rerender();
+            const index = Card.dragDest ? Card.dragDest - 1 : cell2.cards.length;
+            cell2.cards.splice(index, 0, card);
         }
 
-        lg(`STATE cards in source cell ${Cell.dragSource}: ` + this.cells[Cell.dragSource].cards.map(card => card.index));
-        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + this.cells[Cell.dragDest].cards.map(card => card.index));
+        lg(`STATE cards in source cell ${Cell.dragSource}: ` + stateCardIds(Cell.dragSource));
+        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + stateCardIds(Cell.dragDest));
 
+        app.check();
     }
 
     render() {
@@ -215,7 +214,7 @@ class Card {
     constructor(text, type = undefined) {
         this.index = Card.count++;
         this.type = type;
-        this.setTypeAndText(sanitize(text));
+        this.setTypeAndText(sanitize(this.index + ' ' + text));
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
