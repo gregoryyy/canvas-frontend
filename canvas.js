@@ -10,30 +10,12 @@ class Canvas {
     update() { this.cells.forEach(cell => cell.updateState()); }
 
     updateDragDrop() {
-        // find the location of the source card.
-
-        const domCardIds = (cell) => Array.from(this.cells[cell].cardElems()).map(card => card.getAttribute('data-index'));
-        const stateCardIds = (cell) => this.cells[cell].cards.map(card => card.index);
-
-        lg(`update after dnd: ${Cell.dragSource}.${Card.dragSource} --> before ${Cell.dragDest}.${Card.dragDest}`);
-        lg(` = card index ${Card.dragSourceIndex} --> before ${Card.dragDestIndex}`);
-        lg(`DOM cards in source cell ${Cell.dragSource}: ` + domCardIds(Cell.dragSource));
-        lg(`DOM cards in destination cell ${Cell.dragDest}: ` + domCardIds(Cell.dragDest));
-
-
-        lg(`STATE cards in source cell ${Cell.dragSource}: ` + stateCardIds(Cell.dragSource));
-        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + stateCardIds(Cell.dragDest));
-
         if (Cell.dragSource === Cell.dragDest) {
             if (Card.dragDestIndex === Card.dragSourceIndex) return;
             if (Card.dragDest === Card.dragSource + 1) return;
             const cell = this.cells[Cell.dragSource];
-
-            lg('dest = src ' + Card.dragDest - Card.dragSource)
-            lg(cell.cards.map(card => card.index));
             const [card] = cell.cards.splice(Card.dragSource, 1);
             cell.cards.splice(Card.dragDest - 1, 0, card);
-            lg(cell.cards.map(card => card.index));
         } else {
             const cell = this.cells[Cell.dragSource];
             const [card] = cell.cards.splice(Card.dragSource, 1);
@@ -41,10 +23,12 @@ class Canvas {
             const index = Card.dragDest ? Card.dragDest - 1 : cell2.cards.length;
             cell2.cards.splice(index, 0, card);
         }
-
-        lg(`STATE cards in source cell ${Cell.dragSource}: ` + stateCardIds(Cell.dragSource));
-        lg(`STATE cards in destination cell ${Cell.dragDest}: ` + stateCardIds(Cell.dragDest));
-
+        Cell.dragSource = undefined;
+        Cell.dragDest = undefined;
+        Card.dragSource = undefined;
+        Card.dragDest = undefined;
+        Card.dragSourceIndex = undefined;
+        Card.dragDestIndex = undefined;
         app.check();
     }
 
@@ -138,7 +122,6 @@ class Cell {
         this.makeBgClickable(cardContainerDiv);
         makeDroppable(cardContainerDiv, () => {
             Cell.dragDest = this.index;
-            lg(`drag end (cell): ${Cell.dragDest}.${Card.dragDest}`);
             app.canvas.updateDragDrop();
         });
         cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
@@ -214,7 +197,7 @@ class Card {
     constructor(text, type = undefined) {
         this.index = Card.count++;
         this.type = type;
-        this.setTypeAndText(sanitize(this.index + ' ' + text));
+        this.setTypeAndText(sanitize(text));
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
@@ -229,8 +212,6 @@ class Card {
     cardCellPos = () => { const card = this.getElement(); return Array.from(card.parentNode.children).indexOf(card); };
 
     update() {
-        // global indexing
-        console.log('card update' + this.index);
         const cardElem = this.getElement();
         if (!cardElem) return;
         this.setTypeAndText(sanitize(convertBR(cardElem.innerHTML)));
@@ -246,12 +227,10 @@ class Card {
             Cell.dragSource = this.cellIndex();
             Card.dragSource = this.cardCellPos();
             Card.dragSourceIndex = this.index;
-            lg(`drag start: ${this.index}, ${Cell.dragSource}.${Card.dragSource}`);
         }, (e) => {
             Cell.dragDest = this.cellIndex();
             Card.dragDest = this.cardCellPos();
             Card.dragDestIndex = this.index;
-            lg(`drag end: ${this.index}, ${Cell.dragDest}.${Card.dragDest}`);
             app.canvas.updateDragDrop();
         });
         return card;
