@@ -9,6 +9,9 @@
         "localstorage": {
             "mode": "manual",
             "filemenu": "no"
+        },
+        "layout": {
+            "canvasclass": "lean-canvas"
         }
     },
     "meta": {

@@ -9,11 +9,14 @@
         "localstorage": {
             "mode": "manual",
             "filemenu": "yes"
+        },
+        "layout": {
+            "canvasclass": "lean-canvas"
         }
     },
     "meta": {
         "type": "Preseed Canvas",
-        "version": "0.1",
+        "version": "0.2",
         "date": "20240207",
         "description": "Experimental canvas to assess startups."
     },

@@ -34,6 +34,8 @@ class Canvas {
 
     render() {
         const el = document.getElementById('canvas');
+        const style = conf.layout.canvasclass || '.lean-canvas';
+        el.classList.add(style);
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
@@ -303,8 +305,8 @@ class PostCanvas {
         this.title = 'Analysis';
         this.content = content.analysis.content;
         this.canvas = canvas;
-        this.total = structure.scoring[0].total;
-        this.scores = structure.scoring[0].scores;
+        this.total = structure.scoring[0]?.total;
+        this.scores = structure.scoring[0]?.scores;
         this.scoreSpan = document.querySelector('span.score-total');
     }
 

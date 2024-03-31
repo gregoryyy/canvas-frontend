@@ -1,0 +1,89 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "canvasclass": "bm-canvas"
+        }
+    },
+    "meta": {
+        "type": "Preseed Canvas",
+        "version": "0.2",
+        "date": "20240207",
+        "description": "Experimental canvas to assess startups."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Key Partners",
+            "subtitle": "Who do you work with?",
+            "description": "Suppliers, partners, and strategic alliances, along with their motivations and the resources they provide.",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Key Activities",
+            "subtitle": "What do you do?",
+            "description": "Activities necessary to build the product and solve problems are listed. Also includes activity differentiators and innovators.",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Key resources",
+            "subtitle": "What do you work with?",
+            "description": "Physical, human, and financial resources, along with assets for production and resources for key activities. Also includes scalers, or resources that can be increased to meet demand.",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Value Propositions",
+            "subtitle": "Why buy?",
+            "description": "Unique value that the product offers to different types of customers, as well as its unique features.",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "Customer Relationships",
+            "subtitle": "How communicated?",
+            "description": "How the business communicates with and services its customers, including any communities it may have.",
+            "score": "no"
+        },
+        {
+            "id": 6,
+            "title": "Channels",
+            "subtitle": "How sold?",
+            "description": "The business's market approach and its distribution and communication channels.",
+            "score": "no"
+        },
+        {
+            "id": 7,
+            "title": "Customer Segments",
+            "subtitle": "For whom?",
+            "description": "The business's customers and their problems, along with personas, competitive products, and early adopters.",
+            "score": "no"
+        },
+        {
+            "id": 8,
+            "title": "Cost Structure",
+            "subtitle": "Who?",
+            "description": "Costs related to product creation and delivery, as well as how costs are allocated between development, marketing, and fees. Also includes cost differentiators and innovative cost structures.",
+            "score": "no"
+        },
+        {
+            "id": 9,
+            "title": "Revenue Streams",
+            "subtitle": "How do you earn money?",
+            "description": "The business's funding and revenue streams.",
+            "score": "no"
+        }
+    ]
+}
