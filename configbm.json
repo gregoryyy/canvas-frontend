@@ -25,64 +25,64 @@
         {
             "id": 1,
             "title": "Key Partners",
-            "subtitle": "Who do you work with?",
-            "description": "Suppliers, partners, and strategic alliances, along with their motivations and the resources they provide.",
+            "subtitle": "Who helps us with what?",
+            "description": "Who are our Key Partners? Who are our key suppliers? Which Key Resources are we acquiring from partners? Which Key Activities do partners perform? \n\nMOTIVATIONS FOR PARTNERSHIPS: Optimization and economy, Reduction of risk and uncertainty, Acquisition of particular resources and activities",
             "score": "no"
         },
         {
             "id": 2,
             "title": "Key Activities",
-            "subtitle": "What do you do?",
-            "description": "Activities necessary to build the product and solve problems are listed. Also includes activity differentiators and innovators.",
+            "subtitle": "How do we create value?",
+            "description": "What Key Activities do our Value Propositions require? Our Distribution Channels? Customer Relationships? Revenue streams?\n\nCATEGORIES: Production, Problem Solving, Platform/Network",
             "score": "no"
         },
         {
             "id": 3,
             "title": "Key resources",
-            "subtitle": "What do you work with?",
-            "description": "Physical, human, and financial resources, along with assets for production and resources for key activities. Also includes scalers, or resources that can be increased to meet demand.",
+            "subtitle": "What do we need to create?",
+            "description": "What Key Resources do our Value Propositions require? Our Distribution Channels? Customer Relationships Revenue Streams?\n\nTYPES OF RESOURCES: Physical, Intellectual (brand patents, copyrights, data), Human, Financial",
             "score": "no"
         },
         {
             "id": 4,
             "title": "Value Propositions",
-            "subtitle": "Why buy?",
-            "description": "Unique value that the product offers to different types of customers, as well as its unique features.",
+            "subtitle": "Why do customers buy?",
+            "description": "What value do we deliver to the customer? Which one of our customer’s problems are we helping to solve? What bundles of products and services are we offering to each Customer Segment? Which customer needs are we satisfying?\n\nCHARACTERISTICS: Newness, Performance, Customization, “Getting the Job Done”, Design, Brand/Status, Price, Cost Reduction, Risk Reduction, Accessibility, Convenience/Usability",
             "score": "no"
         },
         {
             "id": 5,
             "title": "Customer Relationships",
             "subtitle": "How communicated?",
-            "description": "How the business communicates with and services its customers, including any communities it may have.",
+            "description": "What type of relationship does each of our Customer Segments expect us to establish and maintain with them? Which ones have we established? How are they integrated with the rest of our business model? How costly are they?",
             "score": "no"
         },
         {
             "id": 6,
             "title": "Channels",
             "subtitle": "How sold?",
-            "description": "The business's market approach and its distribution and communication channels.",
+            "description": "Through which Channels do our Customer Segments want to be reached? How are we reaching them now? How are our Channels integrated? Which ones work best? Which ones are most cost-efficient? How are we integrating them with customer routines?",
             "score": "no"
         },
         {
             "id": 7,
             "title": "Customer Segments",
-            "subtitle": "For whom?",
-            "description": "The business's customers and their problems, along with personas, competitive products, and early adopters.",
+            "subtitle": "Value for whom do?",
+            "description": "For whom are we creating value? Who are our most important customers? Is our customer base a Mass Market, Niche Market, Segmented, Diversified, Multi-sided Platform",
             "score": "no"
         },
         {
             "id": 8,
             "title": "Cost Structure",
             "subtitle": "Who?",
-            "description": "Costs related to product creation and delivery, as well as how costs are allocated between development, marketing, and fees. Also includes cost differentiators and innovative cost structures.",
+            "description": "What are the most important costs inherent in our business model? Which Key Resources are most expensive? Which Key Activities are most expensive?\n\nIS YOUR BUSINESS MORE: Cost Driven (leanest cost structure, low price value proposition, maximum automation, extensive outsourcing), Value Driven (focused on value creation, premium value proposition).\n\nSAMPLE CHARACTERISTICS: Fixed Costs (salaries, rents, utilities), Variable costs, Economies of scale, Economies of scope",
             "score": "no"
         },
         {
             "id": 9,
             "title": "Revenue Streams",
             "subtitle": "How do you earn money?",
-            "description": "The business's funding and revenue streams.",
+            "description": "For what value are our customers really willing to pay? For what do they currently pay? How are they currently paying? How would they prefer to pay? How much does each Revenue Stream contribute to overall revenues?\n\nTYPES: Asset sale, Usage fee, Subscription Fees, Lending/Renting/Leasing, Licensing, Brokerage fees, Advertising\n\nFIXED PRICING: List Price, Product feature dependent, Customer segment dependent, Volume dependent\n\nDYNAMIC PRICING: Negotiation (bargaining), Yield Management, Real-time-Market",
             "score": "no"
         }
     ]
