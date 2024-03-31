@@ -37,83 +37,43 @@ div.cell {
 
 #canvas {
     display: grid;
-    /* grid-auto-rows: min-content; */
     overflow: auto;
     font-size: 11px;
     min-height: 500px;
-    /* grid-template-rows: 1fr 0.2fr 0.8fr 1fr; */
-    /* grid-template-rows: minmax(200px, auto) minmax(40px, auto) minmax(160px, auto) minmax(200px, auto); */
-    grid-template-rows: minmax(150px, auto) minmax(30px, auto) minmax(120px, auto) minmax(150px, auto);
-    /* grid-template-rows: 200px 40px 160px 200px; */
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
+    grid:
+        "a b b d d e e g" minmax(150px, auto)
+        "a c c d d f f g" minmax(30px, auto) 
+        "j c c k k f f l" minmax(120px, auto)
+        "h h m m i i n n" minmax(150px, auto) /
+        2fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
     gap: 0px;
 }
 
-#canvas>div:nth-child(1) {
-    grid-area: 1 / 1 / 3 / 2;
-    border-bottom: 0;
-}
+#canvas > div:nth-child(1) { grid-area: a; }
+#canvas > div:nth-child(2) { grid-area: b; }
+#canvas > div:nth-child(3) { grid-area: c; }
+#canvas > div:nth-child(4) { grid-area: d; }
+#canvas > div:nth-child(5) { grid-area: e; }
+#canvas > div:nth-child(6) { grid-area: f; }
+#canvas > div:nth-child(7) { grid-area: g; }
+#canvas > div:nth-child(8) { grid-area: h; }
+#canvas > div:nth-child(9) { grid-area: i; }
+#canvas > div:nth-child(10) { grid-area: j; }
+#canvas > div:nth-child(11) { grid-area: k; }
+#canvas > div:nth-child(12) { grid-area: l; }
+#canvas > div:nth-child(13) { grid-area: m; }
+#canvas > div:nth-child(14) { grid-area: n; }
 
-#canvas>div:nth-child(2) {
-    grid-area: 1 / 2 / 2 / 4;
-}
-
-#canvas>div:nth-child(3) {
-    grid-area: 2 / 2 / 4 / 4;
-}
-
-#canvas>div:nth-child(4) {
-    grid-area: 1 / 4 / 3 / 6;
-    border-bottom: 0;
-}
-
-#canvas>div:nth-child(5) {
-    grid-area: 1 / 6 / 2 / 8;
-}
-
-#canvas>div:nth-child(6) {
-    grid-area: 2 / 6 / 4 / 8;
-}
-
-#canvas>div:nth-child(7) {
-    grid-area: 1 / 8 / 3 / 9;
-    border-bottom: 0;
-}
-
-#canvas>div:nth-child(8) {
-    grid-area: 4 / 1 / 5 / 3;
-    border-right: 0;
-}
-
-#canvas>div:nth-child(9) {
-    grid-area: 4 / 5 / 5 / 7;
-    border-right: 0;
-}
-
-#canvas>div:nth-child(10) {
-    grid-area: 3 / 1 / 4 / 2;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(11) {
-    grid-area: 3 / 4 / 4 / 6;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(12) {
-    grid-area: 3 / 8 / 4 / 9;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(13) {
-    grid-area: 4 / 3 / 5 / 5;
-    border-left: 1px dashed;
-}
-
-#canvas>div:nth-child(14) {
-    grid-area: 4 / 7 / 5 / 9;
-    border-left: 1px dashed;
-}
+#canvas > div:nth-child(1),
+#canvas > div:nth-child(4),
+#canvas > div:nth-child(7) {border-bottom: 0; }
+#canvas > div:nth-child(8),
+#canvas > div:nth-child(9) { border-right: 0; }
+#canvas > div:nth-child(10),
+#canvas > div:nth-child(11),
+#canvas > div:nth-child(12) { border-top: 1px dashed; }
+#canvas > div:nth-child(13),
+#canvas > div:nth-child(14) { border-left: 1px dashed; }
 
 div.cell {
     padding: 4px;
@@ -313,102 +273,30 @@ p.hint {
 @media screen and (max-width: 768px) {
     #canvas {
         display: grid;
-        /* grid-auto-rows: min-content; */
         grid-auto-columns: min-content;
         overflow: auto;
         font-size: 10px;
         min-height: 500px;
-        grid-template-rows: minmax(160px, auto) minmax(120px, auto) minmax(200px, auto) minmax(80px, auto) minmax(120px, auto) minmax(160px, auto) minmax(120px, auto);
-        /* grid-template-columns: 4fr 2fr 2fr 4fr; */
-        grid-template-columns: minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
-        /* max-height: 1000px; */
+        grid:
+            "a a g g" minmax(160px, auto)
+            "j j l l" minmax(120px, auto) 
+            "b d d e" minmax(200px, auto)
+            "c d d f" minmax(80px, auto)
+            "c k k f" minmax(120px, auto)
+            "h h i i" minmax(160px, auto)
+            "m m n n" minmax(120px, auto) / 
+            minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
         gap: 0px;
     }
 
-
-    /*
-    problem 1 / existing solutions 10 | customers 7 / early adopters 12
-    solution 2 / product progress 3 | value propositions 4 / defensibility 11 | go-to-market 5 / sales traction 6
-    team 8 / support 13 | market 9 / competition 14
-    */
-    #canvas>div:nth-child(1) {
-        /* problem */
-        grid-area: 1 / 1 / 2 / 3;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(10) {
-        /* existing solutions */
-        grid-area: 2 / 1 / 3 / 3;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(7) {
-        /* customers */
-        grid-area: 1 / 3 / 2 / 5;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(12) {
-        /* early adopters */
-        grid-area: 2 / 3 / 3 / 5;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(2) {
-        /* start pos (row, col), end pos */
-        grid-area: 3 / 1 / 4 / 2;
-    }
-
-    #canvas>div:nth-child(3) {
-        /* start pos (row, col), end pos */
-        grid-area: 4 / 1 / 6 / 2;
-    }
-
-    #canvas>div:nth-child(4) {
-        /* value propositions */
-        grid-area: 3 / 2 / 5 / 4;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(11) {
-        /* defensibility */
-        grid-area: 5 / 2 / 6 / 4;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(5) {
-        /* go-to-market */
-        grid-area: 3 / 4 / 4 / 5;
-    }
-
-    #canvas>div:nth-child(6) {
-        /* sales traction */
-        grid-area: 4 / 4 / 6 / 5;
-    }
-
-    #canvas>div:nth-child(8) {
-        /* go-to-market */
-        grid-area: 6 / 1 / 7 / 3;
-        border: 1px solid;
-        border-bottom: 0;
-    }
-
+    #canvas>div:nth-child(8),
     #canvas>div:nth-child(9) {
-        /* sales traction */
-        grid-area: 6 / 3 / 7 / 5;
         border: 1px solid;
         border-bottom: 0;
     }
 
-    #canvas>div:nth-child(13) {
-        grid-area: 7 / 1 / 8 / 3;
-        border: 1px solid;
-        border-top: 1px dashed;
-    }
-
+    #canvas>div:nth-child(13),
     #canvas>div:nth-child(14) {
-        grid-area: 7 / 3 / 8 / 5;
         border: 1px solid;
         border-top: 1px dashed;
     }
