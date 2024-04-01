@@ -4,7 +4,7 @@ let app = undefined;
 let ctl = undefined;
 let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
-const defaultConfigFile = 'config.json';
+const defaultConfigFile = 'config';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         configFile ||= defaultConfigFile;
         contentFile ||= 'template';
         Promise.all([
-            fetch(configFile).then(res => res.json()),
+            fetch(`conf/${configFile}.json`).then(res => res.json()),
             fetch(`models/${contentFile}.json`).then(res => res.json())
         ]).then(([config, content]) => {
             config = sanitizeJSON(config);
