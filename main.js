@@ -4,7 +4,7 @@ let app = undefined;
 let ctl = undefined;
 let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
-const defaultConfigFile = 'config';
+const defaultConfigFile = 'default';
 
 document.addEventListener('DOMContentLoaded', () => {
 
