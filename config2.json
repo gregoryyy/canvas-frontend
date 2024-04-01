@@ -11,7 +11,7 @@
             "filemenu": "no"
         },
         "layout": {
-            "canvasclass": "lean-canvas"
+            "canvasclass": "ps-canvas"
         }
     },
     "meta": {

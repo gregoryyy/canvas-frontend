@@ -15,10 +15,10 @@
         }
     },
     "meta": {
-        "type": "Preseed Canvas",
-        "version": "0.2",
-        "date": "20240207",
-        "description": "Experimental canvas to assess startups."
+        "type": "Business Model Canvas",
+        "version": "0.1",
+        "date": "20240401",
+        "description": "The original canvas by Pigneur and Osterwalter (2010)."
     },
     "scoring": [],
     "canvas": [
@@ -39,49 +39,49 @@
         {
             "id": 3,
             "title": "Key resources",
-            "subtitle": "What do we need to create?",
+            "subtitle": "What are our ingredients to create value?",
             "description": "What Key Resources do our Value Propositions require? Our Distribution Channels? Customer Relationships Revenue Streams?\n\nTYPES OF RESOURCES: Physical, Intellectual (brand patents, copyrights, data), Human, Financial",
             "score": "no"
         },
         {
             "id": 4,
             "title": "Value Propositions",
-            "subtitle": "Why do customers buy?",
+            "subtitle": "What problem do we solve? Why do our customers buy?",
             "description": "What value do we deliver to the customer? Which one of our customer’s problems are we helping to solve? What bundles of products and services are we offering to each Customer Segment? Which customer needs are we satisfying?\n\nCHARACTERISTICS: Newness, Performance, Customization, “Getting the Job Done”, Design, Brand/Status, Price, Cost Reduction, Risk Reduction, Accessibility, Convenience/Usability",
             "score": "no"
         },
         {
             "id": 5,
             "title": "Customer Relationships",
-            "subtitle": "How communicated?",
-            "description": "What type of relationship does each of our Customer Segments expect us to establish and maintain with them? Which ones have we established? How are they integrated with the rest of our business model? How costly are they?",
+            "subtitle": "How do we acquire our customers?",
+            "description": "What type of relationship does each of our Customer Segments expect us to establish and maintain with them? Which ones have we established? How are they integrated with the rest of our business model? How costly are they?\n\nTYPES: Personal assistance, self-service, automated services, communities, co-creation",
             "score": "no"
         },
         {
             "id": 6,
             "title": "Channels",
-            "subtitle": "How sold?",
-            "description": "Through which Channels do our Customer Segments want to be reached? How are we reaching them now? How are our Channels integrated? Which ones work best? Which ones are most cost-efficient? How are we integrating them with customer routines?",
+            "subtitle": "How do we communicate our value propositions?",
+            "description": "Through which Channels do our Customer Segments want to be reached? How are we reaching them now? How are our Channels integrated? Which ones work best? Which ones are most cost-efficient? How are we integrating them with customer routines?\n\nTYPE: direct and indirect channels",
             "score": "no"
         },
         {
             "id": 7,
             "title": "Customer Segments",
-            "subtitle": "Value for whom do?",
+            "subtitle": "For whom do we solve problems?",
             "description": "For whom are we creating value? Who are our most important customers? Is our customer base a Mass Market, Niche Market, Segmented, Diversified, Multi-sided Platform",
             "score": "no"
         },
         {
             "id": 8,
             "title": "Cost Structure",
-            "subtitle": "Who?",
+            "subtitle": "What do we spend on?",
             "description": "What are the most important costs inherent in our business model? Which Key Resources are most expensive? Which Key Activities are most expensive?\n\nIS YOUR BUSINESS MORE: Cost Driven (leanest cost structure, low price value proposition, maximum automation, extensive outsourcing), Value Driven (focused on value creation, premium value proposition).\n\nSAMPLE CHARACTERISTICS: Fixed Costs (salaries, rents, utilities), Variable costs, Economies of scale, Economies of scope",
             "score": "no"
         },
         {
             "id": 9,
             "title": "Revenue Streams",
-            "subtitle": "How do you earn money?",
+            "subtitle": "How do we earn money?",
             "description": "For what value are our customers really willing to pay? For what do they currently pay? How are they currently paying? How would they prefer to pay? How much does each Revenue Stream contribute to overall revenues?\n\nTYPES: Asset sale, Usage fee, Subscription Fees, Lending/Renting/Leasing, Licensing, Brokerage fees, Advertising\n\nFIXED PRICING: List Price, Product feature dependent, Customer segment dependent, Volume dependent\n\nDYNAMIC PRICING: Negotiation (bargaining), Yield Management, Real-time-Market",
             "score": "no"
         }

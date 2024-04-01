@@ -39,7 +39,12 @@ div.cell {
     display: grid;
     overflow: auto;
     font-size: 11px;
+    gap: 0px;
 }
+
+/***** layout types *****/
+
+/* generic cell names, max 14 */
 
 #canvas > div:nth-child(1) { grid-area: a; }
 #canvas > div:nth-child(2) { grid-area: b; }
@@ -56,7 +61,9 @@ div.cell {
 #canvas > div:nth-child(13) { grid-area: m; }
 #canvas > div:nth-child(14) { grid-area: n; }
 
-.lean-canvas {
+/* preseed canvas with 14 cells */
+
+.ps-canvas {
     min-height: 500px;
     grid:
         "a b b d d e e g" minmax(150px, auto)
@@ -64,19 +71,53 @@ div.cell {
         "j c c k k f f l" minmax(120px, auto)
         "h h m m i i n n" minmax(150px, auto) /
         2fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
-    gap: 0px;
+}
+
+.ps-canvas > div:nth-child(1),
+.ps-canvas > div:nth-child(4),
+.ps-canvas > div:nth-child(7) { border-bottom: 0; }
+.ps-canvas > div:nth-child(8),
+.ps-canvas > div:nth-child(9) { border-right: 0; }
+.ps-canvas > div:nth-child(10),
+.ps-canvas > div:nth-child(11),
+.ps-canvas > div:nth-child(12) { border-top: 1px dashed; }
+.ps-canvas > div:nth-child(13),
+.ps-canvas > div:nth-child(14) { border-left: 1px dashed; }
+
+/* lean canvas with 12 cells */
+
+.lean-canvas {
+    min-height: 500px;
+    grid:
+        "a b d d e g" minmax(150px, auto)
+        "a c d d f g" minmax(30px, auto) 
+        "j c k k f l" minmax(120px, auto)
+        "h h h i i i" minmax(150px, auto) /
+        2fr 2fr 1fr 1fr 2fr 2fr;
 }
 
 .lean-canvas > div:nth-child(1),
 .lean-canvas > div:nth-child(4),
 .lean-canvas > div:nth-child(7) { border-bottom: 0; }
-.lean-canvas > div:nth-child(8),
-.lean-canvas > div:nth-child(9) { border-right: 0; }
 .lean-canvas > div:nth-child(10),
 .lean-canvas > div:nth-child(11),
 .lean-canvas > div:nth-child(12) { border-top: 1px dashed; }
-.lean-canvas > div:nth-child(13),
-.lean-canvas > div:nth-child(14) { border-left: 1px dashed; }
+
+.lean-canvas > div:nth-child(8) > .cell-card-container,
+.lean-canvas > div:nth-child(9) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.lean-canvas > div:nth-child(8) .card,
+.lean-canvas > div:nth-child(9) .card {
+    max-width: 45%;
+    min-width: 35%;
+    flex: 1;
+}
+.lean-canvas>div:nth-child(n+13) {display: none; }
+
+/* business model canvas with 9 cells */
 
 .bm-canvas {
     min-height: 500px;
@@ -85,11 +126,23 @@ div.cell {
         "a c d d f g" minmax(150px, auto)
         "h h h i i i" minmax(150px, auto) /
         2fr 2fr 1fr 1fr 2fr 2fr;
-    gap: 0px;
 }
 
+.bm-canvas > div:nth-child(8) > .cell-card-container,
+.bm-canvas > div:nth-child(9) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.bm-canvas > div:nth-child(8) .card,
+.bm-canvas > div:nth-child(9) .card {
+    max-width: 45%;
+    min-width: 35%;
+    flex: 1;
+}
 .bm-canvas > div:nth-child(n+10) { display: none; }
 
+/***** end canvas types *****/
 
 div.cell {
     padding: 4px;
@@ -175,6 +228,7 @@ h3.score-total-label {
     display: none;
     position: absolute;
     text-transform: none;
+    z-index: 1;
     /* margin-top: 10px; */
     width: 100%;
     color: #33d;
@@ -292,21 +346,14 @@ p.hint {
         grid-auto-columns: min-content;
         overflow: auto;
         font-size: 10px;
-    }
-    
-    #canvas>div:nth-child(8),
-    #canvas>div:nth-child(9) {
-        border: 1px solid;
-        border-bottom: 0;
+        gap: 0px;
     }
 
-    #canvas>div:nth-child(13),
-    #canvas>div:nth-child(14) {
-        border: 1px solid;
-        border-top: 1px dashed;
-    }
+    /***** layout types mobile *****/
 
-    .lean-canvas {
+    /* preseed canvas with 14 cells */
+
+    .ps-canvas {
         min-height: 500px;
         grid:
             "a a g g" minmax(160px, auto)
@@ -317,8 +364,35 @@ p.hint {
             "h h i i" minmax(160px, auto)
             "m m n n" minmax(120px, auto) / 
             minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
-        gap: 0px;
     }
+
+    .ps-canvas>div:nth-child(8),
+    .ps-canvas>div:nth-child(9) {
+        border: 1px solid;
+        border-bottom: 0;
+    }
+
+    .ps-canvas>div:nth-child(13),
+    .ps-canvas>div:nth-child(14) {
+        border: 1px solid;
+        border-top: 1px dashed;
+    }
+
+    /* lean canvas with 14 cells */
+
+    .lean-canvas {
+        min-height: 500px;
+        grid:
+            "a a g g" minmax(160px, auto)
+            "j j l l" minmax(120px, auto) 
+            "b d d e" minmax(200px, auto)
+            "c d d f" minmax(80px, auto)
+            "c k k f" minmax(120px, auto)
+            "h h i i" minmax(160px, auto) / 
+            minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
+    }    
+
+    /* business model canvas with 9 cells */
 
     .bm-canvas {
         min-height: 500px;
@@ -328,8 +402,14 @@ p.hint {
             "c d d f" minmax(120px, auto)
             "h h i i" minmax(160px, auto) / 
             minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
-        gap: 0px;
     }
+
+    .bm-canvas > div:nth-child(8) > .cell-card-container,
+    .bm-canvas > div:nth-child(9) > .cell-card-container { display: block; }
+    .bm-canvas > div:nth-child(8) .card,
+    .bm-canvas > div:nth-child(9) .card { max-width: none; }
+
+    /***** end canvas types mobile *****/
 
     #canvas>div {
         padding: 2px;

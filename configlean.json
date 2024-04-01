@@ -1,0 +1,110 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "canvasclass": "lean-canvas"
+        }
+    },
+    "meta": {
+        "type": "Lean Canvas",
+        "version": "0.1",
+        "date": "20240401",
+        "description": "Lean canvas by Ash Maurya (2012)."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Problem",
+            "subtitle": "Why?",
+            "description": "List your customers top 3 propblems",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Solution",
+            "subtitle": "How?",
+            "description": "Outline possible solution for each problem",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Key Metrics",
+            "subtitle": "How good?",
+            "description": "List key numbers telling you how your business is doing today",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Value Propositions",
+            "subtitle": "What? Why buy?",
+            "description": "Single, clear, compelling statement that turns an unaware visitor into an interested prospect",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "Unfair Advantage",
+            "subtitle": "Why us?",
+            "description": "Something that can't be easily copied or bought",
+            "score": "no"
+        },
+        {
+            "id": 6,
+            "title": "Channels",
+            "subtitle": "How to interact?",
+            "description": "List your path to customers",
+            "score": "no"
+        },
+        {
+            "id": 7,
+            "title": "Customer Segments",
+            "subtitle": "For whom?",
+            "description": "List your target customers and users",
+            "score": "no"
+        },
+        {
+            "title": "Cost Structure",
+            "subtitle": "How much to create?",
+            "description": "List your fixed and variable costs",
+            "id": 8,
+            "score": "no"
+        },
+        {
+            "title": "Revenue Streams",
+            "subtitle": "How do we earn money?",
+            "description": "List your sources of revenue",
+            "id": 9,
+            "score": "no"
+        },
+        {
+            "id": 10,
+            "title": "Existing Alternatives",
+            "subtitle": "How now?",
+            "description": "List how these problems are solved today",
+            "score": "no"
+        },
+        {
+            "id": 11,
+            "title": "High-level Concept",
+            "subtitle": "Similar to what?",
+            "description": "List your X for Y (e.g., YouTube = Flickr for videos)",
+            "score": "no"
+        },
+        {
+            "id": 12,
+            "title": "Early adopters",
+            "subtitle": "Prove with whom?",
+            "description": "List characteristics of your ideal customer",
+            "score": "no"
+        }
+    ]
+}
