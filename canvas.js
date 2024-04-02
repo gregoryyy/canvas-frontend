@@ -45,7 +45,7 @@ class Canvas {
     clear() {
         this.cells.forEach(cell => cell.clear());
         Card.count = 0;
-        app.analysis.computeScore();
+        if (app.analysis.scores) app.analysis.computeScore();
     }
 
     toJSON() { return this.cells; }
