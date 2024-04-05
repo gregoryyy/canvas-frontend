@@ -4,28 +4,33 @@ let app = undefined;
 let ctl = undefined;
 let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
-const defaultConfigFile = 'default';
+const defaultModel = 'template';
+const defaultConfigFile = 'preseed';
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const param = (key) => new URLSearchParams(window.location.search).get(key);
 
-    const load = (configFile, contentFile) => {
-        configFile ||= defaultConfigFile;
-        contentFile ||= 'template';
-        Promise.all([
-            fetch(`conf/${configFile}.json`).then(res => res.json()),
-            fetch(`models/${contentFile}.json`).then(res => res.json())
-        ]).then(([config, content]) => {
-            config = sanitizeJSON(config);
-            content = sanitizeJSON(content);
+    const load = (configName, modelName) => {
+        fetch(`models/${modelName}.json`)
+        .then(response => response.json())
+        .then(sanitizeJSON)
+        .then(modelContent => {
+            const configFile = configName || modelContent.meta.config || defaultConfigFile;            
+            return fetch(`conf/${configFile}.json`)
+                .then(response => response.json())
+                .then(sanitizeJSON)
+                .then(config => ({ config, modelContent }));
+        })
+        .then(({ config, modelContent }) => {
             conf = Settings.create(config);
-            app = Application.create(config, content);
+            app = Application.create(config, modelContent);
             ctl = Controls.create();
-        }).catch(error => console.error('Error setting up canvas:', error));
+        }).catch(error => console.error('Error setting application setup:', error));
     };
+
     console.log('canvas started');
-    load(param('config'), param('model'));
+    load(param('config'), param('model') || defaultModel);
 });
 
 class Settings {

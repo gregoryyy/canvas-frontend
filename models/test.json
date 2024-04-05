@@ -2,7 +2,7 @@
     "meta": {
         "title": "Example Startup",
         "description": "Example company that does x for y.",
-        "canvas": "Preseed Canvas v0.1",
+        "canvas": "preseed",
         "version": "0.2",
         "date": "20240318"
     },
