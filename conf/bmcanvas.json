@@ -11,7 +11,9 @@
             "filemenu": "yes"
         },
         "layout": {
-            "canvasclass": "bm-canvas"
+            "precanvas": "yes",
+            "canvasclass": "bm-canvas",
+            "postcanvas": "yes"
         }
     },
     "meta": {

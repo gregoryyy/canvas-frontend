@@ -254,7 +254,7 @@ p.hint {
     border: 1px solid black;
 }
 
-/* mobile menu */
+/* mobile screens */
 @media screen and (max-width: 768px) {
     #canvas {
         display: grid;
