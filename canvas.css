@@ -206,6 +206,10 @@ p.hint {
     flex-direction: row;
 }
 
+.block2 {
+    margin-bottom: 30px;
+}
+
 .control {
     border: 1px solid black;
     font-size: 0.8em;

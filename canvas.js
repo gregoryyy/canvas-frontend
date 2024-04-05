@@ -33,7 +33,8 @@ class Canvas {
     }
 
     render() {
-        const el = document.getElementById('canvas');
+        const el = createElement('div', { id: 'canvas'});
+        document.getElementById('content').appendChild(el);
         const style = conf.layout.canvasclass || '.lean-canvas';
         el.classList.add(style);
         el.innerHTML = '';
@@ -274,8 +275,9 @@ class PreCanvas {
         app.meta.description = sanitize(convertBR(metaDiv.querySelector('p').innerHTML));
     }
 
-    render() {
-        const metaDiv = document.getElementById('precanvas');
+    render() {        
+        const metaDiv = createElement('div', { id: 'precanvas'});
+        document.getElementById('content').appendChild(metaDiv);
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
         const description = createElement('p', {}, this.description);
@@ -317,7 +319,8 @@ class PostCanvas {
     }
 
     render() {
-        const anaDiv = document.getElementById('postcanvas');
+        const anaDiv  = createElement('div', { id: 'postcanvas'});
+        document.getElementById('content').appendChild(anaDiv);
         const cellTitle = createElement('div', { class: 'cell-title-container' });
         const titleH3 = createElement('h3', { class: 'cell-title' }, this.title);
         cellTitle.appendChild(titleH3);

@@ -13,20 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const load = (configName, modelName) => {
         fetch(`models/${modelName}.json`)
-        .then(response => response.json())
-        .then(sanitizeJSON)
-        .then(modelContent => {
-            const configFile = configName || modelContent.meta.config || defaultConfigFile;            
-            return fetch(`conf/${configFile}.json`)
-                .then(response => response.json())
-                .then(sanitizeJSON)
-                .then(config => ({ config, modelContent }));
-        })
-        .then(({ config, modelContent }) => {
-            conf = Settings.create(config);
-            app = Application.create(config, modelContent);
-            ctl = Controls.create();
-        }).catch(error => console.error('Error setting application setup:', error));
+            .then(response => response.json())
+            .then(sanitizeJSON)
+            .then(modelContent => {
+                const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
+                return fetch(`conf/${configFile}.json`)
+                    .then(response => response.json())
+                    .then(sanitizeJSON)
+                    .then(config => ({ config, modelContent }));
+            })
+            .then(({ config, modelContent }) => {
+                conf = Settings.create(config);
+                app = Application.create(config, modelContent);
+                ctl = Controls.create();
+            })
+            .catch(error => console.error('Error setting application setup:', error));
     };
 
     console.log('canvas started');
@@ -46,17 +47,17 @@ class Application {
 
     constructor(meta, canvas, analysis) {
         Object.assign(this, { meta, canvas, analysis });
-        this.renderables = [meta, canvas, analysis];
+        this.renderables = [meta, canvas, analysis].filter(Boolean);
     }
 
-    // TODO: make singleton
     static create(structure, content) {
-        const meta = new PreCanvas(content.meta);
+        if (app) return app;
+        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : undefined;
         const canvas = new Canvas(structure, content);
-        const analysis = new PostCanvas(canvas, structure, content);
+        const analysis = conf.layout.postcanvas === 'yes' ? new PostCanvas(canvas, structure, content) : undefined;
         const newApp = new Application(meta, canvas, analysis);
         newApp.render(defaultConfigFile);
-        document.addEventListener('scoreChanged', () => {
+        if (analysis) document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
         newApp.check();
@@ -131,6 +132,7 @@ class Controls {
 
     // TODO: make singleton
     static create() {
+        if (ctl) return ctl;
         const newCtl = new Controls();
         newCtl.render();
         return newCtl;

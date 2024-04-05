@@ -11,9 +11,9 @@
             "filemenu": "yes"
         },
         "layout": {
-            "precanvas": "yes",
+            "precanvas": "no",
             "canvasclass": "productvision",
-            "postcanvas": "yes"
+            "postcanvas": "no"
         }
     },
     "meta": {
