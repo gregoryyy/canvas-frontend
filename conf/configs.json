@@ -13,10 +13,10 @@
     },
     {
         "name": "Preseed Canvas (local)",
-        "file": "localcanvas"
+        "file": "local"
     },
     {
         "name": "Product Vision Board",
-        "file": "productvision}"
+        "file": "productvision"
     }
 ]

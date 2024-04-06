@@ -33,7 +33,7 @@ class Canvas {
     }
 
     render() {
-        const el = createElement('div', { id: 'canvas'});
+        const el = createElement('div', { id: 'canvas' });
         document.getElementById('content').appendChild(el);
         const style = conf.layout.canvasclass || '.lean-canvas';
         el.classList.add(style);
@@ -64,8 +64,8 @@ class Cell {
         this.helptitle = structure.subtitle;
         this.helptext = structure.description;
         this.hasScore = structure.score === "yes";
-        this.score = content.score;
-        this.cards = content.cards.map(card => new Card(card.content, card.type));
+        this.score = this.hasScore ? content.score ?? 0 : undefined;
+        this.cards = content.cards.map(card => new Card(card.content, card.type)) ?? [];
     }
 
     // dom elements; TODO: cardsElem and scoreElem fixed after render()
@@ -276,8 +276,8 @@ class PreCanvas {
         app.meta.description = sanitize(convertBR(metaDiv.querySelector('p').innerHTML));
     }
 
-    render() {        
-        const metaDiv = createElement('div', { id: 'precanvas'});
+    render() {
+        const metaDiv = createElement('div', { id: 'precanvas' });
         document.getElementById('content').appendChild(metaDiv);
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
@@ -319,7 +319,7 @@ class PostCanvas {
     }
 
     render() {
-        const anaDiv  = createElement('div', { id: 'postcanvas'});
+        const anaDiv = createElement('div', { id: 'postcanvas' });
         document.getElementById('content').appendChild(anaDiv);
         const cellTitle = createElement('div', { class: 'cell-title-container' });
         const titleH3 = createElement('h3', { class: 'cell-title' }, this.title);

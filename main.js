@@ -48,6 +48,7 @@ class Application {
 
     static create(structure, content) {
         // meta always stored even if not displayed
+
         const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : undefined;
         const canvas = new Canvas(structure, content);
         const analysis = conf.layout.postcanvas === 'yes' ? new PostCanvas(canvas, structure, content) : undefined;
@@ -82,15 +83,14 @@ class Application {
         const canvases = JSON.parse(storedCanvases);
         if (!canvases[title]) return;
         const content = sanitizeJSON(JSON.parse(canvases[title]));
-        fetch(`conf/${content.meta?.canvas}.json`)
-            .then(response => response.json())
-            .then(sanitizeJSON)
-            .then(config => {
-                document.getElementById('content').innerHTML = '';
-                conf = new Settings(config.settings);
-                app = Application.create(config, content);
-                app.check();
-            });
+        fetch(`conf/${content.meta?.canvas}.json`).then(response => response.json()).then(sanitizeJSON).then(config => {
+            document.getElementById('content').innerHTML = '';
+            conf = new Settings(config.settings);
+            const temp = app.canvasTypes;
+            app = Application.create(config, content);
+            app.canvasTypes = temp;
+            app.check();
+        });
     }
 
     downloadLs() { downloadLs(defaultLsKey); }
@@ -111,9 +111,14 @@ class Application {
     }
 
     changeType(type) {
-
-        lg('change to ' + type);
-
+        loadJson(`conf/${type}.json`).then(config => {
+            document.getElementById('content').innerHTML = '';
+            conf = new Settings(config.settings);
+            const temp = app.canvasTypes;
+            app = Application.create(config, app.canvas);
+            app.canvasTypes = temp;
+            app.check();
+        }).catch(error => console.error('Error loading file:', error));
     }
 
     static clearLocalStorage() { localStorage.removeItem(defaultLsKey); }
@@ -142,11 +147,11 @@ class Controls {
         const sec = conf.canvasd.tls === 'yes' ? "s" : "";
 
         let buttons = [
+            ['cvclear', 'Clear Canvas', confirmCanvasClear],
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
             ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', save],
-            ['lsclear', 'Clear LS', confirmLsClear],
-            ['cvclear', 'Clear Canvas', confirmCanvasClear]];
+            ['lsclear', 'Clear LS', confirmLsClear]];
 
         if (useServer) {
             ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
