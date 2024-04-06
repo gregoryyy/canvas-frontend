@@ -13,13 +13,15 @@
         "layout": {
             "precanvas": "yes",
             "canvasclass": "ps-canvas",
-            "postcanvas": "yes"
+            "postcanvas": "yes",
+            "types": "yes"
         }
     },
     "meta": {
         "type": "Preseed Canvas",
         "version": "0.2",
         "date": "20240207",
+        "template": "preseed_v02",
         "description": "Experimental canvas to assess startups."
     },
     "scoring": [

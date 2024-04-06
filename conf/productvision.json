@@ -13,13 +13,15 @@
         "layout": {
             "precanvas": "no",
             "canvasclass": "productvision",
-            "postcanvas": "no"
+            "postcanvas": "no",
+            "types": "yes"
         }
     },
     "meta": {
         "type": "Product Vision Board",
         "version": "0.1",
         "date": "20240405",
+        "template": "productvision_v01",
         "description": "Product Vision Board (Roman Pichler 2011)."
     },
     "scoring": [],

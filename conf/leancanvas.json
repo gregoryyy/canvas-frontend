@@ -13,13 +13,15 @@
         "layout": {
             "precanvas": "yes",
             "canvasclass": "lean-canvas",
-            "postcanvas": "yes"
+            "postcanvas": "yes",
+            "types": "yes"
         }
     },
     "meta": {
         "type": "Lean Canvas",
         "version": "0.1",
         "date": "20240401",
+        "template": "leancanvas_v01",
         "description": "Lean canvas by Ash Maurya (2012)."
     },
     "scoring": [],

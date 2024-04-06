@@ -5,18 +5,20 @@ let ctl = undefined;
 let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
 const defaultModel = 'template';
+const configsFile = 'configs.json';
 const defaultConfigFile = 'preseed';
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const param = (key) => new URLSearchParams(window.location.search).get(key);
     const configName = param('config');
-    const modelName =  param('model');
-    app = Application.load(configName, modelName || defaultModel, (config, modelContent) => {
+    const modelName = param('model');
+    app = Application.load(configName, modelName || defaultModel, (config, configs, modelContent) => {
         conf = Settings.create(config);
         // structure type overrides content type
         modelContent.meta.canvas = configName;
         app = Application.create(config, modelContent);
+        app.canvasTypes = configs.map(type => [type.name, type.file]);
         ctl = Controls.create();
     });
     console.log('canvas started');
@@ -38,35 +40,29 @@ class Application {
         this.renderables = [meta, canvas, analysis].filter(Boolean);
     }
 
-    static load(configName, modelName, callback) {
-        fetch(`models/${modelName}.json`)
-            .then(response => response.json())
-            .then(sanitizeJSON)
-            .then(modelContent => {
-                const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
-                return fetch(`conf/${configFile}.json`)
-                    .then(response => response.json())
-                    .then(sanitizeJSON)
-                    .then(config => ({ config, modelContent }));
-            })
-            .then(({ config, modelContent }) => {
-                callback(config, modelContent);
-            })
-            .catch(error => console.error('Error setting up application:', error));
-    };
+    static async load(configName, modelName, callback) {
+        try {
+            const modelContent = await loadJson(`models/${modelName}.json`);
+            const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
+            const config = await loadJson(`conf/${configFile}.json`);
+            const configs = await loadJson(`conf/${configsFile}`);
+            callback(config, configs, modelContent);
+        } catch (error) {
+            console.error('Error setting up application:', error);
+        }
+    }
 
     static create(structure, content) {
         // meta always stored even if not displayed
-        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : content.meta;
+        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : undefined;
         const canvas = new Canvas(structure, content);
         const analysis = conf.layout.postcanvas === 'yes' ? new PostCanvas(canvas, structure, content) : undefined;
-        const newApp = new Application(meta, canvas, analysis);
-        newApp.render(defaultConfigFile);
+        const app = new Application(meta, canvas, analysis);
+        app.render(defaultConfigFile);
         if (analysis) document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
         });
-        newApp.check();
-        return newApp;
+        app.check();
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
@@ -119,6 +115,12 @@ class Application {
         return Object.keys(canvases);
     }
 
+    changeType(type) {
+
+        lg('change to ' + type);
+
+    }
+
     static clearLocalStorage() { localStorage.removeItem(defaultLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
@@ -145,6 +147,7 @@ class Controls {
         const sec = conf.canvasd.tls === 'yes' ? "s" : "";
 
         let buttons = [
+            ['chtype', 'Canvas Type', typeMenu.bind(app)],
             ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', save],
             ['lsclear', 'Clear LS', confirmLsClear],
@@ -173,6 +176,8 @@ class Controls {
                 setTimeout(() => btn.classList.remove('clicked'), 500);
             });
         });
+
+        function typeMenu(event) { overlayMenu(event.target, 'Select canvas type:', app.canvasTypes, app.changeType.bind(app)); }
 
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 

@@ -127,13 +127,15 @@ function makeDroppable(elem, cbFinish = undefined) {
 
 // TODO: touch gestures for drag and drop
 
-// execute callback on item selected from list shown in overlay menu
+// execute callback on item selected from list ([key] or [key --> val]) shown in overlay menu
 function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
     const closeMenu = () => {
         menu.remove();
         elem.classList.remove('menuopen');
     };
+
+    const normalizeItem = (item) => typeof item === 'object' ? [item[0], item[1]] : [item, item];
 
     let menu = document.querySelector('.overlay-menu');
     if (!menu) {
@@ -147,10 +149,11 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
     if (list.length == 0) menu.appendChild(createElement('div', { class: 'overlay-menu-item' }, '(empty)'));
 
-    list.forEach((itemText, index) => {
-        const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
-        item.addEventListener('click', () => {
-            cbLoad(itemText);
+    list.forEach((item, index) => {
+        const item2 = normalizeItem(item);
+        const elem = createElement('div', { class: 'overlay-menu-item' }, item2[0]);
+        elem.addEventListener('click', () => {
+            cbLoad(item2[1]);
             closeMenu();
         });
         if (cbDel) {
@@ -158,13 +161,13 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
             delBtn.addEventListener('click', (event) => {
                 event.stopPropagation();
                 confirmStep(delBtn, () => {
-                    cbDel(itemText);
+                    cbDel(item2[1]);
                     delBtn.parentElement.remove();
                 });
             });
-            item.appendChild(delBtn);
+            elem.appendChild(delBtn);
         }
-        menu.appendChild(item);
+        menu.appendChild(elem);
     });
 
     document.body.appendChild(menu);
@@ -209,6 +212,13 @@ function confirmStep(elem, callback, timeout = 3000) {
 }
 
 /* static non-UI functions */
+
+function loadJson(file) {
+    return fetch(file)
+        .then(response => response.json())
+        .then(sanitizeJSON)
+        .catch(error => console.error('Error loading file:', error));
+};
 
 function downloadLs(key) {
     // Retrieve the data from Local Storage
