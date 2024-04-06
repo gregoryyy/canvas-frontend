@@ -46,7 +46,7 @@ class Canvas {
     clear() {
         this.cells.forEach(cell => cell.clear());
         Card.count = 0;
-        if (app.analysis.scores) app.analysis.computeScore();
+        if (app.analysis?.scores) app.analysis.computeScore();
     }
 
     toJSON() { return this.cells; }
@@ -267,6 +267,7 @@ class PreCanvas {
     constructor(data) {
         this.title = data.title;
         this.description = data.description;
+        this.canvas = data.canvas;
     }
 
     update() {
@@ -292,13 +293,12 @@ class PreCanvas {
     }
 
     clear() {
-        document.getElementById('precanvas').innerHTML = '';
         this.title = 'Company name';
         this.description = 'Description';
-        this.render();
+        this.rerender();
     }
 
-    toJSON() { return { title: this.title, description: this.description }; }
+    toJSON() { return { title: this.title, description: this.description, canvas: this.canvas }; }
 }
 
 class PostCanvas {
@@ -363,9 +363,8 @@ class PostCanvas {
     }
 
     clear() {
-        document.getElementById('postcanvas').innerHTML = '';
         this.content = 'Analysis';
-        this.render();
+        this.rerender();
     }
 
     toJSON() { return { content: this.content }; }

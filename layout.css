@@ -175,14 +175,12 @@
             "a a" minmax(160px, auto) 
             "b c" minmax(160px, auto)
             "d e" minmax(160px, auto) /
-            1fr 1fr;
+            minmax(150px, auto) minmax(150px, auto) 
         }
 
     .productvision > div:nth-child(n+6) { display: none; }
 
     .productvision > div:nth-child(1) > .cell-card-container { display: block; }
     .productvision > div:nth-child(1) .card { max-width: none; }
-
-    
 
 }

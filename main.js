@@ -10,28 +10,16 @@ const defaultConfigFile = 'preseed';
 document.addEventListener('DOMContentLoaded', () => {
 
     const param = (key) => new URLSearchParams(window.location.search).get(key);
-
-    const load = (configName, modelName) => {
-        fetch(`models/${modelName}.json`)
-            .then(response => response.json())
-            .then(sanitizeJSON)
-            .then(modelContent => {
-                const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
-                return fetch(`conf/${configFile}.json`)
-                    .then(response => response.json())
-                    .then(sanitizeJSON)
-                    .then(config => ({ config, modelContent }));
-            })
-            .then(({ config, modelContent }) => {
-                conf = Settings.create(config);
-                app = Application.create(config, modelContent);
-                ctl = Controls.create();
-            })
-            .catch(error => console.error('Error setting application setup:', error));
-    };
-
+    const configName = param('config');
+    const modelName =  param('model');
+    app = Application.load(configName, modelName || defaultModel, (config, modelContent) => {
+        conf = Settings.create(config);
+        // structure type overrides content type
+        modelContent.meta.canvas = configName;
+        app = Application.create(config, modelContent);
+        ctl = Controls.create();
+    });
     console.log('canvas started');
-    load(param('config'), param('model') || defaultModel);
 });
 
 class Settings {
@@ -50,9 +38,26 @@ class Application {
         this.renderables = [meta, canvas, analysis].filter(Boolean);
     }
 
+    static load(configName, modelName, callback) {
+        fetch(`models/${modelName}.json`)
+            .then(response => response.json())
+            .then(sanitizeJSON)
+            .then(modelContent => {
+                const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
+                return fetch(`conf/${configFile}.json`)
+                    .then(response => response.json())
+                    .then(sanitizeJSON)
+                    .then(config => ({ config, modelContent }));
+            })
+            .then(({ config, modelContent }) => {
+                callback(config, modelContent);
+            })
+            .catch(error => console.error('Error setting up application:', error));
+    };
+
     static create(structure, content) {
-        if (app) return app;
-        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : undefined;
+        // meta always stored even if not displayed
+        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : content.meta;
         const canvas = new Canvas(structure, content);
         const analysis = conf.layout.postcanvas === 'yes' ? new PostCanvas(canvas, structure, content) : undefined;
         const newApp = new Application(meta, canvas, analysis);
@@ -62,19 +67,6 @@ class Application {
         });
         newApp.check();
         return newApp;
-    }
-
-    repopulate(content) {
-        this.clear();
-        this.content = content;
-        this.meta.title = content.meta.title;
-        this.meta.description = content.meta.description;
-        content.canvas.forEach((cell, index) => {
-            const ccell = this.canvas.cells[index];
-            ccell.cards = content.canvas[index].cards.map(card => new Card(card.content, card.type));
-            if (ccell.hasScore) ccell.score = cell.score;
-        });
-        this.analysis.content = content.analysis.content;
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
@@ -92,15 +84,22 @@ class Application {
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
-    loadFromLs(title = this.meta.title) {
+    loadFromLs(title) {
+        title ||= this.meta?.title;
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
         if (!canvases[title]) return;
         const content = sanitizeJSON(JSON.parse(canvases[title]));
-        this.repopulate(content);
-        this.rerender();
-        this.check();
+        fetch(`conf/${content.meta?.canvas}.json`)
+            .then(response => response.json())
+            .then(sanitizeJSON)
+            .then(config => {
+                document.getElementById('content').innerHTML = '';
+                conf = new Settings(config.settings);
+                app = Application.create(config, content);
+                app.check();
+            });
     }
 
     downloadLs() { downloadLs(defaultLsKey); }
@@ -130,7 +129,6 @@ class Application {
 
 class Controls {
 
-    // TODO: make singleton
     static create() {
         if (ctl) return ctl;
         const newCtl = new Controls();
