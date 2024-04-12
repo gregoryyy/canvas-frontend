@@ -3,8 +3,12 @@ class Canvas {
     constructor(structure, content) {
         this.structure = structure;
         this.content = content;
+        lg(structure.canvas.map(cell => cell.title));
+        lg(content.canvas.map(cell => cell.cards?.length));
         // INFO: assuming content is always stored in seq., then no need for cell ids
-        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
+        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, 
+            content.canvas[index] ?? []));
+        lg(this.cells.map(cell => cell.cards?.length));
     }
 
     update() { this.cells.forEach(cell => cell.updateState()); }
@@ -65,7 +69,7 @@ class Cell {
         this.helptext = structure.description;
         this.hasScore = structure.score === "yes";
         this.score = this.hasScore ? content.score ?? 0 : undefined;
-        this.cards = content.cards.map(card => new Card(card.content, card.type)) ?? [];
+        this.cards = content.cards?.map(card => new Card(card.content, card.type)) ?? [];
     }
 
     // dom elements; TODO: cardsElem and scoreElem fixed after render()
@@ -264,10 +268,11 @@ class Card {
 
 class PreCanvas {
 
-    constructor(data) {
+    constructor(data, display = false) {
         this.title = data.title;
         this.description = data.description;
         this.canvas = data.canvas;
+        this.display = display;
     }
 
     update() {
@@ -277,6 +282,7 @@ class PreCanvas {
     }
 
     render() {
+        if (!this.display) return;
         const metaDiv = createElement('div', { id: 'precanvas' });
         document.getElementById('content').appendChild(metaDiv);
         const title = createElement('h2', {}, this.title);
@@ -303,13 +309,14 @@ class PreCanvas {
 
 class PostCanvas {
 
-    constructor(canvas, structure, content) {
+    constructor(canvas, structure, content, display = false) {
         this.title = 'Analysis';
         this.content = content.analysis.content;
         this.canvas = canvas;
         this.total = structure.scoring[0]?.total;
         this.scores = structure.scoring[0]?.scores;
         this.scoreSpan = document.querySelector('span.score-total');
+        this.display = display;
     }
 
     update() {
@@ -319,6 +326,7 @@ class PostCanvas {
     }
 
     render() {
+        if (!this.display) return;
         const anaDiv = createElement('div', { id: 'postcanvas' });
         document.getElementById('content').appendChild(anaDiv);
         const cellTitle = createElement('div', { class: 'cell-title-container' });

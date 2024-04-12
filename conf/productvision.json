@@ -11,7 +11,7 @@
             "filemenu": "yes"
         },
         "layout": {
-            "precanvas": "no",
+            "precanvas": "yes",
             "canvasclass": "productvision",
             "postcanvas": "no",
             "types": "yes"
@@ -21,6 +21,7 @@
         "type": "Product Vision Board",
         "version": "0.1",
         "date": "20240405",
+        "canvas": "productvision",
         "template": "productvision_v01",
         "description": "Product Vision Board (Roman Pichler 2011)."
     },

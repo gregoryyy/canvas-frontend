@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         lg('data loaded');
 
         conf = Settings.create(config);
+        conf.canvasTypes = configList.map(type => [type.name, type.file]);
         app = Application.create(config, modelContent);
-        app.canvasTypes = configList.map(type => [type.name, type.file]);
         ctl = Controls.create();
         console.log('canvas started');
     } catch (error) {
@@ -49,10 +49,13 @@ class Application {
     static create(structure, content) {
         // meta always stored even if not displayed
 
-        const meta = conf.layout.precanvas === 'yes' ? new PreCanvas(content.meta) : undefined;
+        Card.count = 0;
+        const meta = new PreCanvas(content.meta, conf.layout.precanvas === 'yes');
         const canvas = new Canvas(structure, content);
-        const analysis = conf.layout.postcanvas === 'yes' ? new PostCanvas(canvas, structure, content) : undefined;
+        const analysis = new PostCanvas(canvas, structure, content, conf.layout.postcanvas === 'yes');
         const newApp = new Application(meta, canvas, analysis);
+        // enforce type from config
+        newApp.meta.canvas = structure.meta.canvas;
         newApp.render(defaultConfigFile);
         if (analysis) document.addEventListener('scoreChanged', () => {
             analysis.computeScore();
@@ -63,7 +66,15 @@ class Application {
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
 
-    render() { this.renderables.forEach(renderable => renderable.render()); }
+    render() {
+        this.renderables.forEach(renderable => renderable.render());
+        this.renderType();
+    }
+
+    renderType() {
+        document.getElementById('content').appendChild(createElement('div', 
+            { class: 'canvastype' }, conf.canvasTypes.find(([_, e1]) => e1 === this.meta.canvas)[0]));
+    }
 
     rerender() { this.renderables.forEach(renderable => renderable.rerender()); }
 
@@ -85,10 +96,10 @@ class Application {
         const content = sanitizeJSON(JSON.parse(canvases[title]));
         fetch(`conf/${content.meta?.canvas}.json`).then(response => response.json()).then(sanitizeJSON).then(config => {
             document.getElementById('content').innerHTML = '';
+            const temp = conf.canvasTypes;
             conf = new Settings(config.settings);
-            const temp = app.canvasTypes;
+            conf.canvasTypes = temp;
             app = Application.create(config, content);
-            app.canvasTypes = temp;
             app.check();
         });
     }
@@ -113,10 +124,10 @@ class Application {
     changeType(type) {
         loadJson(`conf/${type}.json`).then(config => {
             document.getElementById('content').innerHTML = '';
+            const temp = conf.canvasTypes;
             conf = new Settings(config.settings);
-            const temp = app.canvasTypes;
-            app = Application.create(config, app.canvas);
-            app.canvasTypes = temp;
+            conf.canvasTypes = temp;
+            app = Application.create(config, app.canvas.content);
             app.check();
         }).catch(error => console.error('Error loading file:', error));
     }
@@ -177,7 +188,7 @@ class Controls {
             });
         });
 
-        function typeMenu(event) { overlayMenu(event.target, 'Select canvas type:', app.canvasTypes, app.changeType.bind(app)); }
+        function typeMenu(event) { overlayMenu(event.target, 'Select canvas type:', conf.canvasTypes, app.changeType.bind(app)); }
 
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 

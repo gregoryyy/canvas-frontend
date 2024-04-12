@@ -21,6 +21,7 @@
         "type": "Preseed Canvas",
         "version": "0.2",
         "date": "20240207",
+        "canvas": "local",
         "template": "preseed_v02",
         "description": "Experimental canvas to assess startups."
     },

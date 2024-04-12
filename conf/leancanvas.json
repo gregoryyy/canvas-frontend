@@ -21,6 +21,7 @@
         "type": "Lean Canvas",
         "version": "0.1",
         "date": "20240401",
+        "canvas": "leancanvas",
         "template": "leancanvas_v01",
         "description": "Lean canvas by Ash Maurya (2012)."
     },

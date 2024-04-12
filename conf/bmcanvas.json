@@ -13,7 +13,7 @@
         "layout": {
             "precanvas": "yes",
             "canvasclass": "bm-canvas",
-            "postcanvas": "yes",
+            "postcanvas": "no",
             "types": "yes"
         }
     },
@@ -21,6 +21,7 @@
         "type": "Business Model Canvas",
         "version": "0.1",
         "date": "20240401",
+        "canvas": "bmcanvas",
         "template": "bmcanvas_v01",
         "description": "The original canvas by Pigneur and Osterwalter (2010)."
     },
