@@ -8,26 +8,28 @@ const defaultModel = 'template';
 const configsFile = 'configs.json';
 const defaultConfigFile = 'preseed';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const param = (key) => new URLSearchParams(window.location.search).get(key);
-
-        const configName = param('config');
-        const modelName = param('model') || defaultModel;
-        const modelContent = await loadJson(`models/${modelName}.json`);
-        const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
-        const config = await loadJson(`conf/${configFile}.json`);
-        const configList = await loadJson(`conf/${configsFile}`);
-        lg('data loaded');
-
-        conf = Settings.create(config);
-        conf.canvasTypes = configList.map(type => [type.name, type.file]);
-        app = Application.create(config, modelContent);
-        ctl = Controls.create();
-        console.log('canvas started');
-    } catch (error) {
-        console.error('Error setting up application:', error);
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const param = (key) => new URLSearchParams(window.location.search).get(key);
+    const modelName = param('model') || defaultModel;
+    loadJson(`models/${modelName}.json`)
+        .then(modelData => {
+            const configName = param('config') || modelData.meta.canvas || defaultConfigFile;
+            return Promise.all([
+                Promise.resolve(modelData),
+                loadJson(`conf/${configName}.json`), 
+                loadJson(`conf/${configsFile}`) 
+            ]);
+        })
+        .then(([modelContent, config, configList]) => {
+            conf = Settings.create(config);
+            conf.canvasTypes = configList.map(type => [type.name, type.file]);
+            app = Application.create(config, modelContent);
+            ctl = Controls.create();
+            console.log('Canvas started');
+        })
+        .catch(error => {
+            console.error('Error during the canvas setup:', error);
+        });
 });
 
 class Settings {

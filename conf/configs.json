@@ -12,10 +12,6 @@
         "file": "preseed"
     },
     {
-        "name": "Preseed Canvas (local)",
-        "file": "local"
-    },
-    {
         "name": "Product Vision Board",
         "file": "productvision"
     }

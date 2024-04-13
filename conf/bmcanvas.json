@@ -13,7 +13,7 @@
         "layout": {
             "precanvas": "no",
             "canvasclass": "bm-canvas",
-            "postcanvas": "no",
+            "postcanvas": "yes",
             "types": "yes"
         }
     },
