@@ -77,17 +77,17 @@
             "score": "no"
         },
         {
+            "id": 8,
             "title": "Cost Structure",
             "subtitle": "How much to create?",
             "description": "List your fixed and variable costs",
-            "id": 8,
             "score": "no"
         },
         {
+            "id": 9,
             "title": "Revenue Streams",
             "subtitle": "How do we earn money?",
             "description": "List your sources of revenue",
-            "id": 9,
             "score": "no"
         },
         {

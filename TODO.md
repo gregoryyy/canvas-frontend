@@ -23,7 +23,7 @@ TODOs with A: are high-priority
   * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings --> TODO v1_2_x
-  * Multiple canvases in local storate --> v1_2_2_multicanvas
+  * Multiple canvases in local storage --> v1_2_2_multicanvas
     * Load menu
 * Canvas:
   * List available --> TODO v1_2_x
@@ -32,7 +32,11 @@ TODOs with A: are high-priority
   * Download/upload from file --> branch v1_1_2_upload
     * inluding server: /devel/canvas-backend
   * Versioning --> via naming (v1_2_2_multicanvas)
-  * Different canvas types --> v2 (v1_2 labels via config file)
+  * Different canvas types --> v1_2_5_dynamic_layout
+    * Load/save typed canvas
+    * Type string below canvas
+  * create local canvas with get string:
+    * use bzip2 or fflate.js --> v2?
 * Cells:
   * Help overlay on title double click DONE
   * BUG: Only mobile allows single-click new cards FIXED

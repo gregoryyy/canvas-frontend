@@ -1,17 +1,15 @@
 class Canvas {
 
     constructor(structure, content) {
-        this.structure = structure;
-        this.content = content;
         lg(structure.canvas.map(cell => cell.title));
         lg(content.canvas.map(cell => cell.cards?.length));
         // INFO: assuming content is always stored in seq., then no need for cell ids
-        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, 
+        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             content.canvas[index] ?? []));
         lg(this.cells.map(cell => cell.cards?.length));
     }
 
-    update() { this.cells.forEach(cell => cell.updateState()); }
+    update() { this.cells.forEach(cell => cell.update()); }
 
     updateDragDrop() {
         if (Cell.dragSource === Cell.dragDest) {
@@ -34,6 +32,7 @@ class Canvas {
         Card.dragSourceIndex = undefined;
         Card.dragDestIndex = undefined;
         app.check();
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
@@ -88,6 +87,7 @@ class Cell {
         const card = new Card(name);
         this.cards.push(card);
         cardContainerDiv.appendChild(card.render());
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     removeCard(domIndex) {
@@ -110,6 +110,7 @@ class Cell {
     update() {
         this.cardElems().forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
         if (this.hasScore) app.canvas.cells[this.index].score = this.scoreElem().value;
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
@@ -224,6 +225,7 @@ class Card {
         this.setTypeAndText(sanitize(convertBR(cardElem.innerHTML)));
         this.rerender();
         if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
@@ -282,15 +284,16 @@ class PreCanvas {
     }
 
     render() {
-        if (!this.display) return;
         const metaDiv = createElement('div', { id: 'precanvas' });
         document.getElementById('content').appendChild(metaDiv);
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
-        const description = createElement('p', {}, this.description);
-        makeEditable(description, () => app.meta.description = sanitize(convertBR(description.innerHTML)), this.updateState);
         metaDiv.appendChild(title);
-        metaDiv.appendChild(description);
+        if (this.display) {
+            const description = createElement('p', {}, this.description);
+            makeEditable(description, () => app.meta.description = sanitize(convertBR(description.innerHTML)), this.updateState);
+            metaDiv.appendChild(description);
+        }
     }
 
     rerender() {

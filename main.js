@@ -48,7 +48,6 @@ class Application {
 
     static create(structure, content) {
         // meta always stored even if not displayed
-
         Card.count = 0;
         const meta = new PreCanvas(content.meta, conf.layout.precanvas === 'yes');
         const canvas = new Canvas(structure, content);
@@ -62,6 +61,21 @@ class Application {
         });
         newApp.check();
         return newApp;
+    }
+
+    restructure(structure) {
+        const elem = document.getElementById('content');
+        lg(structure.canvas.map(cell => cell.title));
+        lg(this.canvas.cells.map(cell => cell.cards?.length));
+        elem.innerHTML = '';
+        this.structure = structure;
+        this.meta.canvas = structure.meta.canvas;
+        this.meta.display = conf.layout.precanvas === 'yes';
+        this.analysis.display = conf.layout.postcanvas === 'yes';
+        this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData, 
+            this.canvas.cells[index] ?? []));
+        this.render();
+        lg(this.canvas.cells.map(cell => cell.cards?.length));
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
@@ -123,12 +137,13 @@ class Application {
 
     changeType(type) {
         loadJson(`conf/${type}.json`).then(config => {
-            document.getElementById('content').innerHTML = '';
+            //document.getElementById('content').innerHTML = '';
             const temp = conf.canvasTypes;
             conf = new Settings(config.settings);
             conf.canvasTypes = temp;
-            app = Application.create(config, app.canvas.content);
-            app.check();
+            this.restructure(config);
+            // Application.create(config, app.canvas.content);
+            this.check();
         }).catch(error => console.error('Error loading file:', error));
     }
 
