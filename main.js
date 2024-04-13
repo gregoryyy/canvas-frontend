@@ -141,7 +141,7 @@ class Controls {
 
         let buttons = [
             ['lsload', 'Load LS', loadMenu.bind(app)],
-            ['lssave', 'Save LS', save],
+            ['lssave', 'Save LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear],
             ['cvclear', 'Clear Canvas', confirmCanvasClear]];
 
@@ -171,7 +171,7 @@ class Controls {
 
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 
-        function save(event) { app.saveToLs(); }
+        function confirmCanvasSave(event) { confirmStep(event.target, app.saveToLs.bind(app)); }
 
         function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
 
