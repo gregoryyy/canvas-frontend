@@ -179,8 +179,7 @@ class Controls {
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
             ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', confirmCanvasSave],
-            ['lsclear', 'Clear LS', confirmLsClear],
-            ['cvclear', 'Clear Canvas', confirmCanvasClear]];
+            ['lsclear', 'Clear LS', confirmLsClear]];
 
         if (useServer) {
             ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
