@@ -13,6 +13,12 @@ function createElement(tagName, attributes = {}, text = '', format = 'text') {
     return element;
 };
 
+function toggleElements(sel) {
+    var elems = document.querySelectorAll(sel);
+    const shown = elems[0]?.style.display === 'block';
+    elems.forEach(elem => elem.style.display = shown ? 'none' : 'block');
+}
+
 function makeEditable(elem, cbFinishEdit) {
     elem.setAttribute('contenteditable', 'true');
     elem.addEventListener('blur', cbFinishEdit);
@@ -27,6 +33,11 @@ function makeEditable(elem, cbFinishEdit) {
 }
 
 function addLongPressListener(element, callback, duration = 500) {
+    generateLongPressEvents(element, duration);
+    element.addEventListener('longpress', () => { callback(); });
+}
+
+function generateLongPressEvents(element, duration = 500) {
     let timerId = null;
     let startX = 0;
     let startY = 0;
@@ -36,7 +47,10 @@ function addLongPressListener(element, callback, duration = 500) {
         startX = event.type === 'touchstart' ? event.touches[0].pageX : event.pageX;
         startY = event.type === 'touchstart' ? event.touches[0].pageY : event.pageY;
         if ((event.type === 'mousedown' && event.button !== 0) || event.target !== element) return;
-        timerId = setTimeout(() => callback(element), duration);
+        timerId = setTimeout(() => {
+            const longPressEvent = new CustomEvent('longpress', { detail: { startX, startY }, bubbles: true, cancelable: true });
+            element.dispatchEvent(longPressEvent);
+        }, duration);
     };
 
     const cancel = () => { clearTimeout(timerId); };
@@ -57,13 +71,77 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('touchmove', move, { passive: true });
 }
 
-// execute callback on item selected from list shown in overlay menu
+const highlightClass = 'highlight';
+const dragClass = 'dragging';
+
+const eventOnClass = (e, c) => e.target.classList.contains(c);
+const eventAddClass = (e, c) => e.target.classList.add(c);
+const eventRemoveClass = (e, c) => e.target.classList.remove(c);
+
+// optionally listen to nonzero milliseconds long-press gesture
+function makeDraggable(elem, longPressMillis = 0, cbStart = undefined, cbFinish = undefined) {
+    elem.setAttribute('draggable', 'true');
+    const onPressStart = (e) => { e.stopPropagation(); eventAddClass(e, dragClass); if (cbStart) cbStart(); };
+    const onDragStart = (e) => { eventAddClass(e, dragClass); if (cbStart) cbStart(); setTimeout(() => e.target.style.display = 'none', 200); };
+    const onDragEnd = (e) => { setTimeout(() => { e.target.style.display = 'block'; eventRemoveClass(e, dragClass); }, 200); };
+    const onDragOver = (e) => e.preventDefault();
+    const onDragEnter = (e) => { if (eventOnClass(e, 'card')) eventAddClass(e, highlightClass); };
+    const onDragLeave = (e) => { if (eventOnClass(e, 'card') && eventOnClass(e, highlightClass)) eventRemoveClass(e, highlightClass); };
+    const onDropOnCard = (e) => {
+        e.preventDefault();
+        const draggedElem = document.querySelector('.' + dragClass);
+        if (eventOnClass(e, 'card') && draggedElem && eventOnClass(e, highlightClass)) {
+            eventRemoveClass(e, highlightClass);
+            eventRemoveClass(e, dragClass);
+            e.target.parentNode.insertBefore(draggedElem, e.target);
+            if (cbFinish) cbFinish();
+        }
+    };
+
+    if (longPressMillis > 0) {
+        generateLongPressEvents(elem, longPressMillis);
+        elem.addEventListener('longpress', onPressStart);
+    } else {
+        elem.addEventListener('dragstart', onDragStart);
+    }
+    elem.addEventListener('dragend', onDragEnd);
+    elem.addEventListener('dragover', onDragOver);
+    elem.addEventListener('dragenter', onDragEnter);
+    elem.addEventListener('dragleave', onDragLeave);
+    elem.addEventListener('drop', onDropOnCard);
+};
+
+function makeDroppable(elem, cbFinish = undefined) {
+    const onDropOnCell = (e) => {
+        e.preventDefault();
+        const draggedElem = document.querySelector('.' + dragClass);
+        if (!eventOnClass(e, 'card') && draggedElem) {
+            e.target.appendChild(draggedElem);
+            e.target.style.cursor = '';
+            elem.classList.remove(highlightClass);
+            draggedElem.style.display = 'block';
+            if (cbFinish) cbFinish();
+        }
+    };
+    const onDragEnter = (e) => { if (!eventOnClass(e, 'card')) elem.classList.add(highlightClass); };
+    const onDragLeave = (e) => { if (!eventOnClass(e, 'card')) elem.classList.remove(highlightClass); };
+    elem.addEventListener('dragover', (e) => e.preventDefault());
+    elem.addEventListener('dragenter', onDragEnter);
+    elem.addEventListener('dragleave', onDragLeave);
+    elem.addEventListener('drop', onDropOnCell);
+}
+
+// TODO: touch gestures for drag and drop
+
+// execute callback on item selected from list ([key] or [key --> val]) shown in overlay menu
 function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
     const closeMenu = () => {
         menu.remove();
         elem.classList.remove('menuopen');
     };
+
+    const normalizeItem = (item) => typeof item === 'object' ? [item[0], item[1]] : [item, item];
 
     let menu = document.querySelector('.overlay-menu');
     if (!menu) {
@@ -77,10 +155,11 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
     if (list.length == 0) menu.appendChild(createElement('div', { class: 'overlay-menu-item' }, '(empty)'));
 
-    list.forEach((itemText, index) => {
-        const item = createElement('div', { class: 'overlay-menu-item' }, itemText);
-        item.addEventListener('click', () => {
-            cbLoad(itemText);
+    list.forEach((item, index) => {
+        const item2 = normalizeItem(item);
+        const elem = createElement('div', { class: 'overlay-menu-item' }, item2[0]);
+        elem.addEventListener('click', () => {
+            cbLoad(item2[1]);
             closeMenu();
         });
         if (cbDel) {
@@ -88,13 +167,13 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
             delBtn.addEventListener('click', (event) => {
                 event.stopPropagation();
                 confirmStep(delBtn, () => {
-                    cbDel(itemText);
+                    cbDel(item2[1]);
                     delBtn.parentElement.remove();
                 });
             });
-            item.appendChild(delBtn);
+            elem.appendChild(delBtn);
         }
-        menu.appendChild(item);
+        menu.appendChild(elem);
     });
 
     document.body.appendChild(menu);
@@ -139,6 +218,13 @@ function confirmStep(elem, callback, timeout = 3000) {
 }
 
 /* static non-UI functions */
+
+function loadJson(file) {
+    return fetch(file)
+        .then(response => response.json())
+        .then(sanitizeJSON)
+        .catch(error => console.error('Error loading file:', error));
+};
 
 function downloadLs(key) {
     // Retrieve the data from Local Storage
@@ -208,15 +294,16 @@ function trimPluralS(s) {
     return s;
 }
 
-function lg(message) {
+function lg(message, verbose = false) {
     const stack = new Error().stack;
     const stackLines = stack.split("\n");
     const callerLine = stackLines[2];
     const functionNameMatch = callerLine.match(/at (\S+)/);
     const functionName = functionNameMatch ? functionNameMatch[1] : 'anonymous function';
-    //const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
-    //console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
-    console.log(`${message} - ${functionName}()`);
+    if (verbose) {
+        const formattedCallerLine = callerLine.substring(callerLine.indexOf("(") + 1, callerLine.length - 1);
+        console.log(`${message} - ${functionName} - ${formattedCallerLine}`);
+    } else { console.log(`${message} - ${functionName}()`); }
 }
 
 

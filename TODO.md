@@ -16,14 +16,14 @@ TODOs with A: are high-priority
   * Formatted card content --> 1.2.2 ui text
     * version 1: card.text = text with BR and NL conversion for update/render,
       rendering pipeline: text --> convertNL --> sanitize --> elem.innerHTML
-      updateing pipeline: innerHTML --> convertBR --> sanitize --> card.text
+      updating pipeline: elem.innerHTML --> convertBR --> sanitize --> card.text
       BUG: DOMPurify strips br
     * version 2: card.text = markdown = storage and edit format (textarea for edit, 
       rendering pipeline: marked.parse --> sanitize --> elem.innerHTML.
   * Background DONE
   * Add long press as interaction DONE
   * Multitab: Canvas, analysis, files, settings --> TODO v1_2_x
-  * Multiple canvases in local storate --> v1_2_2_multicanvas
+  * Multiple canvases in local storage --> v1_2_2_multicanvas
     * Load menu
 * Canvas:
   * List available --> TODO v1_2_x
@@ -32,7 +32,11 @@ TODOs with A: are high-priority
   * Download/upload from file --> branch v1_1_2_upload
     * inluding server: /devel/canvas-backend
   * Versioning --> via naming (v1_2_2_multicanvas)
-  * Different canvas types --> v2 (v1_2 labels via config file)
+  * Different canvas types --> v1_2_5_dynamic_layout
+    * Load/save typed canvas
+    * Type string below canvas
+  * create local canvas with get string:
+    * use bzip2 or fflate.js --> v2?
 * Cells:
   * Help overlay on title double click DONE
   * BUG: Only mobile allows single-click new cards FIXED
@@ -43,7 +47,8 @@ TODOs with A: are high-priority
   * A: Create card DONE
   * A: Remove card DONE
   * Card types in different colors --> v1_1_2_cardtypes DONE
-  * Drag cards up and down --> v1_2_2_ui_dragdrop
+  * Drag cards up and down --> v1_2_2_ui_dragdrop --> v1_3_1_dragdrop
+    * only for desktop DONE
   * Consider TinyMCE as card editor --> not needed yet
   * BUG: Double Enter when editing first time FIXED
   * BUG: All newlines get removed on save/load

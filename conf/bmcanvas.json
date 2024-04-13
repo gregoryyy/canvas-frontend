@@ -1,0 +1,94 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "bm-canvas",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "Business Model Canvas",
+        "version": "0.1",
+        "date": "20240401",
+        "canvas": "bmcanvas",
+        "template": "bmcanvas_v01",
+        "description": "The original canvas by Pigneur and Osterwalter (2010)."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Key Partners",
+            "subtitle": "Who helps us with what?",
+            "description": "Identify your company's key partners. This can consist of important suppliers in your supply chain. Why key resources does the company receive from these partners? What key activities are performed by these partners? Think about why your company works with these key partners and the motivations behind them.",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Key Activities",
+            "subtitle": "How do we create value?",
+            "description": "What specific key activities are necessary to deliver your value proposition? What activities set your company apart from others? Consider how your company’s unique differences in its revenue streams, distribution channels, or customer relationships. Do you need to procure specific niche resources? Do you need to streamline to keep costs and prices low?",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Key resources",
+            "subtitle": "What are our ingredients to create value?",
+            "description": "What specific key resources or assets are necessary to deliver your value proposition? Consider what resources your distribution channels and revenue streams may require to function. Additionally, think about what resources are needed to maintain customer relationships. Does your company require a lot of capital or human resources?",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Value Propositions",
+            "subtitle": "What problem do we solve? Why do our customers buy?",
+            "description": "Identify the core value the company provides to customers. What exactly is the company trying to give to customers? What problem is your company trying to solve and what needs are your company satisfying? How do you offer something different that satisfies the demands of your customer segments (e.g. price, quality, design, status)?",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "Customer Relationships",
+            "subtitle": "How do we interact with our customers?",
+            "description": "What type of relationship do you have with your customers? How do you interact with customers and how does this differ amongst customer segments? Do you communicate frequently with your customers? How much support does your company provide?",
+            "score": "no"
+        },
+        {
+            "id": 6,
+            "title": "Channels",
+            "subtitle": "How do we deliver our value propositions?",
+            "description": "How do you deliver your value proposition? How do you reach your customer segments? What channels are used? Consider your supply, distribution, marketing, and communication channels. Are they well-integrated and cost efficient? Are they utilized effectively?",
+            "score": "no"
+        },
+        {
+            "id": 7,
+            "title": "Customer Segments",
+            "subtitle": "For whom do we solve problems?",
+            "description": "Identify who is your value proposition targets. Who are you creating value for? Who are your most important customers? What are they like? What do they need? What do they enjoy? What is the customer market like? Are you targeting a small niche community or a mass market?",
+            "score": "no"
+        },
+        {
+            "id": 8,
+            "title": "Cost Structure",
+            "subtitle": "What do we spend on?",
+            "description": "Identify the key costs in your company's business model. What are the major drivers of costs? How do your key activities and key resources contribute to the cost structure? How do your costs relate to your revenue streams? Are you properly utilizing economies of scale? What proportion of costs are fixed and variable? Is your company focused on cost optimization or value?",
+            "score": "no"
+        },
+        {
+            "id": 9,
+            "title": "Revenue Streams",
+            "subtitle": "How do we earn money?",
+            "description": "Identify the ways your value proposition generates money for your business. Does your company have multiple methods of generating revenue? What is the pricing strategy for the products offered by your company? Through what channels do your customers pay? Does your company offer multiple forms of payment?",
+            "score": "no"
+        }
+    ]
+}

@@ -4,28 +4,30 @@ let app = undefined;
 let ctl = undefined;
 let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
-const defaultConfigFile = 'config.json';
+const defaultModel = 'template';
+const configsFile = 'configs.json';
+const defaultConfigFile = 'preseed';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const param = (key) => new URLSearchParams(window.location.search).get(key);
 
-    const param = (key) => new URLSearchParams(window.location.search).get(key);
+        const configName = param('config');
+        const modelName = param('model') || defaultModel;
+        const modelContent = await loadJson(`models/${modelName}.json`);
+        const configFile = configName || modelContent.meta.canvas || defaultConfigFile;
+        const config = await loadJson(`conf/${configFile}.json`);
+        const configList = await loadJson(`conf/${configsFile}`);
+        lg('data loaded');
 
-    const load = (configFile, contentFile) => {
-        configFile ||= defaultConfigFile;
-        contentFile ||= 'template';
-        Promise.all([
-            fetch(configFile).then(res => res.json()),
-            fetch(`models/${contentFile}.json`).then(res => res.json())
-        ]).then(([config, content]) => {
-            config = sanitizeJSON(config);
-            content = sanitizeJSON(content);
-            conf = Settings.create(config);
-            app = Application.create(config, content);
-            ctl = Controls.create();
-        }).catch(error => console.error('Error setting up canvas:', error));
-    };
-    console.log('canvas started');
-    load(param('config'), param('model'));
+        conf = Settings.create(config);
+        conf.canvasTypes = configList.map(type => [type.name, type.file]);
+        app = Application.create(config, modelContent);
+        ctl = Controls.create();
+        console.log('canvas started');
+    } catch (error) {
+        console.error('Error setting up application:', error);
+    }
 });
 
 class Settings {
@@ -41,39 +43,56 @@ class Application {
 
     constructor(meta, canvas, analysis) {
         Object.assign(this, { meta, canvas, analysis });
-        this.renderables = [meta, canvas, analysis];
+        this.renderables = [meta, canvas, analysis].filter(Boolean);
     }
 
-    // TODO: make singleton
     static create(structure, content) {
-        const meta = new PreCanvas(content.meta);
+        // meta always stored even if not displayed
+        Card.count = 0;
+        const meta = new PreCanvas(content.meta, conf.layout.precanvas === 'yes');
         const canvas = new Canvas(structure, content);
-        const analysis = new PostCanvas(canvas, structure, content);
+        const analysis = new PostCanvas(canvas, structure, content, conf.layout.postcanvas === 'yes');
         const newApp = new Application(meta, canvas, analysis);
+        // enforce type from config
+        newApp.meta.canvas = structure.meta.canvas;
         newApp.render(defaultConfigFile);
-        document.addEventListener('scoreChanged', () => {
-            analysis.computeScore();
-        });
+        newApp.setupScorer();
         newApp.check();
         return newApp;
     }
 
-    repopulate(content) {
-        this.clear();
-        this.content = content;
-        this.meta.title = content.meta.title;
-        this.meta.description = content.meta.description;
-        content.canvas.forEach((cell, index) => {
-            const ccell = this.canvas.cells[index];
-            ccell.cards = content.canvas[index].cards.map(card => new Card(card.content, card.type));
-            if (ccell.hasScore) ccell.score = cell.score;
-        });
-        this.analysis.content = content.analysis.content;
+    setupScorer() {
+        if (this.analysis.display && this.analysis.total) {
+            document.addEventListener('scoreChanged', () => this.analysis.computeScore());
+        }
+    }
+
+    restructure(structure) {
+        const elem = document.getElementById('content');
+        lg(structure.canvas.map(cell => cell.title));
+        lg(this.canvas.cells.map(cell => cell.cards?.length));
+        elem.innerHTML = '';
+        this.structure = structure;
+        this.meta.canvas = structure.meta.canvas;
+        this.meta.display = conf.layout.precanvas === 'yes';
+        this.analysis.display = conf.layout.postcanvas === 'yes';
+        this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
+            this.canvas.cells[index] ?? []));
+        this.render();
+        lg(this.canvas.cells.map(cell => cell.cards?.length));
     }
 
     update() { this.renderables.forEach(renderable => renderable.update()); }
 
-    render() { this.renderables.forEach(renderable => renderable.render()); }
+    render() {
+        this.renderables.forEach(renderable => renderable.render());
+        this.renderType();
+    }
+
+    renderType() {
+        document.getElementById('content').appendChild(createElement('div',
+            { class: 'canvastype' }, conf.canvasTypes.find(([_, e1]) => e1 === this.meta.canvas)[0]));
+    }
 
     rerender() { this.renderables.forEach(renderable => renderable.rerender()); }
 
@@ -86,15 +105,21 @@ class Application {
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
-    loadFromLs(title = this.meta.title) {
+    loadFromLs(title) {
+        title ||= this.meta?.title;
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
         if (!canvases[title]) return;
         const content = sanitizeJSON(JSON.parse(canvases[title]));
-        this.repopulate(content);
-        this.rerender();
-        this.check();
+        fetch(`conf/${content.meta?.canvas}.json`).then(response => response.json()).then(sanitizeJSON).then(config => {
+            document.getElementById('content').innerHTML = '';
+            const temp = conf.canvasTypes;
+            conf = new Settings(config.settings);
+            conf.canvasTypes = temp;
+            app = Application.create(config, content);
+            app.check();
+        });
     }
 
     downloadLs() { downloadLs(defaultLsKey); }
@@ -114,6 +139,16 @@ class Application {
         return Object.keys(canvases);
     }
 
+    changeType(type) {
+        loadJson(`conf/${type}.json`).then(config => {
+            const temp = conf.canvasTypes;
+            conf = new Settings(config.settings);
+            conf.canvasTypes = temp;
+            this.restructure(config);
+            this.check();
+        }).catch(error => console.error('Error loading file:', error));
+    }
+
     static clearLocalStorage() { localStorage.removeItem(defaultLsKey); }
 
     toJSON() { return { meta: this.meta, canvas: this.canvas, analysis: this.analysis }; }
@@ -124,8 +159,8 @@ class Application {
 
 class Controls {
 
-    // TODO: make singleton
     static create() {
+        if (ctl) return ctl;
         const newCtl = new Controls();
         newCtl.render();
         return newCtl;
@@ -140,8 +175,10 @@ class Controls {
         const sec = conf.canvasd.tls === 'yes' ? "s" : "";
 
         let buttons = [
+            ['cvclear', 'Clear Canvas', confirmCanvasClear],
+            ['chtype', 'Canvas Type', typeMenu.bind(app)],
             ['lsload', 'Load LS', loadMenu.bind(app)],
-            ['lssave', 'Save LS', save],
+            ['lssave', 'Save LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear],
             ['cvclear', 'Clear Canvas', confirmCanvasClear]];
 
@@ -169,9 +206,11 @@ class Controls {
             });
         });
 
+        function typeMenu(event) { overlayMenu(event.target, 'Select canvas type:', conf.canvasTypes, app.changeType.bind(app)); }
+
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 
-        function save(event) { app.saveToLs(); }
+        function confirmCanvasSave(event) { confirmStep(event.target, app.saveToLs.bind(app)); }
 
         function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
 

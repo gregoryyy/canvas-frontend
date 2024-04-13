@@ -37,83 +37,27 @@ div.cell {
 
 #canvas {
     display: grid;
-    /* grid-auto-rows: min-content; */
     overflow: auto;
     font-size: 11px;
-    min-height: 500px;
-    /* grid-template-rows: 1fr 0.2fr 0.8fr 1fr; */
-    /* grid-template-rows: minmax(200px, auto) minmax(40px, auto) minmax(160px, auto) minmax(200px, auto); */
-    grid-template-rows: minmax(150px, auto) minmax(30px, auto) minmax(120px, auto) minmax(150px, auto);
-    /* grid-template-rows: 200px 40px 160px 200px; */
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
     gap: 0px;
 }
 
-#canvas>div:nth-child(1) {
-    grid-area: 1 / 1 / 3 / 2;
-    border-bottom: 0;
-}
+/* layout types: generic cell names, max 14 */
 
-#canvas>div:nth-child(2) {
-    grid-area: 1 / 2 / 2 / 4;
-}
-
-#canvas>div:nth-child(3) {
-    grid-area: 2 / 2 / 4 / 4;
-}
-
-#canvas>div:nth-child(4) {
-    grid-area: 1 / 4 / 3 / 6;
-    border-bottom: 0;
-}
-
-#canvas>div:nth-child(5) {
-    grid-area: 1 / 6 / 2 / 8;
-}
-
-#canvas>div:nth-child(6) {
-    grid-area: 2 / 6 / 4 / 8;
-}
-
-#canvas>div:nth-child(7) {
-    grid-area: 1 / 8 / 3 / 9;
-    border-bottom: 0;
-}
-
-#canvas>div:nth-child(8) {
-    grid-area: 4 / 1 / 5 / 3;
-    border-right: 0;
-}
-
-#canvas>div:nth-child(9) {
-    grid-area: 4 / 5 / 5 / 7;
-    border-right: 0;
-}
-
-#canvas>div:nth-child(10) {
-    grid-area: 3 / 1 / 4 / 2;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(11) {
-    grid-area: 3 / 4 / 4 / 6;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(12) {
-    grid-area: 3 / 8 / 4 / 9;
-    border-top: 1px dashed;
-}
-
-#canvas>div:nth-child(13) {
-    grid-area: 4 / 3 / 5 / 5;
-    border-left: 1px dashed;
-}
-
-#canvas>div:nth-child(14) {
-    grid-area: 4 / 7 / 5 / 9;
-    border-left: 1px dashed;
-}
+#canvas > div:nth-child(1) { grid-area: a; }
+#canvas > div:nth-child(2) { grid-area: b; }
+#canvas > div:nth-child(3) { grid-area: c; }
+#canvas > div:nth-child(4) { grid-area: d; }
+#canvas > div:nth-child(5) { grid-area: e; }
+#canvas > div:nth-child(6) { grid-area: f; }
+#canvas > div:nth-child(7) { grid-area: g; }
+#canvas > div:nth-child(8) { grid-area: h; }
+#canvas > div:nth-child(9) { grid-area: i; }
+#canvas > div:nth-child(10) { grid-area: j; }
+#canvas > div:nth-child(11) { grid-area: k; }
+#canvas > div:nth-child(12) { grid-area: l; }
+#canvas > div:nth-child(13) { grid-area: m; }
+#canvas > div:nth-child(14) { grid-area: n; }
 
 div.cell {
     padding: 4px;
@@ -199,6 +143,7 @@ h3.score-total-label {
     display: none;
     position: absolute;
     text-transform: none;
+    z-index: 1;
     /* margin-top: 10px; */
     width: 100%;
     color: #33d;
@@ -219,6 +164,7 @@ div.cell>p,
 
 .card {
     padding: 5px;
+    cursor: text;
     margin: 5px;
     background: #ffd;
     color: #000;
@@ -238,6 +184,10 @@ div.cell>p,
 .card.query { background-color: #dff; }
 .card.analysis { background-color: #fdd; }
 
+.card.highlight, .cell-card-container.highlight { border: dashed black 1px; }
+
+.card.dragging { cursor: grabbing; }
+
 .clicked, .menuopen {
     background-color: #ccc;
     white-space: pre-wrap;
@@ -249,20 +199,37 @@ div.cell>p,
 
 p.hint {
     font-size: 0.8em;
+    display: none;
+}
+
+div.canvastype { 
+    font-size: 0.5em;
+    margin-top: 2px;
+    text-transform: uppercase;
 }
 
 #controls {
     display: flex;
     flex-direction: row;
+    font-size: 0.8em;
+}
+
+.block2 {
+    margin-bottom: 30px;
 }
 
 .control {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid black;
     font-size: 0.8em;
     text-align: center;
     width: 90px;
     margin: 2px;
     cursor: pointer;
+    background-color: #f3f3f3;
 }
 
 .overlay-menu {
@@ -304,108 +271,14 @@ p.hint {
     border: 1px solid black;
 }
 
-/* mobile menu */
+/* mobile screens */
 @media screen and (max-width: 768px) {
     #canvas {
         display: grid;
-        /* grid-auto-rows: min-content; */
         grid-auto-columns: min-content;
         overflow: auto;
         font-size: 10px;
-        min-height: 500px;
-        grid-template-rows: minmax(160px, auto) minmax(120px, auto) minmax(200px, auto) minmax(80px, auto) minmax(120px, auto) minmax(160px, auto) minmax(120px, auto);
-        /* grid-template-columns: 4fr 2fr 2fr 4fr; */
-        grid-template-columns: minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
-        /* max-height: 1000px; */
         gap: 0px;
-    }
-
-
-    /*
-    problem 1 / existing solutions 10 | customers 7 / early adopters 12
-    solution 2 / product progress 3 | value propositions 4 / defensibility 11 | go-to-market 5 / sales traction 6
-    team 8 / support 13 | market 9 / competition 14
-    */
-    #canvas>div:nth-child(1) {
-        /* problem */
-        grid-area: 1 / 1 / 2 / 3;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(10) {
-        /* existing solutions */
-        grid-area: 2 / 1 / 3 / 3;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(7) {
-        /* customers */
-        grid-area: 1 / 3 / 2 / 5;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(12) {
-        /* early adopters */
-        grid-area: 2 / 3 / 3 / 5;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(2) {
-        /* start pos (row, col), end pos */
-        grid-area: 3 / 1 / 4 / 2;
-    }
-
-    #canvas>div:nth-child(3) {
-        /* start pos (row, col), end pos */
-        grid-area: 4 / 1 / 6 / 2;
-    }
-
-    #canvas>div:nth-child(4) {
-        /* value propositions */
-        grid-area: 3 / 2 / 5 / 4;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(11) {
-        /* defensibility */
-        grid-area: 5 / 2 / 6 / 4;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(5) {
-        /* go-to-market */
-        grid-area: 3 / 4 / 4 / 5;
-    }
-
-    #canvas>div:nth-child(6) {
-        /* sales traction */
-        grid-area: 4 / 4 / 6 / 5;
-    }
-
-    #canvas>div:nth-child(8) {
-        /* go-to-market */
-        grid-area: 6 / 1 / 7 / 3;
-        border: 1px solid;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(9) {
-        /* sales traction */
-        grid-area: 6 / 3 / 7 / 5;
-        border: 1px solid;
-        border-bottom: 0;
-    }
-
-    #canvas>div:nth-child(13) {
-        grid-area: 7 / 1 / 8 / 3;
-        border: 1px solid;
-        border-top: 1px dashed;
-    }
-
-    #canvas>div:nth-child(14) {
-        grid-area: 7 / 3 / 8 / 5;
-        border: 1px solid;
-        border-top: 1px dashed;
     }
 
     #canvas>div {

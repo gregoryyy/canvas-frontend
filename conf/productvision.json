@@ -1,0 +1,66 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "productvision",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "Product Vision Board",
+        "version": "0.1",
+        "date": "20240405",
+        "canvas": "productvision",
+        "template": "productvision_v01",
+        "description": "Product Vision Board (Roman Pichler 2011)."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Vision",
+            "subtitle": "Overarching goal",
+            "description": "What is our motivation for creating the product? Which positive change should it bring about?",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Target group",
+            "subtitle": "Market or market segment",
+            "description": "Which market or market segment does the product address? Who are the target customers and users?",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Problem",
+            "subtitle": "Problem and benefit",
+            "description": "What problem does the product solve? Which benefit does it provide?",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Product",
+            "subtitle": "USPs, feasibility",
+            "description": "What product is it? What makes it stand out? Is it feasible to develop the product?",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "Business goals",
+            "subtitle": "Company benefit",
+            "description": "How is the product going to benefit the company? What are the business goals?",
+            "score": "no"
+        }
+    ]
+}

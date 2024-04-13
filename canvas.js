@@ -1,16 +1,44 @@
 class Canvas {
 
     constructor(structure, content) {
-        this.structure = structure;
-        this.content = content;
+        lg(structure.canvas.map(cell => cell.title));
+        lg(content.canvas.map(cell => cell.cards?.length));
         // INFO: assuming content is always stored in seq., then no need for cell ids
-        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData, content.canvas[index]));
+        this.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
+            content.canvas[index] ?? []));
     }
 
-    update() { this.cells.forEach(cell => cell.updateState()); }
+    update() { this.cells.forEach(cell => cell.update()); }
+
+    updateDragDrop() {
+        if (Cell.dragSource === Cell.dragDest) {
+            if (Card.dragDestIndex === Card.dragSourceIndex) return;
+            if (Card.dragDest === Card.dragSource + 1) return;
+            const cell = this.cells[Cell.dragSource];
+            const [card] = cell.cards.splice(Card.dragSource, 1);
+            cell.cards.splice(Card.dragDest - 1, 0, card);
+        } else {
+            const cell = this.cells[Cell.dragSource];
+            const [card] = cell.cards.splice(Card.dragSource, 1);
+            const cell2 = this.cells[Cell.dragDest];
+            const index = Card.dragDest ? Card.dragDest - 1 : cell2.cards.length;
+            cell2.cards.splice(index, 0, card);
+        }
+        Cell.dragSource = undefined;
+        Cell.dragDest = undefined;
+        Card.dragSource = undefined;
+        Card.dragDest = undefined;
+        Card.dragSourceIndex = undefined;
+        Card.dragDestIndex = undefined;
+        app.check();
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
+    }
 
     render() {
-        const el = document.getElementById('canvas');
+        const el = createElement('div', { id: 'canvas' });
+        document.getElementById('content').appendChild(el);
+        const style = conf.layout.canvasclass || '.lean-canvas';
+        el.classList.add(style);
         el.innerHTML = '';
         this.cells.forEach(cell => el.appendChild(cell.render()));
     }
@@ -20,13 +48,16 @@ class Canvas {
     clear() {
         this.cells.forEach(cell => cell.clear());
         Card.count = 0;
-        app.analysis.computeScore();
+        if (app.analysis?.scores) app.analysis.computeScore();
     }
 
     toJSON() { return this.cells; }
 }
 
 class Cell {
+
+    static dragSource = undefined;
+    static dragDest = undefined;
 
     constructor(index, structure, content) {
         this.index = index;
@@ -35,8 +66,8 @@ class Cell {
         this.helptitle = structure.subtitle;
         this.helptext = structure.description;
         this.hasScore = structure.score === "yes";
-        this.score = content.score;
-        this.cards = content.cards.map(card => new Card(card.content, card.type));
+        this.score = this.hasScore ? content.score ?? 0 : undefined;
+        this.cards = content.cards?.map(card => new Card(card.content, card.type)) ?? [];
     }
 
     // dom elements; TODO: cardsElem and scoreElem fixed after render()
@@ -55,6 +86,7 @@ class Cell {
         const card = new Card(name);
         this.cards.push(card);
         cardContainerDiv.appendChild(card.render());
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     removeCard(domIndex) {
@@ -75,8 +107,9 @@ class Cell {
     }
 
     update() {
-        this.cardElems().forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
+        this.cardElems().forEach((card, index) => this.cards[index].content = sanitize(card.textContent));
         if (this.hasScore) app.canvas.cells[this.index].score = this.scoreElem().value;
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
@@ -94,6 +127,10 @@ class Cell {
         this.cards.forEach(card => cardContainerDiv.appendChild(card.render()));
 
         this.makeBgClickable(cardContainerDiv);
+        makeDroppable(cardContainerDiv, () => {
+            Cell.dragDest = this.index;
+            app.canvas.updateDragDrop();
+        });
         cellDiv.addEventListener('cardDelete', (event) => this.removeCard(event.detail.index));
         return cellDiv;
     }
@@ -143,9 +180,9 @@ class Cell {
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
         Array.from(domCards).forEach((elem, index) => {
-            if (elem.textContent.trim() !== this.cards[index].text.trim())
+            if (elem.textContent.trim() !== this.cards[index].content.trim())
                 throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
-                    `!= state.card ${index}: ${stateCards[index].text.trim()}`);
+                    `!= state.card ${index}: ${stateCards[index].content.trim()}`);
         });
         if (this.hasScore) {
             const score = this.scoreElem().value;
@@ -158,63 +195,85 @@ class Cell {
 class Card {
 
     static count = 0;
+    static dragSourceIndex = undefined;
+    static dragDestIndex = undefined;
+    static dragSource = undefined;
+    static dragDest = undefined;
 
     // type is optional
     constructor(text, type = undefined) {
         this.index = Card.count++;
         this.type = type;
-        this.setTypeAndText(sanitize(text));
+        this.setTypeAndContent(sanitize(text));
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
-
     static getElement = (index) => document.querySelector(`.card[data-index='${index}']`);
+    static getCellCardPos = (index) => { const elem = Card.getElement(index); return [elem.cellIndex(), elem.cardCellPos()]; }
+    //static getCellCardIndex = (cell, pos) => { app.canvas.cells[cell].getCardIndex(pos); }
+
+    getParentCell = () => this.getElement().parentElement.parentElement;
+
+    // parent cell and position within parent cell
+    cellIndex = () => this.getParentCell().getAttribute('data-index');
+    cardCellPos = () => { const card = this.getElement(); return Array.from(card.parentNode.children).indexOf(card); };
 
     update() {
-        // global indexing
-        console.log('card update' + this.index);
         const cardElem = this.getElement();
         if (!cardElem) return;
-        this.setTypeAndText(sanitize(convertBR(cardElem.innerHTML)));
+        this.setTypeAndContent(sanitize(convertBR(cardElem.innerHTML)));
         this.rerender();
-        if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        if (!this.content.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
-        const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
+        const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.content), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
+        makeDraggable(card, 500, (e) => {
+            Cell.dragSource = this.cellIndex();
+            Card.dragSource = this.cardCellPos();
+            Card.dragSourceIndex = this.index;
+        }, (e) => {
+            Cell.dragDest = this.cellIndex();
+            Card.dragDest = this.cardCellPos();
+            Card.dragDestIndex = this.index;
+            app.canvas.updateDragDrop();
+        });
         return card;
     }
 
     rerender() {
         const cardElem = this.getElement();
-        cardElem.htmlContent = convertNL(this.text);
+        cardElem.htmlContent = convertNL(this.content);
         cardElem.className = 'card';
         if (this.type) cardElem.classList.add(this.type);
     }
 
-    setTypeAndText(text) {
+    setTypeAndContent(text) {
         const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':-': undefined };
         const trimmed = text.trim();
         for (const [cmd, type] of Object.entries(cardtypes)) {
             if (trimmed.startsWith(cmd)) {
-                this.text = convertBR(trimmed.substring(2).trim());
+                this.content = convertBR(trimmed.substring(2).trim());
                 this.type = type;
                 return;
             }
         }
-        this.text = convertBR(trimmed);
+        this.content = convertBR(trimmed);
     }
 
-    toJSON() { return { content: this.text, type: this.type }; }
+    toJSON() { return { content: this.content, type: this.type }; }
 }
 
 class PreCanvas {
 
-    constructor(data) {
+    constructor(data, display = false) {
         this.title = data.title;
         this.description = data.description;
+        this.canvas = data.canvas;
+        this.display = display;
     }
 
     update() {
@@ -224,13 +283,16 @@ class PreCanvas {
     }
 
     render() {
-        const metaDiv = document.getElementById('precanvas');
+        const metaDiv = createElement('div', { id: 'precanvas' });
+        document.getElementById('content').appendChild(metaDiv);
         const title = createElement('h2', {}, this.title);
         makeEditable(title, () => app.meta.title = sanitize(title.textContent), this.updateState);
-        const description = createElement('p', {}, this.description);
-        makeEditable(description, () => app.meta.description = sanitize(convertBR(description.innerHTML)), this.updateState);
         metaDiv.appendChild(title);
-        metaDiv.appendChild(description);
+        if (this.display) {
+            const description = createElement('p', {}, this.description);
+            makeEditable(description, () => app.meta.description = sanitize(convertBR(description.innerHTML)), this.updateState);
+            metaDiv.appendChild(description);
+        }
     }
 
     rerender() {
@@ -239,24 +301,24 @@ class PreCanvas {
     }
 
     clear() {
-        document.getElementById('precanvas').innerHTML = '';
         this.title = 'Company name';
         this.description = 'Description';
-        this.render();
+        this.rerender();
     }
 
-    toJSON() { return { title: this.title, description: this.description }; }
+    toJSON() { return { title: this.title, description: this.description, canvas: this.canvas }; }
 }
 
 class PostCanvas {
 
-    constructor(canvas, structure, content) {
+    constructor(canvas, structure, content, display = false) {
         this.title = 'Analysis';
         this.content = content.analysis.content;
         this.canvas = canvas;
-        this.total = structure.scoring[0].total;
-        this.scores = structure.scoring[0].scores;
+        this.total = structure.scoring[0]?.total;
+        this.scores = structure.scoring[0]?.scores;
         this.scoreSpan = document.querySelector('span.score-total');
+        this.display = display;
     }
 
     update() {
@@ -266,7 +328,9 @@ class PostCanvas {
     }
 
     render() {
-        const anaDiv = document.getElementById('postcanvas');
+        if (!this.display) return;
+        const anaDiv = createElement('div', { id: 'postcanvas' });
+        document.getElementById('content').appendChild(anaDiv);
         const cellTitle = createElement('div', { class: 'cell-title-container' });
         const titleH3 = createElement('h3', { class: 'cell-title' }, this.title);
         cellTitle.appendChild(titleH3);
@@ -309,9 +373,8 @@ class PostCanvas {
     }
 
     clear() {
-        document.getElementById('postcanvas').innerHTML = '';
         this.content = 'Analysis';
-        this.render();
+        this.rerender();
     }
 
     toJSON() { return { content: this.content }; }
