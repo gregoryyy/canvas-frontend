@@ -13,6 +13,12 @@ function createElement(tagName, attributes = {}, text = '', format = 'text') {
     return element;
 };
 
+function toggleElements(sel) {
+    var elems = document.querySelectorAll(sel);
+    const shown = elems[0]?.style.display === 'block';
+    elems.forEach(elem => elem.style.display = shown ? 'none' : 'block');
+}
+
 function makeEditable(elem, cbFinishEdit) {
     elem.setAttribute('contenteditable', 'true');
     elem.addEventListener('blur', cbFinishEdit);

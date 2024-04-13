@@ -199,6 +199,7 @@ div.cell>p,
 
 p.hint {
     font-size: 0.8em;
+    display: none;
 }
 
 div.canvastype { 
@@ -210,6 +211,7 @@ div.canvastype {
 #controls {
     display: flex;
     flex-direction: row;
+    font-size: 0.8em;
 }
 
 .block2 {
@@ -217,12 +219,17 @@ div.canvastype {
 }
 
 .control {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid black;
     font-size: 0.8em;
     text-align: center;
     width: 90px;
     margin: 2px;
     cursor: pointer;
+    background-color: #f3f3f3;
 }
 
 .overlay-menu {
