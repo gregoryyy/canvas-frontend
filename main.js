@@ -58,15 +58,11 @@ class Application {
         // enforce type from config
         newApp.meta.canvas = structure.meta.canvas;
         newApp.render(defaultConfigFile);
-        newApp.setupScorer();
+        if (newApp.analysis.display && analysis.total) { 
+            document.addEventListener('scoreChanged', () => analysis.computeScore()); 
+        }
         newApp.check();
         return newApp;
-    }
-
-    setupScorer() {
-        if (this.analysis.display && this.analysis.total) {
-            document.addEventListener('scoreChanged', () => this.analysis.computeScore());
-        }
     }
 
     restructure(structure) {
@@ -78,6 +74,7 @@ class Application {
         this.meta.canvas = structure.meta.canvas;
         this.meta.display = conf.layout.precanvas === 'yes';
         this.analysis.display = conf.layout.postcanvas === 'yes';
+        this.analysis.total = structure.scoring[0]?.total;
         this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             this.canvas.cells[index] ?? []));
         this.render();
