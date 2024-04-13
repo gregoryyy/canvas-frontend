@@ -6,7 +6,6 @@ class Canvas {
         // INFO: assuming content is always stored in seq., then no need for cell ids
         this.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             content.canvas[index] ?? []));
-        lg(this.cells.map(cell => cell.cards?.length));
     }
 
     update() { this.cells.forEach(cell => cell.update()); }

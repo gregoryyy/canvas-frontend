@@ -56,11 +56,15 @@ class Application {
         // enforce type from config
         newApp.meta.canvas = structure.meta.canvas;
         newApp.render(defaultConfigFile);
-        if (analysis) document.addEventListener('scoreChanged', () => {
-            analysis.computeScore();
-        });
+        newApp.setupScorer();
         newApp.check();
         return newApp;
+    }
+
+    setupScorer() {
+        if (this.analysis.display && this.analysis.total) {
+            document.addEventListener('scoreChanged', () => this.analysis.computeScore());
+        }
     }
 
     restructure(structure) {
@@ -72,10 +76,8 @@ class Application {
         this.meta.canvas = structure.meta.canvas;
         this.meta.display = conf.layout.precanvas === 'yes';
         this.analysis.display = conf.layout.postcanvas === 'yes';
-        this.canvas.cells.forEach(cell => { lg(cell.cards.map(card => '\n' + card.text)); });
-        this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData, 
+        this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             this.canvas.cells[index] ?? []));
-        this.canvas.cells.forEach(cell => { lg(cell.cards.map(card => '\n' + card.text)); });
         this.render();
         lg(this.canvas.cells.map(cell => cell.cards?.length));
     }
@@ -88,7 +90,7 @@ class Application {
     }
 
     renderType() {
-        document.getElementById('content').appendChild(createElement('div', 
+        document.getElementById('content').appendChild(createElement('div',
             { class: 'canvastype' }, conf.canvasTypes.find(([_, e1]) => e1 === this.meta.canvas)[0]));
     }
 
@@ -139,12 +141,10 @@ class Application {
 
     changeType(type) {
         loadJson(`conf/${type}.json`).then(config => {
-            //document.getElementById('content').innerHTML = '';
             const temp = conf.canvasTypes;
             conf = new Settings(config.settings);
             conf.canvasTypes = temp;
             this.restructure(config);
-            // Application.create(config, app.canvas.content);
             this.check();
         }).catch(error => console.error('Error loading file:', error));
     }
