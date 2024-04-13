@@ -72,8 +72,10 @@ class Application {
         this.meta.canvas = structure.meta.canvas;
         this.meta.display = conf.layout.precanvas === 'yes';
         this.analysis.display = conf.layout.postcanvas === 'yes';
+        this.canvas.cells.forEach(cell => { lg(cell.cards.map(card => '\n' + card.text)); });
         this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData, 
             this.canvas.cells[index] ?? []));
+        this.canvas.cells.forEach(cell => { lg(cell.cards.map(card => '\n' + card.text)); });
         this.render();
         lg(this.canvas.cells.map(cell => cell.cards?.length));
     }

@@ -108,7 +108,7 @@ class Cell {
     }
 
     update() {
-        this.cardElems().forEach((card, index) => this.cards[index].text = sanitize(card.textContent));
+        this.cardElems().forEach((card, index) => this.cards[index].content = sanitize(card.textContent));
         if (this.hasScore) app.canvas.cells[this.index].score = this.scoreElem().value;
         lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
@@ -181,9 +181,9 @@ class Cell {
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
         Array.from(domCards).forEach((elem, index) => {
-            if (elem.textContent.trim() !== this.cards[index].text.trim())
+            if (elem.textContent.trim() !== this.cards[index].content.trim())
                 throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
-                    `!= state.card ${index}: ${stateCards[index].text.trim()}`);
+                    `!= state.card ${index}: ${stateCards[index].content.trim()}`);
         });
         if (this.hasScore) {
             const score = this.scoreElem().value;
@@ -205,7 +205,7 @@ class Card {
     constructor(text, type = undefined) {
         this.index = Card.count++;
         this.type = type;
-        this.setTypeAndText(sanitize(text));
+        this.setTypeAndContent(sanitize(text));
     }
 
     getElement = () => document.querySelector(`.card[data-index='${this.index}']`);
@@ -222,14 +222,14 @@ class Card {
     update() {
         const cardElem = this.getElement();
         if (!cardElem) return;
-        this.setTypeAndText(sanitize(convertBR(cardElem.innerHTML)));
+        this.setTypeAndContent(sanitize(convertBR(cardElem.innerHTML)));
         this.rerender();
-        if (!this.text.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
+        if (!this.content.trim()) cardElem.dispatchEvent(new CustomEvent('cardDelete', { bubbles: true, detail: { index: this.index } }));
         lg(app.canvas.cells.map(cell => cell.cards?.length));
     }
 
     render() {
-        const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.text), 'html');
+        const card = createElement('div', { class: 'card', 'data-index': this.index }, convertNL(this.content), 'html');
         if (this.type) card.classList.add(this.type);
         makeEditable(card, this.update.bind(this));
         makeDraggable(card, 500, (e) => {
@@ -247,25 +247,25 @@ class Card {
 
     rerender() {
         const cardElem = this.getElement();
-        cardElem.htmlContent = convertNL(this.text);
+        cardElem.htmlContent = convertNL(this.content);
         cardElem.className = 'card';
         if (this.type) cardElem.classList.add(this.type);
     }
 
-    setTypeAndText(text) {
+    setTypeAndContent(text) {
         const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':-': undefined };
         const trimmed = text.trim();
         for (const [cmd, type] of Object.entries(cardtypes)) {
             if (trimmed.startsWith(cmd)) {
-                this.text = convertBR(trimmed.substring(2).trim());
+                this.content = convertBR(trimmed.substring(2).trim());
                 this.type = type;
                 return;
             }
         }
-        this.text = convertBR(trimmed);
+        this.content = convertBR(trimmed);
     }
 
-    toJSON() { return { content: this.text, type: this.type }; }
+    toJSON() { return { content: this.content, type: this.type }; }
 }
 
 class PreCanvas {
