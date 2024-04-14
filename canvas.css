@@ -202,10 +202,19 @@ p.hint {
     display: none;
 }
 
-div.canvastype { 
+div.signature { 
+    display: flex;
+    justify-content: space-between;
+}
+
+div.canvastype, div.canvassource { 
     font-size: 0.5em;
     margin-top: 2px;
     text-transform: uppercase;
+}
+
+div.canvassource {
+    text-align: right;
 }
 
 #controls {

@@ -7,6 +7,7 @@ const defaultLsKey = 'preseedcanvas';
 const defaultModel = 'template';
 const configsFile = 'configs.json';
 const defaultConfigName = 'preseed';
+const appSignature = 'Unlost Canvas App';
 
 document.addEventListener('DOMContentLoaded', () => {
     const param = (key) => new URLSearchParams(window.location.search).get(key);
@@ -81,12 +82,19 @@ class Application {
 
     render() {
         this.renderables.forEach(renderable => renderable.render());
-        this.renderType();
+        this.renderSignature();
     }
 
-    renderType() {
-        document.getElementById('content').appendChild(createElement('div',
+    renderSignature() {
+        const content = document.getElementById('content');
+        const sig = createElement('div', { class: 'signature' });
+        content.appendChild(sig);
+
+        sig.appendChild(createElement('div',
             { class: 'canvastype' }, conf.canvasTypes.find(([_, e1]) => e1 === this.meta.canvas)[0]));
+        sig.appendChild(createElement('div',
+            { class: 'canvassource' }, appSignature));
+
     }
 
     rerender() { this.renderables.forEach(renderable => renderable.rerender()); }
