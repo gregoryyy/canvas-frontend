@@ -15,7 +15,7 @@ function createElement(tagName, attributes = {}, text = '', format = 'text') {
 
 function toggleElements(sel) {
     var elems = document.querySelectorAll(sel);
-    const shown = elems[0]?.style.display === 'block';
+    const shown = window.getComputedStyle(elems[0]).getPropertyValue('display') === 'block';
     elems.forEach(elem => elem.style.display = shown ? 'none' : 'block');
 }
 

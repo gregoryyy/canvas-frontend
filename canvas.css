@@ -197,7 +197,7 @@ div.cell>p,
     background-color: #ddd;
 }
 
-p.hint {
+p.hint, p.intro {
     font-size: 0.8em;
     display: none;
 }

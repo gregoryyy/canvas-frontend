@@ -50,18 +50,23 @@
         <!-- main content -->
         <div class="title">
             <h1>Preseed canvas</h1>
-            <p><strong>Goals:</strong> Reduce analysis time and increase investment decision confidence &mdash; first by
-                structuring manual analysis, later by automating the process.</p>
-            <p><strong>Angel investors:</strong> Fill the canvas with the information and insights you get in the
+            Use Preseed Canvas to analyze startup business models and progress. 
+            <a href="javascript:void(0)" onclick="toggleElements('.intro')">More...</a></p>
+            <p class="intro"><strong>Goals:</strong> Reduce analysis time and increase investment decision confidence
+                &mdash; first by structuring manual analysis, later by automating the process.</p>
+            <p class="intro"><strong>Angel investors:</strong> Fill the canvas with the information and insights you get
+                in the
                 different stages of interaction with a startup team: receiving a pitch deck, discussing in calls with
                 the team, doing market analysis and discussing with other investors.
                 In the end, there's a consolidated view of all information (including a score) that ideally leads to
                 more confident investment decisions.</p>
-            <p><strong>Founders:</strong> Fill the canvas to challenge yourself on the different aspects of your
+            <p class="intro"><strong>Founders:</strong> Fill the canvas to challenge yourself on the different aspects
+                of your
                 business and make
                 yourself more attractive to investors.</p>
-            <p><strong>Privacy:</strong> No data are sent to a server. It's all happening on your browser.</p>
-            <p><strong>Future: </strong>Create an "AI junior analyst" who does the leg work:
+            <p class="intro"><strong>Privacy:</strong> No data are sent to a server. It's all happening on your browser.
+            </p>
+            <p class="intro"><strong>Future: </strong>Create an "AI junior analyst" who does the leg work:
                 Automatically fill canvas using AI-based extraction from pitch deck and other documents. Incrementally
                 add information and questions. The system does the research and answers what it knows. Server-side
                 operations
@@ -75,8 +80,8 @@
         </div>
         <div class="block2">
             <p class="hintcontrol"><strong><a href="javascript:void(0)"
-                        onclick="toggleElements('.hint')">Usage...</a></strong></p>
-            <p class="hint"><strong>Interact:</strong> Click (or tap) to interact with all parts of the canvas.
+                        onclick="toggleElements('.usage')">Usage...</a></strong></p>
+            <p class="hint usage"><strong>Interact:</strong> Click (or tap) to interact with all parts of the canvas.
                 Single click to edit cards, texts and scores, double-click (or long-click) on cell headings to get help,
                 on a cell background to create a new card. Long-click on a card to drag and drop it. Remove all text
                 from a card to remove that card. Add commands at beginning of the text: convert to...
@@ -85,14 +90,14 @@
                 <strong>:=</strong> analysis,
                 <strong>:-</strong> default.
             </p>
-            <p class="hint"><strong>Storage:</strong> You can load and save models to the browser's local storage
+            <p class="hint usage"><strong>Storage:</strong> You can load and save models to the browser's local storage
                 (LS). Note that the data are not automatically deleted, so be careful about sensitive information.
                 Models are stored by their names, the load menu allows deleting them.
                 You can use Clear LS to remove all models from local storage. No information is stored on a server.
             </p>
-            <p class="hint"><strong>Canvas types:</strong> This app supports various canvas types: Business Model
+            <p class="hint usage"><strong>Canvas types:</strong> This app supports various canvas types: Business Model
                 Canvas, Lean Canvas, Preseed Canvas and Product Vision Board. Use Canvas Type button to change.
-            <p class="hint"><strong>Design:</strong>
+            <p class="hint usage"><strong>Design:</strong>
                 This application is client-only, currently working on custom AI backends to pre-analyze a pitch
                 deck, perform RAG background analysis, auto-scoring according to custom investment criteria and other
                 use cases like generating investment briefs. It is a prototype to collect user feedback. Development was
