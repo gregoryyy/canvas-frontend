@@ -246,7 +246,9 @@ class Card {
 
     rerender() {
         const cardElem = this.getElement();
+        lg(cardElem.htmlContent);
         cardElem.htmlContent = convertNL(this.content);
+        lg(this.content + ' -> ' + cardElem.htmlContent);
         cardElem.className = 'card';
         if (this.type) cardElem.classList.add(this.type);
     }
