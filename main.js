@@ -6,24 +6,20 @@ let conf = undefined;
 const defaultLsKey = 'preseedcanvas';
 const defaultModel = 'template';
 const configsFile = 'configs.json';
-const defaultConfigFile = 'preseed';
+const defaultConfigName = 'preseed';
 
 document.addEventListener('DOMContentLoaded', () => {
     const param = (key) => new URLSearchParams(window.location.search).get(key);
     const modelName = param('model') || defaultModel;
     loadJson(`models/${modelName}.json`)
         .then(modelData => {
-            const configName = param('config') || modelData.meta.canvas || defaultConfigFile;
-            return Promise.all([
-                Promise.resolve(modelData),
-                loadJson(`conf/${configName}.json`), 
-                loadJson(`conf/${configsFile}`) 
-            ]);
+            const configName = param('config') || modelData.meta.canvas || defaultConfigName;
+            return Promise.all([modelData, loadJson(`conf/${configName}.json`), loadJson(`conf/${configsFile}`)]);
         })
-        .then(([modelContent, config, configList]) => {
+        .then(([modelData, config, configList]) => {
             conf = Settings.create(config);
             conf.canvasTypes = configList.map(type => [type.name, type.file]);
-            app = Application.create(config, modelContent);
+            app = Application.create(config, modelData);
             ctl = Controls.create();
             console.log('Canvas started');
         })
@@ -57,9 +53,9 @@ class Application {
         const newApp = new Application(meta, canvas, analysis);
         // enforce type from config
         newApp.meta.canvas = structure.meta.canvas;
-        newApp.render(defaultConfigFile);
-        if (newApp.analysis.display && analysis.total) { 
-            document.addEventListener('scoreChanged', () => analysis.computeScore()); 
+        newApp.render(defaultConfigName);
+        if (newApp.analysis.display && analysis.total) {
+            document.addEventListener('scoreChanged', () => analysis.computeScore());
         }
         newApp.check();
         return newApp;
