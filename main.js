@@ -181,7 +181,7 @@ class Controls {
         let buttons = [
             ['cvclear', 'Clear Canvas', confirmCanvasClear],
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
-            ['cvsvg', 'Canvas to SVG', confirmCanvasSvg],
+            ['cvsvg', 'Canvas SVG', confirmCanvasSvg],
             ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear]];
