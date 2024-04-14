@@ -298,23 +298,22 @@ function trimPluralS(s) {
 function convertDivToSvg(divId, filename) {
     const node = document.getElementById(divId);
 
-    const downloadImage = (dataUrl, filename) => {
-        const encode = dataUrl; //'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(dataUrl);
-        const a = createElement('a', { href: encode, download: filename });
+    const downloadImage = (svgContent) => {
+        const blob = new Blob([svgContent], {type: 'image/svg+xml;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const a = createElement('a', { href: url, download: filename });
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     htmlToImage.toSvg(node)
-    .then(function (dataUrl) {
-        //const svgWithEncoding = '<?xml version="1.0" encoding="UTF-8"?>';
-        //const mime = 'image/svg+xml;charset=utf-8' ;
-        downloadImage(dataUrl, 'content.svg');
-    })
-    .catch(function (error) {
-        console.error('Could not convert the div to SVG:', error);
-    });
+        .then(function (dataUrl) {
+            const svgContent = '<?xml version="1.0" encoding="UTF-8"?>' + decodeURIComponent(dataUrl.split(',')[1]);
+            downloadImage(svgContent);
+        })
+        .catch((error) => console.error('Could not convert the div to SVG:', error));
 }
 
 function lg(message, verbose = false) {
