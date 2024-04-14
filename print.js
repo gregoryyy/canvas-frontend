@@ -46,3 +46,36 @@ function openPrintPopup() {
 
     printWindow.document.close();  // Ready the document for interactions
 }
+
+
+function convertDivToSvg() {
+    const node = document.getElementById('content');
+
+    htmlToImage.toSvg(node)
+        .then(function (dataUrl) {
+            // Create an SVG element and add it to the DOM
+            const img = new Image();
+            img.src = dataUrl;
+            // Optionally set size or other attributes
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            
+            // Append the SVG image to the body or another component
+            document.body.appendChild(img);
+
+            // You might also want to download the SVG directly
+            downloadImage(dataUrl, 'content.svg');
+        })
+        .catch(function (error) {
+            console.error('Could not convert the div to SVG:', error);
+        });
+}
+
+function downloadImage(dataUrl, filename) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
