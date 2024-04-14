@@ -294,6 +294,29 @@ function trimPluralS(s) {
     return s;
 }
 
+// require htmlToImage
+function convertDivToSvg(divId, filename) {
+    const node = document.getElementById(divId);
+
+    const downloadImage = (dataUrl, filename) => {
+        const encode = dataUrl; //'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(dataUrl);
+        const a = createElement('a', { href: encode, download: filename });
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    htmlToImage.toSvg(node)
+    .then(function (dataUrl) {
+        //const svgWithEncoding = '<?xml version="1.0" encoding="UTF-8"?>';
+        //const mime = 'image/svg+xml;charset=utf-8' ;
+        downloadImage(dataUrl, 'content.svg');
+    })
+    .catch(function (error) {
+        console.error('Could not convert the div to SVG:', error);
+    });
+}
+
 function lg(message, verbose = false) {
     const stack = new Error().stack;
     const stackLines = stack.split("\n");

@@ -163,6 +163,7 @@ class Controls {
 
     render() {
         const ctlElem = document.getElementById('controls');
+        const convertCanvasToSvg = () => convertDivToSvg('content', 'content.svg');
 
         const useServer = conf.canvasd.mode !== 'off';
         const host = conf.canvasd.host;
@@ -172,6 +173,7 @@ class Controls {
         let buttons = [
             ['cvclear', 'Clear Canvas', confirmCanvasClear],
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
+            ['cvsvg', 'Canvas to SVG', confirmCanvasSvg],
             ['lsload', 'Load LS', loadMenu.bind(app)],
             ['lssave', 'Save LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear]];
@@ -203,6 +205,8 @@ class Controls {
         function typeMenu(event) { overlayMenu(event.target, 'Select canvas type:', conf.canvasTypes, app.changeType.bind(app)); }
 
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
+
+        function confirmCanvasSvg(event) { confirmStep(event.target, convertCanvasToSvg); }
 
         function confirmCanvasSave(event) { confirmStep(event.target, app.saveToLs.bind(app)); }
 
