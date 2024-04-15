@@ -122,7 +122,7 @@
             "c k k f" minmax(120px, auto)
             "h h i i" minmax(160px, auto)
             "m m n n" minmax(120px, auto) / 
-            minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
+            2fr 1fr 1fr 2fr
     }
 
     .ps-canvas>div:nth-child(8),
@@ -148,7 +148,7 @@
             "c d d f" minmax(80px, auto)
             "c k k f" minmax(120px, auto)
             "h h i i" minmax(160px, auto) / 
-            minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
+            2fr 1fr 1fr 2fr
     }    
 
     /* business model canvas with 9 cells */
@@ -160,7 +160,7 @@
             "b d d e" minmax(120px, auto)
             "c d d f" minmax(120px, auto)
             "h h i i" minmax(160px, auto) / 
-            minmax(100px, auto) minmax(50px, auto) minmax(50px, auto) minmax(100px, auto);
+            2fr 1fr 1fr 2fr
     }
 
     .bm-canvas > div:nth-child(8) > .cell-card-container,
