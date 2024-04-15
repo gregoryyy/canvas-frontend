@@ -23,8 +23,7 @@
                     "type": "query"
                 }
             ],
-            "score": 5,
-            "comment": "A comment"
+            "score": 5
         },
         {
             "id": 2,
@@ -41,8 +40,7 @@
                     "content": "Manual comment"
                 }
             ],
-            "score": 3,
-            "comment": ""
+            "score": 3
         },
         {
             "id": 3,
@@ -54,8 +52,7 @@
                     "content": "🤖 Ability to build"
                 }
             ],
-            "score": 3,
-            "comment": ""
+            "score": 3
         },
         {
             "id": 4,
@@ -72,8 +69,7 @@
                     "content": "Manual value proposition"
                 }
             ],
-            "score": 5,
-            "comment": ""
+            "score": 5
         },
         {
             "id": 5,
@@ -87,8 +83,7 @@
                     "type": "analysis"
                 }
             ],
-            "score": 3,
-            "comment": ""
+            "score": 3
         },
         {
             "id": 6,
@@ -104,8 +99,7 @@
                     "type": "comment"
                 }
             ],
-            "score": 5,
-            "comment": ""
+            "score": 5
         },
         {
             "id": 7,
@@ -121,8 +115,7 @@
                     "type": "comment"
                 }
             ],
-            "score": 4,
-            "comment": ""
+            "score": 4
         },
         {
             "id": 8,
@@ -134,8 +127,7 @@
                     "content": "Coachable?"
                 }
             ],
-            "score": 4,
-            "comment": ""
+            "score": 4
         },
         {
             "id": 9,
@@ -147,8 +139,7 @@
                     "content": "Market size and growth"
                 }
             ],
-            "score": 5,
-            "comment": ""
+            "score": 5
         },
         {
             "id": 10,

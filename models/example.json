@@ -2,7 +2,7 @@
     "meta": {
         "title": "Example Startup",
         "description": "Example company that does x for y.",
-        "canvas": "bmcanvas",
+        "canvas": "preseed",
         "version": "0.2",
         "date": "20240207"
     },
@@ -17,8 +17,7 @@
                     "content": "Problem 2"
                 }
             ],
-            "score": 5,
-            "comment": "super relevant"
+            "score": 5
         },
         {
             "id": 2,
@@ -30,8 +29,7 @@
                     "content": "Solution 2"
                 }
             ],
-            "score": 3,
-            "comment": "innovative?"
+            "score": 3
         },
         {
             "id": 3,
@@ -43,8 +41,7 @@
                     "content": "Progress 2"
                 }
             ],
-            "score": 3,
-            "comment": "prototype and PoC"
+            "score": 3
         },
         {
             "id": 4,
@@ -53,11 +50,11 @@
                     "content": "Value Proposition 1"
                 },
                 {
-                    "content": "Value Proposition 2"
+                    "content": "Value Proposition 2 (double-check)",
+                    "type": "query"
                 }
             ],
-            "score": 5,
-            "comment": "cool!"
+            "score": 5
         },
         {
             "id": 5,
@@ -69,8 +66,7 @@
                     "content": "GTM Strategy 2"
                 }
             ],
-            "score": 3,
-            "comment": "needs improvement"
+            "score": 3
         },
         {
             "id": 6,
@@ -82,8 +78,7 @@
                     "content": "Traction KPI 2"
                 }
             ],
-            "score": 5,
-            "comment": "great progress"
+            "score": 5
         },
         {
             "id": 7,
@@ -95,8 +90,7 @@
                     "content": "Customer segment 2"
                 }
             ],
-            "score": 4,
-            "comment": "do we know enough?"
+            "score": 4
         },
         {
             "id": 8,
@@ -108,8 +102,7 @@
                     "content": "Founder 2"
                 }
             ],
-            "score": 4,
-            "comment": "great tech experties, but sales?"
+            "score": 4
         },
         {
             "id": 9,
@@ -121,8 +114,7 @@
                     "content": "Market size and growth"
                 }
             ],
-            "score": 5,
-            "comment": "huge market"
+            "score": 5
         },
         {
             "id": 10,

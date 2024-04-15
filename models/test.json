@@ -17,8 +17,7 @@
                     "content": "Problem 2"
                 }
             ],
-            "score": 5,
-            "comment": "super relevant"
+            "score": 5
         },
         {
             "id": 2,
@@ -27,8 +26,7 @@
                     "content": "Solution 1"
                 }
             ],
-            "score": 3,
-            "comment": "innovative?"
+            "score": 3
         },
         {
             "id": 3,
@@ -50,8 +48,7 @@
                     "type": "comment"
                 }
             ],
-            "score": 5,
-            "comment": "cool!"
+            "score": 5
         },
         {
             "id": 5,
@@ -64,8 +61,7 @@
                     "content": "GTM Strategy 2"
                 }
             ],
-            "score": 3,
-            "comment": "needs improvement"
+            "score": 3
         },
         {
             "id": 6,
@@ -77,8 +73,7 @@
                     "content": "Traction KPI 2"
                 }
             ],
-            "score": 5,
-            "comment": "great progress"
+            "score": 5
         },
         {
             "id": 7,
@@ -90,8 +85,7 @@
                     "content": "Customer segment 2"
                 }
             ],
-            "score": 4,
-            "comment": "do we know enough?"
+            "score": 4
         },
         {
             "id": 8,
@@ -103,8 +97,7 @@
                     "content": "Founder 2"
                 }
             ],
-            "score": 4,
-            "comment": "great tech experties, but sales?"
+            "score": 4
         },
         {
             "id": 9,
@@ -116,8 +109,7 @@
                     "content": "Market size and growth"
                 }
             ],
-            "score": 5,
-            "comment": "huge market"
+            "score": 5
         },
         {
             "id": 10,
