@@ -1,0 +1,87 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "tows",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "TOWS",
+        "version": "0.1",
+        "date": "20240415",
+        "canvas": "tows",
+        "template": "tows_v01",
+        "description": "TOWS as extension to SWOT."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Strengths",
+            "subtitle": "Good at...",
+            "description": "What internal qualities do we have?",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Weaknesses",
+            "subtitle": "Suck at...",
+            "description": "What things need to be improved?",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Opportunities",
+            "subtitle": "Nice developments...",
+            "description": "What external situations can we leverage?",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Threats/Risks",
+            "subtitle": "Dangers...",
+            "description": "What challenges us from outside?",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "SO Strategies",
+            "subtitle": "Attack...",
+            "description": "What opportunities let our strengths shine?",
+            "score": "no"
+        },
+        {
+            "id": 6,
+            "title": "WO Strategies",
+            "subtitle": "Compensate...",
+            "description": "How can we compensate our weaknesses in opportunities?",
+            "score": "no"
+        },
+        {
+            "id": 7,
+            "title": "ST Strategies",
+            "subtitle": "Mitigate...",
+            "description": "Mitigate threats using strengths?",
+            "score": "no"
+        },
+        {
+            "id": 8,
+            "title": "TW Strategies",
+            "subtitle": "Avoid...",
+            "description": "Threats meet weaknesses?",
+            "score": "no"
+        }
+    ]
+}

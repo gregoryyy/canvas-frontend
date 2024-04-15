@@ -14,5 +14,13 @@
     {
         "name": "Product Vision Board",
         "file": "productvision"
+    },
+    {
+        "name": "SWOT Matrix",
+        "file": "swot"
+    },
+    {
+        "name": "TOWS Matrix",
+        "file": "tows"
     }
 ]

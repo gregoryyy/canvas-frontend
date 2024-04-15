@@ -12,6 +12,7 @@ TODO fix 1.3.2:
 * BUG: canvas types that don't show description or analytics don't wipe those fields when converted --> FIXED
 * BUG: product vision board shows vision cards not centered in the middle --> FIXED
 * BUG: product vision board mobile layout uncentered cells 2 and 4 --> FIXED
+* BUG: empty meta.description and analysis.content lead to broken clear canvas --> FIXED
 
 
 TODOs with A: are high-priority

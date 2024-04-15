@@ -1,0 +1,59 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "swot",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "SWOT",
+        "version": "0.1",
+        "date": "20240415",
+        "canvas": "swot",
+        "template": "swot_v01",
+        "description": "Classic SWOT."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Strengths",
+            "subtitle": "Good at...",
+            "description": "What internal qualities do we have?",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Weaknesses",
+            "subtitle": "Suck at...",
+            "description": "What things need to be improved?",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Opportunities",
+            "subtitle": "Nice developments...",
+            "description": "What external situations can we leverage?",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Threats/Risks",
+            "subtitle": "Dangers...",
+            "description": "What challenges us from outside?",
+            "score": "no"
+        }
+    ]
+}

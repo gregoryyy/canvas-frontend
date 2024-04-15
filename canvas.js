@@ -300,7 +300,7 @@ class PreCanvas {
 
     rerender() {
         document.querySelector(`#precanvas h2`).textContent = this.title;
-        document.querySelector(`#precanvas p`).innerHTML = convertNL(this.description);
+        if (this.display) document.querySelector(`#precanvas p`).innerHTML = convertNL(this.description);
     }
 
     clear() {
@@ -350,7 +350,7 @@ class PostCanvas {
     }
 
     rerender() {
-        document.querySelector(`#postcanvas p`).innerHTML = convertNL(this.content);
+        if (this.display) document.querySelector(`#postcanvas p`).innerHTML = convertNL(this.content);
         this.computeScore();
     }
 
@@ -362,7 +362,7 @@ class PostCanvas {
     }
 
     computeScore() {
-        const score = index => parseFloat(document.getElementById(`score${index}`).value) || 0;
+        const score = index => parseFloat(document.getElementById(`score${index}`)?.value) || 0;
 
         // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
         let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
