@@ -171,7 +171,7 @@ class Controls {
 
     render() {
         const ctlElem = document.getElementById('controls');
-        const convertCanvasToSvg = () => convertDivToSvg('content', 'content.svg');
+        const convertCanvasToSvg = () => convertDivToSvg('content', 'canvas.svg');
 
         const useServer = conf.canvasd.mode !== 'off';
         const host = conf.canvasd.host;
