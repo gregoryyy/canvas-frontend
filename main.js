@@ -104,7 +104,7 @@ class Application {
     saveToLs(title = this.meta.title) {
         this.check();
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
-        canvases[this.meta.title] = JSON.stringify(this.toJSON());
+        canvases[this.meta.title] = this.toJSON();
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
@@ -114,7 +114,7 @@ class Application {
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
         if (!canvases[title]) return;
-        const content = sanitizeJSON(JSON.parse(canvases[title]));
+        const content = sanitizeJSON(canvases[title]);
         fetch(`conf/${content.meta?.canvas}.json`).then(response => response.json()).then(sanitizeJSON).then(config => {
             document.getElementById('content').innerHTML = '';
             const temp = conf.canvasTypes;
