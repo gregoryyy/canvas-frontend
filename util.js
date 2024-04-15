@@ -1,3 +1,5 @@
+/* copyright 2024 Unlost GmbH. All rights reserved. */
+
 /* static UI functions */
 
 function createElement(tagName, attributes = {}, text = '', format = 'text') {

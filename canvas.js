@@ -1,3 +1,4 @@
+/* copyright 2024 Unlost GmbH. All rights reserved. */
 class Canvas {
 
     constructor(structure, content) {

@@ -1,3 +1,5 @@
+/* copyright 2024 Unlost GmbH. All rights reserved. */
+
 describe("Other UI interaction", function () {
 
     beforeAll(function () { });

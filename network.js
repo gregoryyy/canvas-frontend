@@ -1,3 +1,5 @@
+/* copyright 2024 Unlost GmbH. All rights reserved. */
+
 // events sent: uploadsuccess, uploadmsg, uploaderror
 class FileUploader {
 

@@ -1,5 +1,4 @@
-// import { FileUploader } from './network.js';
-
+/* copyright 2024 Unlost GmbH. All rights reserved. */
 let app = undefined;
 let ctl = undefined;
 let conf = undefined;
@@ -69,7 +68,7 @@ class Application {
         elem.innerHTML = '';
         this.structure = structure;
         this.meta.canvas = structure.meta.canvas;
-        
+
         this.meta.display = conf.layout.precanvas === 'yes';
         if (!this.meta.display) this.meta.description = undefined;
         else this.meta.description ??= "Description...";
