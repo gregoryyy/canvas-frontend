@@ -95,11 +95,11 @@
 .productvision > div:nth-child(1) > .cell-card-container { 
     display: flex; 
     flex-wrap: wrap;
-    align-items: flex-start;
+    /* align-items: flex-start; */
 }
 .productvision > div:nth-child(1) .card {
-    max-width: 45%;
-    min-width: 35%;
+    max-width: 100%;
+    min-width: 45%;
     flex: 1;
 }
 .productvision > div:nth-child(n+6) { display: none; }
@@ -135,7 +135,7 @@
         border-top: 1px dashed;
     }
 
-    /* lean canvas with 14 cells */
+    /* lean canvas with 12 cells */
 
     .lean-canvas {
         min-height: 500px;
@@ -175,7 +175,7 @@
             "a a" minmax(160px, auto) 
             "b c" minmax(160px, auto)
             "d e" minmax(160px, auto) /
-            minmax(150px, auto) minmax(150px, auto) 
+            1fr 1fr
         }
 
     .productvision > div:nth-child(n+6) { display: none; }

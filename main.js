@@ -69,8 +69,15 @@ class Application {
         elem.innerHTML = '';
         this.structure = structure;
         this.meta.canvas = structure.meta.canvas;
+        
         this.meta.display = conf.layout.precanvas === 'yes';
+        if (!this.meta.display) this.meta.description = undefined;
+        else this.meta.description ??= "Description...";
+        
         this.analysis.display = conf.layout.postcanvas === 'yes';
+        if (!this.analysis.display) this.analysis.content = undefined;
+        else this.analysis.content ??= "Analysis...";
+
         this.analysis.total = structure.scoring[0]?.total;
         this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             this.canvas.cells[index] ?? []));
