@@ -97,7 +97,7 @@
 .productvision > div:nth-child(1) > .cell-card-container { 
     display: flex; 
     flex-wrap: wrap;
-    /* align-items: flex-start; */
+    align-items: flex-start;
 }
 .productvision > div:nth-child(1) .card {
     max-width: 100%;
