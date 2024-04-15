@@ -5,6 +5,14 @@
 
 # TODOs
 
+TODO fix 1.3.2:
+
+* TODO: in LS export, each canvas is a string with json structures escaped --> create full json structure
+* BUG: edit cards leads to &amp;nbsp; which causes check() to fail (and no load)
+* BUG: canvas types that don't show description or analytics don't wipe those fields when converted
+* BUG: product vision board shows vision cards not centered in the middle
+
+
 TODOs with A: are high-priority
 
 * General Design:

@@ -181,9 +181,9 @@ class Controls {
         let buttons = [
             ['cvclear', 'Clear Canvas', confirmCanvasClear],
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
-            ['cvsvg', 'Canvas SVG', confirmCanvasSvg],
-            ['lsload', 'Load LS', loadMenu.bind(app)],
-            ['lssave', 'Save LS', confirmCanvasSave],
+            ['cvsvg', 'Export SVG', confirmCanvasSvg],
+            ['lsload', 'Load from LS', loadMenu.bind(app)],
+            ['lssave', 'Save to LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear]];
 
         if (useServer) {
@@ -194,8 +194,8 @@ class Controls {
         };
 
         if (conf.localstorage.filemenu === 'yes') {
-            buttons.push(['lsdown', 'Download LS', confirmDownloadLs]);
-            buttons.push(['lsup', 'Upload LS', uploadLsFile]);
+            buttons.push(['lsdown', 'Export LS', confirmDownloadLs]);
+            buttons.push(['lsup', 'Import LS', uploadLsFile]);
             ctlElem.appendChild(createElement('input',
                 { type: 'file', id: 'lsFileInput', onchange: `uploadLs(event, '${defaultLsKey}')`, style: 'display: none;' }));
         }
