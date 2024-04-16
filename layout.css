@@ -60,6 +60,31 @@
 }
 .lean-canvas>div:nth-child(n+13) {display: none; }
 
+/* business model canvas with 9 cells */
+
+.bm-canvas {
+    min-height: 500px;
+    grid:
+        "a b d d e g" minmax(150px, auto)
+        "a c d d f g" minmax(150px, auto)
+        "h h h i i i" minmax(150px, auto) /
+        2fr 2fr 1fr 1fr 2fr 2fr;
+}
+
+.bm-canvas > div:nth-child(8) > .cell-card-container,
+.bm-canvas > div:nth-child(9) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.bm-canvas > div:nth-child(8) .card,
+.bm-canvas > div:nth-child(9) .card {
+    max-width: 45%;
+    min-width: 35%;
+    flex: 1;
+}
+.bm-canvas > div:nth-child(n+10) { display: none; }
+
 /* swot board with 4 cells */
 
 .swot {
@@ -75,9 +100,7 @@
 /* more to come */
 .more {
     min-height: 500px;
-    grid:
-        "a" minmax(160px, auto) / 
-        1fr
+    grid: "a" minmax(160px, auto) / 1fr; 
 }
 
 .more > div:nth-child(1) > .cell-card-container { 
@@ -102,14 +125,8 @@
     text-align: center;
     text-transform: none;
 }
-
-.more > div:nth-child(1) div.hover-help a {
-    text-decoration: underline;
-}
-
-.more > div:nth-child(1) .card {
-    display: none;
-}
+.more > div:nth-child(1) div.hover-help a { text-decoration: underline; }
+.more > div:nth-child(1) .card { display: none; }
 .more > div:nth-child(n+2) { display: none; }
 
 /***** layout types mobile *****/
@@ -158,6 +175,23 @@
             "h h i i" minmax(160px, auto) / 
             2fr 1fr 1fr 2fr
     }
+
+    /* business model canvas with 9 cells */
+
+    .bm-canvas {
+        min-height: 500px;
+        grid:
+            "a a g g" minmax(160px, auto) 
+            "b d d e" minmax(120px, auto)
+            "c d d f" minmax(120px, auto)
+            "h h i i" minmax(160px, auto) / 
+            2fr 1fr 1fr 2fr
+    }
+
+    .bm-canvas > div:nth-child(8) > .cell-card-container,
+    .bm-canvas > div:nth-child(9) > .cell-card-container { display: block; }
+    .bm-canvas > div:nth-child(8) .card,
+    .bm-canvas > div:nth-child(9) .card { max-width: none; }
 
     /* more to come */    
 }

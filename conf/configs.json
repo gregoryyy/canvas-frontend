@@ -1,3 +1,4 @@
+
 [
     {
         "name": "Preseed Canvas",
@@ -6,6 +7,14 @@
     {
         "name": "Simplified Preseed Canvas",
         "file": "simplepreseed"
+    },
+    {
+        "name": "Business Model Canvas",
+        "file": "bmcanvas"
+    },
+    {
+        "name": "Lean Canvas",
+        "file": "leancanvas"
     },
     {
         "name": "SWOT Matrix",
