@@ -1,0 +1,27 @@
+
+[
+    {
+        "name": "Business Model Canvas",
+        "file": "bmcanvas"
+    },
+    {
+        "name": "Lean Canvas",
+        "file": "leancanvas"
+    },
+    {
+        "name": "Preseed Canvas",
+        "file": "preseed"
+    },
+    {
+        "name": "Product Vision Board",
+        "file": "productvision"
+    },
+    {
+        "name": "SWOT Matrix",
+        "file": "swot"
+    },
+    {
+        "name": "TOWS Matrix",
+        "file": "tows"
+    }
+]

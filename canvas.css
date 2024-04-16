@@ -204,6 +204,10 @@ p.hint, p.intro {
     display: none;
 }
 
+p.hint2 {
+    font-size: 1em;
+}
+
 div.signature { 
     display: flex;
     justify-content: space-between;

@@ -278,7 +278,7 @@ function decodeHtml(html) { return new DOMParser().parseFromString(html, "text/h
 
 function encodeHtml(text) { return document.createElement('div').appendChild(document.createTextNode(text)).outerHTML; }
 
-function sanitize(text) { return DOMPurify.sanitize(text, { ALLOWED_TAGS: ['br', 'p', 'i', 'b'] }); }
+function sanitize(text) { return DOMPurify.sanitize(text, { ALLOWED_TAGS: ['br', 'p', 'i', 'b', 'a'] }); }
 
 function sanitizeJSON(value) {
     if (typeof value === 'string') return sanitize(value);

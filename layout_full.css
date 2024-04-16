@@ -25,8 +25,6 @@
 .ps-canvas > div:nth-child(13),
 .ps-canvas > div:nth-child(14) { border-left: 1px dashed; }
 
-/* simple preseed canvas with 12 cells = lean canvas */
-
 /* lean canvas with 12 cells */
 
 .lean-canvas {
@@ -60,6 +58,54 @@
 }
 .lean-canvas>div:nth-child(n+13) {display: none; }
 
+/* business model canvas with 9 cells */
+
+.bm-canvas {
+    min-height: 500px;
+    grid:
+        "a b d d e g" minmax(150px, auto)
+        "a c d d f g" minmax(150px, auto)
+        "h h h i i i" minmax(150px, auto) /
+        2fr 2fr 1fr 1fr 2fr 2fr;
+}
+
+.bm-canvas > div:nth-child(8) > .cell-card-container,
+.bm-canvas > div:nth-child(9) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.bm-canvas > div:nth-child(8) .card,
+.bm-canvas > div:nth-child(9) .card {
+    max-width: 45%;
+    min-width: 35%;
+    flex: 1;
+}
+.bm-canvas > div:nth-child(n+10) { display: none; }
+
+
+/* product vision board with 5 cells */
+
+.productvision {
+    min-height: 480px;
+    grid:
+        "a a a a" minmax(160px, auto) 
+        "b c d e" minmax(320px, auto) /
+        1fr 1fr 1fr 1fr;
+}
+
+.productvision > div:nth-child(1) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.productvision > div:nth-child(1) .card {
+    max-width: 100%;
+    min-width: 45%;
+    flex: 1;
+}
+.productvision > div:nth-child(n+6) { display: none; }
+
 /* swot board with 4 cells */
 
 .swot {
@@ -72,45 +118,25 @@
 
 .swot > div:nth-child(n+5) { display: none; }
 
-/* more to come */
-.more {
+
+/* tows board with 8 cells */
+
+.tows {
     min-height: 500px;
     grid:
-        "a" minmax(160px, auto) / 
-        1fr
-}
+        ". a b" minmax(160px, auto) 
+        "c e f" minmax(160px, auto) 
+        "d g h" minmax(160px, auto) /
+        1fr 1fr 1fr
+    }
 
-.more > div:nth-child(1) > .cell-card-container { 
-    display: flex; 
-    flex-wrap: wrap;
-    align-items: flex-start;
-}
-.more > div:nth-child(1) div.cell-title-container {
-    display: block;
-    text-align: center;
-}
+.tows > div:nth-child(1) { border-left: 2px solid black; }
+.tows > div:nth-child(3) { border-top: 2px solid black; }
+.tows > div:nth-child(n+5) { background-color: #eee; }
 
-.more > div:nth-child(1) h3.cell-title {
-    font-size: 1.8em;
-    text-align: center;
-    text-transform: none;
-}
 
-.more > div:nth-child(1) div.hover-help {
-    display: block;
-    font-size: 1.5em;
-    text-align: center;
-    text-transform: none;
-}
+.tows > div:nth-child(n+9) { display: none; }
 
-.more > div:nth-child(1) div.hover-help a {
-    text-decoration: underline;
-}
-
-.more > div:nth-child(1) .card {
-    display: none;
-}
-.more > div:nth-child(n+2) { display: none; }
 
 /***** layout types mobile *****/
 @media screen and (max-width: 768px) {
@@ -143,8 +169,6 @@
         border-top: 1px dashed;
     }
 
-    /* simple preseed canvas with 12 cells = lean canvas */
-
     /* lean canvas with 12 cells */
 
     .lean-canvas {
@@ -157,7 +181,45 @@
             "c k k f" minmax(120px, auto)
             "h h i i" minmax(160px, auto) / 
             2fr 1fr 1fr 2fr
+    }    
+
+    /* business model canvas with 9 cells */
+
+    .bm-canvas {
+        min-height: 500px;
+        grid:
+            "a a g g" minmax(160px, auto) 
+            "b d d e" minmax(120px, auto)
+            "c d d f" minmax(120px, auto)
+            "h h i i" minmax(160px, auto) / 
+            2fr 1fr 1fr 2fr
     }
 
-    /* more to come */    
+    .bm-canvas > div:nth-child(8) > .cell-card-container,
+    .bm-canvas > div:nth-child(9) > .cell-card-container { display: block; }
+    .bm-canvas > div:nth-child(8) .card,
+    .bm-canvas > div:nth-child(9) .card { max-width: none; }
+
+
+    /* product vision board with 5 cells */
+
+    .productvision {
+        min-height: 500px;
+        grid:
+            "a a" minmax(160px, auto) 
+            "b c" minmax(160px, auto)
+            "d e" minmax(160px, auto) /
+            1fr 1fr
+        }
+
+    .productvision > div:nth-child(n+6) { display: none; }
+
+    .productvision > div:nth-child(1) > .cell-card-container { display: block; }
+    .productvision > div:nth-child(1) .card { max-width: none; }
+
+
+    /* swot board with 4 cells */
+
+    /* tows board with 8 cells */
+
 }

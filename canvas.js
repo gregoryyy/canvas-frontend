@@ -139,7 +139,7 @@ class Cell {
     addHelpOverlay(parent) {
         const helpDiv = createElement('div', { class: 'hover-help' });
         if (this.helptitle) helpDiv.appendChild(createElement('h4', {}, this.helptitle));
-        if (this.helptext) helpDiv.appendChild(createElement('p', {}, this.helptext));
+        if (this.helptext) helpDiv.appendChild(createElement('p', {}, this.helptext, 'html'));
         parent.appendChild(helpDiv);
 
         const hoverHelp = elem => helpDiv.style.display = helpDiv.style.display === 'block' ? 'none' : 'block';

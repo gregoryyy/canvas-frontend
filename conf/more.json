@@ -1,0 +1,38 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "no"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "more",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "TOWS",
+        "version": "0.1",
+        "date": "20240415",
+        "canvas": "more",
+        "template": "tows_v01",
+        "description": "TOWS as extension to SWOT."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Stay tuned for more:",
+            "subtitle": "Canvases - AI-based analysis - Insights",
+            "description": "Feedback via <a href=\"https://www.linkedin.com/feed/update/urn:li:activity:7185813196702679045\" target=\"_blank\">Linkedin</a>",
+            "score": "no"
+        }
+    ]
+}
