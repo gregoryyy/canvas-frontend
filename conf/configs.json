@@ -1,4 +1,3 @@
-
 [
     {
         "name": "Preseed Canvas",
@@ -17,8 +16,16 @@
         "file": "leancanvas"
     },
     {
+        "name": "Product Vision Board",
+        "file": "productvision"
+    },
+    {
         "name": "SWOT Matrix",
         "file": "swot"
+    },
+    {
+        "name": "TOWS Matrix",
+        "file": "tows"
     },
     {
         "name": "More to come",
