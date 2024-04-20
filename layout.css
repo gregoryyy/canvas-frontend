@@ -125,16 +125,15 @@
 .tows {
     min-height: 500px;
     grid:
-        ". a b" minmax(160px, auto) 
+        "i a b" minmax(160px, auto) 
         "c e f" minmax(160px, auto) 
         "d g h" minmax(160px, auto) /
         1fr 1fr 1fr;
 }
 
-.tows > div:nth-child(1) { border-left: 2px solid black; }
-.tows > div:nth-child(3) { border-top: 2px solid black; }
 .tows > div:nth-child(-n+4) { background-color: #f4f4f4; }
-.tows > div:nth-child(n+9) { display: none; }
+.tows > div:nth-child(9) { background-color: #ddd; }
+.tows > div:nth-child(n+10) { display: none; }
 
 /* more to come */
 .more {
