@@ -30,57 +30,64 @@
         {
             "id": 1,
             "title": "Strengths",
-            "subtitle": "Good at...",
-            "description": "What internal qualities do we have?",
+            "subtitle": "Good at... What internal qualities do we have?",
+            "description": "Internal attributes and resources that support a successful strategy and can include skilled personnel, strong brand reputation, financial resources, or advanced technology.",
             "score": "no"
         },
         {
             "id": 2,
             "title": "Weaknesses",
-            "subtitle": "Suck at...",
-            "description": "What things need to be improved?",
+            "subtitle": "Suck at... What things need to be improved?",
+            "description": "Internal factors that detract from an organization’s ability to attain or maintain a competitive edge, such as inadequate research and development facilities, insufficient marketing strategies, or limited financial resources.",
             "score": "no"
         },
         {
             "id": 3,
             "title": "Opportunities",
-            "subtitle": "Nice developments...",
-            "description": "What external situations can we leverage?",
+            "subtitle": "Nice developments... What external situations can we leverage?",
+            "description": "External chances for an organization to improve performance or gain a competitive advantage. Opportunities can arise from market gaps, technological advancements, or changes in consumer preferences.",
             "score": "no"
         },
         {
             "id": 4,
             "title": "Threats/Risks",
-            "subtitle": "Dangers...",
-            "description": "What challenges us from outside?",
+            "subtitle": "Dangers... What challenges us from outside?",
+            "description": "External factors that could potentially harm an organization’s performance. Examples include new competitors, changes in regulatory landscapes, and economic downturns.",
             "score": "no"
         },
         {
             "id": 5,
             "title": "SO Strategies",
-            "subtitle": "Attack...",
-            "description": "What opportunities let our strengths shine?",
+            "subtitle": "Attack... Seize opportunities!",
+            "description": "Focus on using internal strengths to seize external opportunities. They are aggressive and proactive, aiming to solidify and expand the organization's position in the market.",
             "score": "no"
         },
         {
             "id": 6,
             "title": "WO Strategies",
-            "subtitle": "Compensate...",
-            "description": "How can we compensate our weaknesses in opportunities?",
+            "subtitle": "Improve... Close gaps!",
+            "description": "Overcome internal weaknesses by leveraging external opportunities. The goal is to strengthen the organization by addressing gaps and vulnerabilities.",
             "score": "no"
         },
         {
             "id": 7,
             "title": "ST Strategies",
-            "subtitle": "Mitigate...",
-            "description": "Mitigate threats using strengths?",
+            "subtitle": "Defend... Maintain stability!",
+            "description": "Use the organization’s strengths to protect against external threats. They are about maintaining stability and ensuring sustainability by guarding against potential risks.",
             "score": "no"
         },
         {
             "id": 8,
-            "title": "TW Strategies",
-            "subtitle": "Avoid...",
-            "description": "Threats meet weaknesses?",
+            "title": "WT Strategies",
+            "subtitle": "Survive... Minimize risks!",
+            "description": "Cautious and often conservative strategies aimed at minimizing risks and defending against threats where the organization is vulnerable. They focus on damage control and shoring up weaknesses to avoid potential crises.",
+            "score": "no"
+        },
+        {
+            "id": 9,
+            "title": "Elephant in the room",
+            "subtitle": "What else to mention?",
+            "description": "Other observations and strategies?",
             "score": "no"
         }
     ]
