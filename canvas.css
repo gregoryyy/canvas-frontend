@@ -185,6 +185,7 @@ div.cell>p,
 .card.comment { background-color: #eee; }
 .card.query { background-color: #dff; }
 .card.analysis { background-color: #fdd; }
+.card.emphasis { background-color: #fcc; }
 
 .card.highlight, .cell-card-container.highlight { border: dashed black 1px; }
 

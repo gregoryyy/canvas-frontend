@@ -259,7 +259,7 @@ class Card {
     }
 
     setTypeAndContent(text) {
-        const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':-': undefined };
+        const cardtypes = { ':?': 'query', ':!': 'comment', ':=': 'analysis', ':*': 'emphasis', ':- ': undefined };
         const trimmed = text.trim();
         for (const [cmd, type] of Object.entries(cardtypes)) {
             if (trimmed.startsWith(cmd)) {
