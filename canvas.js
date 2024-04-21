@@ -178,10 +178,14 @@ class Cell {
     check() {
         const domCards = this.cardElems();
         const stateCards = this.cards;
+
+        const stripWs = (text) => text.replace(/\s/g, '');
+        const stripWsAndHtml = (text) => decodeHtml(stripWs(text));
+
         if (domCards.length !== stateCards.length)
             throw new Error(`Cell ${this.index}: dom.len ${domCards.length} != state.len ${stateCards.length}`);
         Array.from(domCards).forEach((elem, index) => {
-            if (elem.textContent.trim() !== this.cards[index].content.trim())
+            if (stripWs(elem.textContent) !== stripWs(stripWsAndHtml(this.cards[index].content)))
                 throw new Error(`Cell ${this.index}: dom.card ${elem.getAttribute('data-index')}: ${elem.textContent.trim()} ` +
                     `!= state.card ${index}: ${stateCards[index].content.trim()}`);
         });
@@ -351,7 +355,7 @@ class PostCanvas {
 
     rerender() {
         if (this.display) document.querySelector(`#postcanvas p`).innerHTML = convertNL(this.content);
-        this.computeScore();
+        if (this.total) this.computeScore();
     }
 
     addScorer(parentElement) {
