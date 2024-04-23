@@ -1,4 +1,12 @@
 /* copyright 2024 Unlost GmbH. All rights reserved. */
+
+// application state and configuration
+export { app, conf };
+
+import { Canvas, Cell, Card, PreCanvas, PostCanvas } from './canvas.js';
+import { createElement, overlayMenu, confirmStep, convertDivToSvg, 
+    downloadLs, uploadLs, loadJson, sanitizeJSON, lg } from './util.js';
+
 let app = undefined;
 let ctl = undefined;
 let conf = undefined;
@@ -72,7 +80,7 @@ class Application {
         this.meta.display = conf.layout.precanvas === 'yes';
         if (!this.meta.display) this.meta.description = undefined;
         else this.meta.description ??= "Description...";
-        
+
         this.analysis.display = conf.layout.postcanvas === 'yes';
         if (!this.analysis.display) this.analysis.content = undefined;
         else this.analysis.content ??= "Analysis...";
