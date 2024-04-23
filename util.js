@@ -1,5 +1,18 @@
 /* copyright 2024 Unlost GmbH. All rights reserved. */
 
+
+export {
+    // DOM and UI
+    createElement, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, 
+    // string and html
+    sanitize, sanitizeJSON, convertBR, convertNL, decodeHtml, encodeHtml, trimPluralS,
+    // data I/O and debug
+    convertDivToSvg, downloadLs, uploadLs, loadJson, lg
+};
+
+import DOMPurify from './lib/purify.es.js';
+import * as htmlToImage from './lib/html-to-image.es.min.js';
+
 /* static UI functions */
 
 function createElement(tagName, attributes = {}, text = '', format = 'text') {
@@ -301,7 +314,7 @@ function convertDivToSvg(divId, filename) {
     const node = document.getElementById(divId);
 
     const downloadImage = (svgContent) => {
-        const blob = new Blob([svgContent], {type: 'image/svg+xml;charset=utf-8'});
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = createElement('a', { href: url, download: filename });
         document.body.appendChild(a);
