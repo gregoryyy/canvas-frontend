@@ -13,7 +13,7 @@ const defaultLsKey = 'preseedcanvas';
 const defaultModel = 'template';
 const configsFile = 'configs.json';
 const defaultConfigName = 'preseed';
-const appSignature = 'Unlost Canvas App v1.3.4';
+const appSignature = 'Unlost Canvas App v1.3.5';
 
 document.addEventListener('DOMContentLoaded', () => {
     const param = (key) => new URLSearchParams(window.location.search).get(key);
