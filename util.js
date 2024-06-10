@@ -1,6 +1,6 @@
 /* copyright 2024 Unlost GmbH. All rights reserved. */
 
-
+// utility functions
 export {
     // DOM and UI
     createElement, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, 

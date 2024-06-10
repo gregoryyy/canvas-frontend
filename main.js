@@ -1,5 +1,6 @@
 /* copyright 2024 Unlost GmbH. All rights reserved. */
 
+// application state and configuration
 export { app, ctl, conf };
 
 import { Canvas, Cell, Card, PreCanvas, PostCanvas } from './canvas.js';
