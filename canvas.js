@@ -1,10 +1,9 @@
 /* copyright 2024 Unlost GmbH. All rights reserved. */
 
-
 export { Canvas, Cell, Card, PreCanvas, PostCanvas };
 
 import { createElement, addLongPressListener, makeEditable, makeDraggable, makeDroppable, 
-    sanitize, convertBR, convertNL, lg, trimPluralS } from './util.js';
+    sanitize, convertBR, convertNL, decodeHtml, trimPluralS, lg } from './util.js';
 import { app, conf } from './main.js';
 
 class Canvas {

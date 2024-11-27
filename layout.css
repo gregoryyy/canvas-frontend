@@ -234,25 +234,6 @@
     /* product vision board with 5 cells */
 
     .productvision {
-        min-height: 500px;
-        grid:
-            "a a" minmax(160px, auto) 
-            "b c" minmax(160px, auto)
-            "d e" minmax(160px, auto) /
-            1fr 1fr
-        }
-
-    .productvision > div:nth-child(1) > .cell-card-container { display: block; }
-    .productvision > div:nth-child(1) .card { max-width: none; }
-    .productvision > div:nth-child(n+6) { display: none; }
-
-    /* swot matrix with 4 cells */
-
-    /* tows matrix with 8 cells */
-
-    /* product vision board with 5 cells */
-
-    .productvision {
     min-height: 500px;
     grid:
         "a a" minmax(160px, auto) 
