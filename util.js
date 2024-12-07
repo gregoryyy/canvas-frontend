@@ -3,7 +3,7 @@
 // utility functions
 export {
     // DOM and UI
-    createElement, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, 
+    createElement, toggleElements, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, 
     // string and html
     sanitize, sanitizeJSON, convertBR, convertNL, decodeHtml, encodeHtml, trimPluralS,
     // data I/O and debug

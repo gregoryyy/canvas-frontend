@@ -4,8 +4,12 @@
         "file": "preseed"
     },
     {
-        "name": "Simplified Preseed Canvas",
+        "name": "Simple Preseed Canvas",
         "file": "simplepreseed"
+    },
+    {
+        "name": "Quick Preseed Canvas",
+        "file": "quickpreseed"
     },
     {
         "name": "Business Model Canvas",

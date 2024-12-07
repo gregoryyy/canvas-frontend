@@ -60,6 +60,31 @@
 }
 .lean-canvas>div:nth-child(n+13) {display: none; }
 
+/* quick preseed canvas with 12 cells */
+
+.quick-canvas {
+    min-height: 500px;
+    grid:
+        "g a d d i j" minmax(180px, auto)
+        "c b k k e f" minmax(180px, auto)
+        "h h h l l l" minmax(60px, auto) /
+        2fr 2fr 1fr 1fr 2fr 2fr;
+}
+
+.quick-canvas > div:nth-child(8) > .cell-card-container,
+.quick-canvas > div:nth-child(12) > .cell-card-container { 
+    display: flex; 
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+.quick-canvas > div:nth-child(8) .card,
+.quick-canvas > div:nth-child(12) .card {
+    max-width: 45%;
+    min-width: 35%;
+    flex: 1;
+}
+.quick-canvas>div:nth-child(n+13) {display: none; }
+
 /* business model canvas with 9 cells */
 
 .bm-canvas {
@@ -213,6 +238,21 @@
             "h h i i" minmax(160px, auto) / 
             2fr 1fr 1fr 2fr
     }
+
+    /* quick preseed canvas with 12 cells */
+
+    .quick-canvas {
+        min-height: 500px;
+        grid:
+            "g c" minmax(160px, auto)
+            "a b" minmax(160px, auto)
+            "d k" minmax(160px, auto)
+            "i e" minmax(160px, auto)
+            "j f" minmax(160px, auto)
+            "h l" minmax(160px, auto) / 
+            2fr 2fr
+    }
+
 
     /* business model canvas with 9 cells */
 

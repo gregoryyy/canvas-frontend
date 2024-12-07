@@ -1,0 +1,115 @@
+{
+    "settings": {
+        "canvasd": {
+            "mode": "off",
+            "host": "unlost.ventures",
+            "tls": "yes",
+            "port": "8443"
+        },
+        "localstorage": {
+            "mode": "manual",
+            "filemenu": "yes"
+        },
+        "layout": {
+            "precanvas": "no",
+            "canvasclass": "quick-canvas",
+            "postcanvas": "no",
+            "types": "yes"
+        }
+    },
+    "meta": {
+        "type": "quick Preseed Canvas",
+        "version": "0.1",
+        "date": "20240415",
+        "canvas": "quickpreseed",
+        "template": "quickpreseed_v01",
+        "description": "Experimental canvas to assess startups (quick entry)."
+    },
+    "scoring": [],
+    "canvas": [
+        {
+            "id": 1,
+            "title": "Problem",
+            "subtitle": "Why?",
+            "description": "What is the problem addressed? Why is this important for customers? Do we align with the purpose?",
+            "score": "no"
+        },
+        {
+            "id": 2,
+            "title": "Solution",
+            "subtitle": "What?",
+            "description": "What is the solution? Is it new and can it move the needle? Why is now good timing?",
+            "score": "no"
+        },
+        {
+            "id": 3,
+            "title": "Product Progress",
+            "subtitle": "How much proven?",
+            "description": "Implementation status? What validation of Product Market Fit exists? Ability to execute?",
+            "score": "no"
+        },
+        {
+            "id": 4,
+            "title": "Value Propositions",
+            "subtitle": "Why buy? Unique?",
+            "description": "What are the main benefits for customers? USPs and differentiators? Optional: High-level concept: 'The A for B.'",
+            "score": "no"
+        },
+        {
+            "id": 5,
+            "title": "Go-to-Market",
+            "subtitle": "How sold?",
+            "description": "How are customers reached and retained? Partners and multipliers? Network effects?",
+            "score": "no"
+        },
+        {
+            "id": 6,
+            "title": "Sales Traction",
+            "subtitle": "How much sold?",
+            "description": "Sales pipeline and conversion? Reasons for customers to (not) buy? Current and target unit economics?",
+            "score": "no"
+        },
+        {
+            "id": 7,
+            "title": "Customers",
+            "subtitle": "For whom?",
+            "description": "Target customer segments and user/buyer personas? How well do we know their needs?",
+            "score": "no"
+        },
+        {
+            "id": 8,
+            "title": "Team",
+            "subtitle": "Who?",
+            "description": "Skills and proven experience in the founder team? Ability to pivot if needed? Openness to coaching?",
+            "score": "no"
+        },
+        {
+            "id": 9,
+            "title": "Market",
+            "subtitle": "How big?",
+            "description": "What is the defiition, size and growth of the market (TAM, SAM, SOM)?",
+            "score": "no"
+        },
+        {
+            "id": 10,
+            "title": "Competition",
+            "subtitle": "Who else?",
+            "description": "Who sells in the market today?",
+            "score": "no"
+        },
+        {
+            "id": 11,
+            "title": "Defensibility",
+            "subtitle": "How to stay ahead?",
+            "description": "Optional: Is there a moat and how can market advantage be defended? What unfair advantage exists?",
+            "score": "no"
+        },
+        {
+            "id": 12,
+            "title": "Financing and Legal",
+            "subtitle": "Who supports?",
+            "description": "Who supports financially?",
+            "score": "no"
+        }
+    ]
+}

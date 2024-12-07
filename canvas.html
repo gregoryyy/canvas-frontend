@@ -45,8 +45,9 @@
         </header>
         <!-- main content -->
         <div class="title">
-            <h1>Preseed canvas</h1>
-            Use Preseed Canvas to analyze startup business models and progress.
+            <h1>Interactive Canvas</h1>
+            The interactive Unlost Canvas app supports various canvas and SWOT analyses. Use the Preseed Canvas 
+            (default) to analyze startups and their progress.
             <a href="javascript:void(0)" onclick="toggleElements('.intro')">More...</a></p>
             <p class="intro"><strong>Goals:</strong> Reduce analysis time and increase investment decision confidence
                 &mdash; first by structuring manual analysis, later by automating the process.</p>
@@ -104,13 +105,20 @@
             </p>
             <p class="hint2">Feedback: <a
                     href="https://www.linkedin.com/posts/gregorheinrich_preseedcanvas-businessmodelcanvas-leancanvas-activity-7185987572676927488-LVHq"
-                    target="_blank">Linkedin</a>  
-                    (comment post or DM <a href="https://linkedin.com/in/gregorheinrich" target="_blank">me</a>).</p>
+                    target="_blank">Linkedin</a>
+                (comment post or DM <a href="https://linkedin.com/in/gregorheinrich" target="_blank">me</a>).</p>
         </div>
     </div>
     <footer>
         &copy; 2024 Unlost GmbH. All rights reserved. <a href="../contact.html">Imprint.</a>
     </footer>
+    <script>
+        function toggleElements(sel) {
+            var elems = document.querySelectorAll(sel);
+            const shown = window.getComputedStyle(elems[0]).getPropertyValue('display') === 'block';
+            elems.forEach(elem => elem.style.display = shown ? 'none' : 'block');
+        }
+    </script>
     <script src="../script.js"></script>
     <script src="../aurora.js"></script>
     <script type="module" src="./main.js"></script>
