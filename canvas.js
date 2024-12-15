@@ -1,4 +1,4 @@
-/* copyright 2024 Unlost GmbH. All rights reserved. */
+/* copyright 2025 Unlost GmbH. All rights reserved. */
 
 export { Canvas, Cell, Card, PreCanvas, PostCanvas };
 
