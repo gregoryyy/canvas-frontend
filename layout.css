@@ -244,8 +244,8 @@
     .quick-canvas {
         min-height: 500px;
         grid:
-            "g c" minmax(160px, auto)
-            "a b" minmax(160px, auto)
+            "a g" minmax(160px, auto)
+            "b c" minmax(160px, auto)
             "d k" minmax(160px, auto)
             "i e" minmax(160px, auto)
             "j f" minmax(160px, auto)
