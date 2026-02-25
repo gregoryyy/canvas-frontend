@@ -372,15 +372,77 @@ class PostCanvas {
         return score;
     }
 
-    computeScore() {
-        const score = index => parseFloat(document.getElementById(`score${index}`)?.value) || 0;
+    // evaluate a scoring formula string safely using only score() and arithmetic
+    static evaluateFormula(formula, context) {
+        // tokenize: numbers, identifiers, operators, parentheses
+        const tokens = formula.match(/(\d+(\.\d+)?)|([a-zA-Z_]\w*)|([+\-*/()])/g);
+        if (!tokens) return 0;
 
-        // TODO: load dynamically from preseed.json: scoring.total and /scoring.scores.*
-        let Product = score(1) * 1 / 3 + score(2) * 1 / 3 + score(7) * 1 / 3;
-        let Market = score(4) * 1 / 3 + score(9) * 1 / 3 + score(5) * 1 / 3;
-        let Progress = score(3) * 1 / 2 + score(6) * 1 / 2;
-        let Team = score(8) * 1;
-        let total = Product * 3 / 10 + Market * 1 / 5 + Progress * 1 / 5 + Team * 3 / 10;
+        let pos = 0;
+        const peek = () => tokens[pos];
+        const consume = () => tokens[pos++];
+
+        // recursive descent parser: expr = term (('+' | '-') term)*
+        function parseExpr() {
+            let result = parseTerm();
+            while (peek() === '+' || peek() === '-') {
+                const op = consume();
+                const right = parseTerm();
+                result = op === '+' ? result + right : result - right;
+            }
+            return result;
+        }
+
+        function parseTerm() {
+            let result = parseFactor();
+            while (peek() === '*' || peek() === '/') {
+                const op = consume();
+                const right = parseFactor();
+                result = op === '*' ? result * right : result / right;
+            }
+            return result;
+        }
+
+        function parseFactor() {
+            const token = peek();
+            if (token === '(') {
+                consume(); // '('
+                const result = parseExpr();
+                consume(); // ')'
+                return result;
+            }
+            if (/^\d/.test(token)) {
+                return parseFloat(consume());
+            }
+            // identifier: either a function call score(n) or a variable name
+            const name = consume();
+            if (peek() === '(') {
+                consume(); // '('
+                const arg = parseExpr();
+                consume(); // ')'
+                if (name === 'score') {
+                    return parseFloat(document.getElementById(`score${arg}`)?.value) || 0;
+                }
+                return 0;
+            }
+            // variable lookup from context
+            return context[name] ?? 0;
+        }
+
+        return parseExpr();
+    }
+
+    computeScore() {
+        if (!this.scores || !this.total) return 0;
+
+        // compute named sub-scores from config
+        const context = {};
+        for (const [name, formula] of Object.entries(this.scores)) {
+            context[name] = PostCanvas.evaluateFormula(formula, context);
+        }
+
+        // compute total from config
+        const total = PostCanvas.evaluateFormula(this.total, context);
         this.scoreSpan.textContent = total.toFixed(1);
 
         return total;

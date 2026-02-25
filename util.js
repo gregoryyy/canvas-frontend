@@ -3,7 +3,7 @@
 // utility functions
 export {
     // DOM and UI
-    createElement, toggleElements, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, 
+    createElement, toggleElements, addLongPressListener, makeEditable, makeDraggable, makeDroppable, overlayMenu, confirmStep, showToast,
     // string and html
     sanitize, sanitizeJSON, convertBR, convertNL, decodeHtml, encodeHtml, trimPluralS,
     // data I/O and debug
@@ -38,11 +38,23 @@ function makeEditable(elem, cbFinishEdit) {
     elem.setAttribute('contenteditable', 'true');
     elem.addEventListener('blur', cbFinishEdit);
 
-    // Handle Enter key for line breaks
+    // Handle Enter key for line breaks using Selection/Range API
     elem.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            document.execCommand('insertHTML', false, '<br><br>');
             e.preventDefault();
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            const br1 = document.createElement('br');
+            const br2 = document.createElement('br');
+            range.insertNode(br2);
+            range.insertNode(br1);
+            // move cursor after the second br
+            range.setStartAfter(br2);
+            range.setEndAfter(br2);
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
     });
 }
@@ -151,9 +163,12 @@ function makeDroppable(elem, cbFinish = undefined) {
 // execute callback on item selected from list ([key] or [key --> val]) shown in overlay menu
 function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
+    const closeController = new AbortController();
+
     const closeMenu = () => {
         menu.remove();
         elem.classList.remove('menuopen');
+        closeController.abort();
     };
 
     const normalizeItem = (item) => typeof item === 'object' ? [item[0], item[1]] : [item, item];
@@ -172,8 +187,8 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
 
     list.forEach((item, index) => {
         const item2 = normalizeItem(item);
-        const elem = createElement('div', { class: 'overlay-menu-item' }, item2[0]);
-        elem.addEventListener('click', () => {
+        const menuItem = createElement('div', { class: 'overlay-menu-item' }, item2[0]);
+        menuItem.addEventListener('click', () => {
             cbLoad(item2[1]);
             closeMenu();
         });
@@ -186,23 +201,24 @@ function overlayMenu(elem, title, list, cbLoad, cbDel = undefined) {
                     delBtn.parentElement.remove();
                 });
             });
-            elem.appendChild(delBtn);
+            menuItem.appendChild(delBtn);
         }
-        menu.appendChild(elem);
+        menu.appendChild(menuItem);
     });
 
     document.body.appendChild(menu);
     const rect = elem.getBoundingClientRect();
     menu.style.left = `${rect.left}px`;
-    menu.style.top = `${rect.top - menu.offsetHeight}px`;
-    menu.style.top = `${window.scrollY + rect.top - menu.offsetHeight}px`;
+    // position above button, clamped to viewport top
+    const menuTop = window.scrollY + rect.top - menu.offsetHeight;
+    menu.style.top = `${Math.max(window.scrollY, menuTop)}px`;
     menu.style.display = 'block';
 
-    // close when clicked outside
+    // close when clicked outside (auto-cleaned up via AbortController)
     document.addEventListener('click', (event) => {
         if (!elem.contains(event.target) && !menu.contains(event.target))
             closeMenu();
-    });
+    }, { signal: closeController.signal });
 }
 
 // user needs to press twice within timeframe to execute callback
@@ -230,6 +246,19 @@ function confirmStep(elem, callback, timeout = 3000) {
         elem.style.color = '';
         elem.confirming = false;
     }
+}
+
+// brief notification toast
+function showToast(message, isError = false, duration = 2500) {
+    const toast = createElement('div', { class: 'toast' + (isError ? ' toast-error' : '') }, message);
+    document.body.appendChild(toast);
+    // trigger reflow to enable transition
+    toast.offsetHeight;
+    toast.classList.add('toast-visible');
+    setTimeout(() => {
+        toast.classList.remove('toast-visible');
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, duration);
 }
 
 /* static non-UI functions */
@@ -266,18 +295,18 @@ function uploadLs(event, key, replace = false) {
         reader.onload = function (event) {
             try {
                 const data = sanitizeJSON(JSON.parse(event.target.result));
-                const storedCanvases = localStorage.getItem(defaultLsKey);
+                const storedCanvases = localStorage.getItem(key);
                 if (!storedCanvases || replace) {
                     localStorage.setItem(key, JSON.stringify(data));
                 } else {
                     const canvases = sanitizeJSON(JSON.parse(storedCanvases));
-                    Object.entries(data).forEach(([key, value]) => {
-                        // TODO: check input
-                        canvases[key] = value;
+                    Object.entries(data).forEach(([entryKey, value]) => {
+                        canvases[entryKey] = value;
                     });
-                    localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
+                    localStorage.setItem(key, JSON.stringify(canvases));
                 }
-            } catch (e) { console.log('Failed to upload data'); }
+                showToast('Import successful');
+            } catch (e) { console.error('Failed to upload data:', e); showToast('Import failed', true); }
         };
         reader.readAsText(file);
     } else console.log('No file selected!');
@@ -289,7 +318,7 @@ function convertNL(text) { return text.replace(/\n/g, '<br>'); }
 
 function decodeHtml(html) { return new DOMParser().parseFromString(html, "text/html").documentElement.textContent; }
 
-function encodeHtml(text) { return document.createElement('div').appendChild(document.createTextNode(text)).outerHTML; }
+function encodeHtml(text) { const div = document.createElement('div'); div.appendChild(document.createTextNode(text)); return div.innerHTML; }
 
 function sanitize(text) { return DOMPurify.sanitize(text, { ALLOWED_TAGS: ['br', 'p', 'i', 'b', 'a'] }); }
 
@@ -331,7 +360,18 @@ function convertDivToSvg(divId, filename) {
         .catch((error) => console.error('Could not convert the div to SVG:', error));
 }
 
+// set to true to enable debug logging (or pass ?debug=true in URL)
+let _debugEnabled = undefined;
+
+function isDebugEnabled() {
+    if (_debugEnabled === undefined) {
+        _debugEnabled = new URLSearchParams(window.location.search).get('debug') === 'true';
+    }
+    return _debugEnabled;
+}
+
 function lg(message, verbose = false) {
+    if (!isDebugEnabled()) return;
     const stack = new Error().stack;
     const stackLines = stack.split("\n");
     const callerLine = stackLines[2];

@@ -27,7 +27,7 @@ describe("Card manipulations", function () {
         // assert changes in the state
         // TODO: cell.check()
         const cardState = app.canvas.cells[cellIndex].cards[cardPosition];
-        expect(cardState.text).toMatch(new RegExp('.+ Test$'));
+        expect(cardState.content).toMatch(new RegExp('.+ Test$'));
     });
 
     it("removes a card", async function () {
@@ -93,7 +93,7 @@ describe("Card manipulations", function () {
         expect(elem.classList.contains('query')).toBeTruthy();
         expect(elem.textContent).toEqual(textPre);
         // assert changes in the state
-        expect(stateCell.cards[cardPosition].text).toEqual(textPre);
+        expect(stateCell.cards[cardPosition].content).toEqual(textPre);
         expect(stateCell.cards[cardPosition].type).toEqual('query');
         done();
     });

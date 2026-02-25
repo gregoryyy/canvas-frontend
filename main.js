@@ -4,8 +4,8 @@
 export { app, ctl, conf };
 
 import { Canvas, Cell, Card, PreCanvas, PostCanvas } from './canvas.js';
-import { createElement, overlayMenu, confirmStep, convertDivToSvg, 
-    downloadLs, uploadLs, loadJson, sanitizeJSON, lg } from './util.js';
+import { createElement, overlayMenu, confirmStep, convertDivToSvg,
+    downloadLs, uploadLs, loadJson, sanitizeJSON, showToast, lg } from './util.js';
 
 let app = undefined;
 let ctl = undefined;
@@ -34,6 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             console.error('Error during the canvas setup:', error);
         });
+});
+
+// auto-save to localStorage before page unload
+window.addEventListener('beforeunload', () => {
+    if (app?.meta?.title) {
+        try { app.saveToLs(app.meta.title, true); } catch (e) { /* silent */ }
+    }
+});
+
+// keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl+S / Cmd+S: save to localStorage
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (app) {
+            app.saveToLs();
+        }
+    }
 });
 
 class Settings {
@@ -86,6 +104,7 @@ class Application {
         else this.analysis.content ??= "Analysis...";
 
         this.analysis.total = structure.scoring[0]?.total;
+        this.analysis.scores = structure.scoring[0]?.scores;
         this.canvas.cells = structure.canvas.map((structData, index) => new Cell(index, structData,
             this.canvas.cells[index] ?? []));
         this.render();
@@ -115,11 +134,12 @@ class Application {
 
     clear() { this.renderables.forEach(renderable => renderable.clear()); }
 
-    saveToLs(title = this.meta.title) {
+    saveToLs(title = this.meta.title, silent = false) {
         this.check();
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
         canvases[this.meta.title] = this.toJSON();
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
+        if (!silent) showToast('Saved');
     }
 
     loadFromLs(title) {
@@ -147,13 +167,13 @@ class Application {
         const storedCanvases = localStorage.getItem(defaultLsKey);
         if (!storedCanvases) return;
         const canvases = JSON.parse(storedCanvases);
-        canvases[title] = undefined;
+        delete canvases[title];
         localStorage.setItem(defaultLsKey, JSON.stringify(canvases));
     }
 
     getCanvasNames() {
         const canvases = JSON.parse(localStorage.getItem(defaultLsKey)) || {};
-        return Object.keys(canvases);
+        return Object.keys(canvases).filter(key => canvases[key] != null);
     }
 
     changeType(type) {
@@ -210,8 +230,9 @@ class Controls {
         if (conf.localstorage.filemenu === 'yes') {
             buttons.push(['lsdown', 'Export LS', confirmDownloadLs]);
             buttons.push(['lsup', 'Import LS', uploadLsFile]);
-            ctlElem.appendChild(createElement('input',
-                { type: 'file', id: 'lsFileInput', onchange: `uploadLs(event, '${defaultLsKey}')`, style: 'display: none;' }));
+            const lsFileInput = createElement('input', { type: 'file', id: 'lsFileInput', style: 'display: none;' });
+            lsFileInput.addEventListener('change', (event) => uploadLs(event, defaultLsKey));
+            ctlElem.appendChild(lsFileInput);
         }
 
         buttons.forEach(button => {
@@ -228,15 +249,15 @@ class Controls {
 
         function loadMenu(event) { overlayMenu(event.target, 'Load canvas:', app.getCanvasNames(), app.loadFromLs.bind(app), app.delFromLs.bind(app)); }
 
-        function confirmCanvasSvg(event) { confirmStep(event.target, convertCanvasToSvg); }
+        function confirmCanvasSvg(event) { confirmStep(event.target, () => { convertCanvasToSvg(); showToast('SVG exported'); }); }
 
         function confirmCanvasSave(event) { confirmStep(event.target, app.saveToLs.bind(app)); }
 
-        function confirmCanvasClear(event) { confirmStep(event.target, app.clear.bind(app)); }
+        function confirmCanvasClear(event) { confirmStep(event.target, () => { app.clear(); showToast('Canvas cleared'); }); }
 
-        function confirmLsClear(event) { confirmStep(event.target, Application.clearLocalStorage); }
+        function confirmLsClear(event) { confirmStep(event.target, () => { Application.clearLocalStorage(); showToast('Local storage cleared'); }); }
 
-        function confirmDownloadLs(event) { confirmStep(event.target, app.downloadLs.bind(app)); }
+        function confirmDownloadLs(event) { confirmStep(event.target, () => { app.downloadLs(); showToast('Exported'); }); }
 
         function uploadLsFile(event) { document.getElementById('lsFileInput').click(); }
     }

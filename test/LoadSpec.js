@@ -16,7 +16,7 @@ describe("Application loading and saving", function () {
     sampleCard = () => {
         expect(app.meta.title).toEqual("Example Startup");
         const sample = app.canvas.cells[4];
-        expect(sample.cards[1].text).toEqual("GTM Strategy 2");
+        expect(sample.cards[1].content).toEqual("GTM Strategy 2");
         const cards = sample.cardElems();
         expect(cards.length).toEqual(2);
     }
