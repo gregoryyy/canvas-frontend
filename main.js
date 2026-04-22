@@ -207,11 +207,6 @@ class Controls {
         const ctlElem = document.getElementById('controls');
         const convertCanvasToSvg = () => convertDivToSvg('content', 'canvas.svg');
 
-        const useServer = conf.canvasd.mode !== 'off';
-        const host = conf.canvasd.host;
-        const port = conf.canvasd.port;
-        const sec = conf.canvasd.tls === 'yes' ? "s" : "";
-
         let buttons = [
             ['cvclear', 'Clear Canvas', confirmCanvasClear],
             ['chtype', 'Canvas Type', typeMenu.bind(app)],
@@ -219,13 +214,6 @@ class Controls {
             ['lsload', 'Load from LS', loadMenu.bind(app)],
             ['lssave', 'Save to LS', confirmCanvasSave],
             ['lsclear', 'Clear LS', confirmLsClear]];
-
-        if (useServer) {
-            ctlElem.appendChild(createElement('input', { type: 'file', id: 'fileInput', style: 'display: none;' }));
-            const fileUploader = new FileUploader(`http${sec}://${host}:${port}/upload/`, `ws${sec}://${host}:${port}/ws/`);
-            fileUploader.initFileInput('#fileInput');
-            buttons.push(['upload', 'Upload File', () => document.getElementById('fileInput').click()]);
-        };
 
         if (conf.localstorage.filemenu === 'yes') {
             buttons.push(['lsdown', 'Export LS', confirmDownloadLs]);

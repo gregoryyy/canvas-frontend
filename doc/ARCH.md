@@ -139,16 +139,15 @@ The canvas source lives in its own repository (split in phase 1 M2). The parent 
 ### Integration flow
 
 ```
-┌── canvas repo (source) ────────┐          ┌── unlost.ventures repo ────────┐          ┌── prod ─────────────┐
-│  src/, public/, index.html     │          │  canvas/  ← tracked checked-in │          │                     │
-│  vite.config.ts, ...           │          │           │  snapshot of dist/ │          │                     │
-│                                │          │           │                    │          │                     │
-│  $ npm run build               │          │  (rest of site content)        │          │                     │
-│        │                       │          │                                │          │  unlost.ventures/   │
-│        ▼                       │  copy    │                                │  deploy  │     canvas/*        │
-│  dist/ ────────────────────────┼─────────►│                                │─────────►│                     │
-│        (via scripts/release.sh)│          │                                │          │                     │
-└────────────────────────────────┘          └────────────────────────────────┘          └─────────────────────┘
+canvas repo ── npm run build ──► dist/
+                                   │
+                                   │ scripts/release.sh (copy)
+                                   ▼
+                 unlost.ventures/canvas/  ◄── vendored dist snapshot
+                                   │
+                                   │ site deploy
+                                   ▼
+                                  prod
 ```
 
 ### Rules

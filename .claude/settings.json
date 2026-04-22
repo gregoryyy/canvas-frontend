@@ -6,7 +6,18 @@
       "Bash(npm install *)",
       "Bash(npm uninstall *)",
       "Bash(npx vite *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(node -e \"console.log\\(require.resolve\\('globals'\\)\\)\")",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(chmod +x scripts/release.sh)",
+      "Bash(scripts/release.sh --help)",
+      "Bash(scripts/release.sh)",
+      "Bash(scripts/release.sh /nonexistent/path)",
+      "Bash(scripts/release.sh --bogus)",
+      "Bash(echo \"---eslint exit $?---\")",
+      "Bash(node --check main.js)",
+      "Bash(bash -n scripts/release.sh)"
     ]
   }
 }
