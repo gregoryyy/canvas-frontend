@@ -71,6 +71,40 @@ Gaps: none. Ready for M4.
 
 ---
 
+### M4 — Port util.js → src/util/*.ts — ✅ done
+
+Landed — nine typed modules, one re-export shim:
+- [src/util/dom.ts](../src/util/dom.ts) — `createElement`, `toggleElements`.
+- [src/util/sanitize.ts](../src/util/sanitize.ts) — `sanitize`, `sanitizeJSON`, `convertBR`, `convertNL`, `decodeHtml`, `encodeHtml`, `trimPluralS`.
+- [src/util/log.ts](../src/util/log.ts) — `lg` + module-level `_debugEnabled` / `isDebugEnabled`.
+- [src/util/longpress.ts](../src/util/longpress.ts) — `addLongPressListener`, `generateLongPressEvents` (500 ms default, 10 px move-cancel threshold preserved).
+- [src/util/editable.ts](../src/util/editable.ts) — `makeEditable` (Enter inserts two `<br>` via Selection/Range, same as original).
+- [src/util/dragdrop.ts](../src/util/dragdrop.ts) — `makeDraggable`, `makeDroppable`; module-level `highlightClass` / `dragClass` constants; imports `generateLongPressEvents` from longpress.ts.
+- [src/util/overlay.ts](../src/util/overlay.ts) — `overlayMenu`, `confirmStep`, `showToast`; imports `createElement` from dom.ts.
+- [src/util/svg.ts](../src/util/svg.ts) — `convertDivToSvg`; imports `htmlToImage` from the npm package.
+- [src/util/io.ts](../src/util/io.ts) — `loadJson`, `downloadLs`, `uploadLs`; imports `sanitizeJSON` (sanitize.ts) and `showToast` (overlay.ts).
+- [util.js](../util.js) — slimmed from 388 lines to ~22: re-exports every name from the nine TS modules so [main.js](../main.js) and [canvas.js](../canvas.js) keep their `import … from './util.js'` lines unchanged until M5/M6.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `node --check util.js` clean.
+- `npm run build` succeeds — 30 modules transformed, single 55.78 kB JS chunk (gzipped 19.72 kB) covering the full graph (main.js → canvas.js / util.js shim → TS modules → dompurify / html-to-image).
+
+Deviations from the plan (intentional, 1:1 behavior preserved):
+- **Shim [util.js](../util.js) instead of deleting it.** The plan's layout has `util.js` gone once ports land, but [main.js](../main.js) and [canvas.js](../canvas.js) still run as `.js` files and import from `./util.js` by literal path. Replacing the implementation with a thin re-export preserves their import lines untouched — removes a two-file refactor that doesn't belong in M4. Shim deletes in M6 when [main.js](../main.js) ports to TS.
+- **Import paths use explicit `.ts` extension from the shim** (`from './src/util/dom.ts'`). Vite resolves this natively; it makes the fan-out self-documenting and survives tools that don't auto-resolve extensions.
+
+Insights:
+- **Non-null assertions everywhere the original JS assumed non-null.** `tsconfig.strict` + `noUncheckedIndexedAccess` flag dozens of "this could be undefined" sites that the original JS implicitly trusted (`stackLines[2]`, `touches[0]`, `elem.parentNode`, `dataUrl.split(',')[1]`). Used `!` rather than adding fallbacks — matches original runtime behavior 1:1, including its edge-case failures. Adding defensive `?? ''` fallbacks would silently change behavior.
+- **`confirmStep`'s monkey-patched element state** (`elem.originalText`, `elem.confirming`, `elem.confirmTimeout`) is typed via a `ConfirmableElement extends HTMLElement` interface and a cast at function entry. Clean and keeps the original "patch state directly onto the DOM node" pattern — worth revising in phase 2 but out of scope here.
+- **Zero-width space in `convertBR` regex.** Kept; had to be written as `​` in source (the literal character triggers `no-irregular-whitespace`). Functionally identical regex.
+- **ESLint flat-config `ignores` list entry for `util.js` still applies** — the shim is brief enough that linting it would add value, but its import specifiers carry explicit `.ts` extensions which the JS parser dislikes if treated as resolvable. Easier to keep it ignored until it's deleted in M6.
+
+Gaps: none. Ready for M5.
+
+---
+
 ## Up next
 
-M4 — port [util.js](../util.js) → `src/util/*.ts`. Consider completing M2 close-out first so the build is actually releasable before stacking more ports on top.
+M5 — port [canvas.js](../canvas.js) → `src/canvas/*.ts` (one file per class: `Canvas`, `Cell`, `Card`, `PreCanvas`, `PostCanvas`) plus `src/scoring/formula.ts` for `evaluateFormula` with its own Vitest spec. The type definitions in [src/types/canvas.ts](../src/types/canvas.ts) start getting consumed.

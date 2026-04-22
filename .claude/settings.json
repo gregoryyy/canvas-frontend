@@ -17,7 +17,11 @@
       "Bash(scripts/release.sh --bogus)",
       "Bash(echo \"---eslint exit $?---\")",
       "Bash(node --check main.js)",
-      "Bash(bash -n scripts/release.sh)"
+      "Bash(bash -n scripts/release.sh)",
+      "Bash(echo \"---tsc exit $?---\")",
+      "Bash(node --check util.js)",
+      "Bash(echo \"exit $?\")",
+      "Bash(npm run *)"
     ]
   }
 }
