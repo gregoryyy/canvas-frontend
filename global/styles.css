@@ -1,0 +1,307 @@
+/* copyright 2025 Unlost GmbH. All rights reserved. */
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/global/fonts/Montserrat/Montserrat-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/global/fonts/Montserrat/Montserrat-Italic-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+body {
+    font-family: "Montserrat", Arial, sans-serif;
+    color: #222;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+/* main content div */
+div.fg {
+    position: relative;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 800px;
+}
+
+div.fg > div {
+    position: relative;
+    /* margin: 0 auto; */
+}
+
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    /* Bold for headings */
+    /* text-transform: uppercase; */
+    color: #00b;
+    margin-top: 0.5em;
+    /* Adjust top margin for narrower distance */
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 1.4rem;
+    font-weight: 900;
+}
+
+h2 {
+    font-size: 1.2rem;
+}
+
+h3 {
+    font-size: 1.1rem;
+}
+
+b {
+    font-weight: 500;
+    color: #00b;
+}
+
+strong {
+    /* text-transform: uppercase; */
+    font-weight: 600;
+}
+
+a {
+    color: #00b;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+p,
+ul,
+ol {
+    font-weight: 400;
+    /* Regular for paragraphs */
+    margin-top: 0.5em;
+    /* Adjust top margin for narrower distance */
+    margin-bottom: 0.5em;
+}
+
+li {
+    margin-bottom: 6px;
+}
+
+.block {
+    border-top: 2px solid #ddd;
+    /* Horizontal rule at the top */
+    margin-bottom: 30px;
+}
+
+.square {
+    width: 20px;
+    height: 20px;
+    background-color: #ddd;
+    margin-right: 30px;
+}
+
+.item {
+    font-weight: 600;
+    /* text-transform: uppercase; */
+}
+
+.name {
+    font-weight: 600;
+}
+
+/* Media Query for Mobile Devices */
+@media (max-width: 800px) {
+    body {
+        max-width: 100%;
+        /* Allows the body to adjust to the width of the screen */
+    }
+}
+
+footer {
+    margin-top: 30px;
+    text-align: center;
+    padding: 10px;
+    color: #222;
+    font-size: 0.8em;
+    font-weight: 400;
+    border-top: 2px solid #ddd;
+}
+
+footer p {
+    margin: 0;
+}
+
+header {
+    overflow: hidden;
+    text-align: center;
+}
+
+.title {
+    margin-bottom: 30px;
+}
+
+/* desktop mode */
+
+nav {
+    padding: 0;
+}
+
+nav ul {
+    padding: 0;
+    list-style-type: none;
+    display: flex;
+    justify-content: flex-start;
+}
+
+nav ul li {
+    margin-top: 2pt;
+    padding: 5px;
+}
+
+nav ul li:first-child::before {
+    content: '';
+    display: inline-block;
+    height: 25px;
+    margin-left: -5px;
+    border-left: 2px solid #888;
+    margin-right: 20px;
+    vertical-align: middle;
+}
+
+.menu-link {
+    color: #222;
+    padding: 0px 5px;
+    border: none;
+    font-size: 1.1em;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.menu-link:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+#menu button:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.titleimage {
+    text-align: center;
+}
+
+.hhlogo {
+    display: none;
+}
+
+.mmlogo {
+    vertical-align: top;
+    display: flex;
+    float: right;
+    height: 40px;
+    width: 70px;
+}
+
+/* keep menu and logo aligned */
+.hhnav,
+header {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* mobile menu */
+@media screen and (max-width: 768px) {
+
+    nav ul {
+        flex-direction: column;
+    }
+    
+    nav ul li:first-child::before, nav ul li::before {
+        content: "\25b7";
+        color: #aaa;
+        padding-right: 5px;
+        padding-left: 0;
+        border-left: 0;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+    .hhlogo {
+        display: flex;
+        float: right;;
+        height: 40px;
+        width: 70px;
+    }
+
+    .mmlogo {
+        display: none;
+    }
+
+    .hamburger {
+        margin-top: 10px;
+        width: 30px;
+        height: 30px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .hamburger span {
+        width: 100%;
+        height: 2px;
+        background-color: #000;
+        display: block;
+        position: relative;
+    }
+
+    .hamburger span::before,
+    .hamburger span::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background-color: #000;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .hamburger span::before {
+        transform: translateY(-8px);
+    }
+
+    .hamburger span::after {
+        transform: translateY(8px);
+    }
+
+    .hamburger.active span {
+        background-color: transparent;
+    }
+
+    .hamburger.active span::before {
+        transform: rotate(45deg);
+    }
+
+    .hamburger.active span::after {
+        transform: rotate(-45deg);
+    }
+
+    .menu {
+        display: none;
+    }
+
+    .menu.active {
+        display: block;
+        text-align: left;
+        margin-left: 50px;
+    }
+
+}
+

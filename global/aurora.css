@@ -1,0 +1,60 @@
+/* copyright 2025 Unlost GmbH. All rights reserved. */
+
+.bg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Adjust height as needed */
+    height: 100vh;
+    /* Ensures background */
+    z-index: -1;
+    margin: -10px;
+    padding: 0;
+    position: absolute;
+}
+
+.bg .auror_bg {
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    max-width: 2400px;
+    max-height: 2400px;
+    animation-name: northern;
+    animation-duration: 10s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    background: linear-gradient(rgba(255, 255, 255, 0.2) 10%, #f0f0f0 100%);
+    background: white;
+}
+
+.bg .aur_cont {
+    /* margin: -65px auto 0; */
+    margin: -75px auto 0;
+    display: table;
+    height: auto;
+}
+
+.bg .aur_cont .aur {
+    transform: skew(-0.06turn, 18deg);
+    display: block;
+    width: 0;
+    min-height: 10vw;
+    float: left;
+    /* width of each element */
+    margin-left: 3.5vw;
+    border-radius: 5% 52% 30px 20px;
+    opacity: 0.5;
+}
+
+@keyframes topup {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-60px);
+    }
+}
