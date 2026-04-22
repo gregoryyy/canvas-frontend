@@ -10,8 +10,8 @@ export {
     convertDivToSvg, downloadLs, uploadLs, loadJson, lg
 };
 
-import DOMPurify from './lib/purify.es.js';
-import * as htmlToImage from './lib/html-to-image.es.min.js';
+import DOMPurify from 'dompurify';
+import * as htmlToImage from 'html-to-image';
 
 /* static UI functions */
 

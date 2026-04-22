@@ -31,8 +31,8 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
 │                                                   └──────────────────┘    │
 └──────────────────────────────────┬────────────────────────────────────────┘
                                    │  phase 3 only
-                    POST /api/chat │  { canvas, history, message }
-                    POST /api/upload│ (multipart)
+                POST /api/chat     │  { canvas, history, message }
+                POST /api/upload   │ (multipart)
                                    ▼
 ┌── Backend (phase 3, optional) ──────────────────┐      ┌── LLM provider ──┐
 │  Fastify (Node, TypeScript)                     │      │                  │
@@ -129,8 +129,57 @@ canvas/
 ### Build & serving
 
 - `npm run dev` — Vite dev server on a local port.
-- `npm run build` — emits `dist/` with fingerprinted assets under a configurable base path (`/canvas/` to match current deploy).
-- Parent-site shared assets (`../styles.css`, `../aurora.js`, `../unlost.svg`) are handled by (a) copying referenced assets during build, or (b) keeping `index.html` in the parent site and pointing it at the built `dist/` bundle. Decision deferred to phase 1; the pragmatic default is (a).
+- `npm run build` — emits `dist/` with fingerprinted assets under `base: '/canvas/'` so built URLs match the parent-site deploy path.
+- The canvas is a standalone repo; `index.html` is a plain page with only the canvas UI, controls, and how-to hints — no parent-site chrome (nav, header, footer, aurora background). See [Deployment](#deployment) for how the built output reaches `unlost.ventures/canvas/`.
+
+## Deployment
+
+The canvas source lives in its own repository (split in phase 1 M2). The parent `unlost.ventures` site consumes the **built output** — never the source — by copying `dist/` into its `canvas/` directory on each canvas release. The parent site is then deployed normally.
+
+### Integration flow
+
+```
+┌── canvas repo (source) ────────┐          ┌── unlost.ventures repo ────────┐          ┌── prod ─────────────┐
+│  src/, public/, index.html     │          │  canvas/  ← tracked checked-in │          │                     │
+│  vite.config.ts, ...           │          │           │  snapshot of dist/ │          │                     │
+│                                │          │           │                    │          │                     │
+│  $ npm run build               │          │  (rest of site content)        │          │                     │
+│        │                       │          │                                │          │  unlost.ventures/   │
+│        ▼                       │  copy    │                                │  deploy  │     canvas/*        │
+│  dist/ ────────────────────────┼─────────►│                                │─────────►│                     │
+│        (via scripts/release.sh)│          │                                │          │                     │
+└────────────────────────────────┘          └────────────────────────────────┘          └─────────────────────┘
+```
+
+### Rules
+
+- **Canvas repo is the source of truth.** The parent site repo must never contain canvas source code.
+- **The parent site's `canvas/` directory is tracked as vendored build output** — committed to the parent repo, not `.gitignore`d. This keeps the parent site repo self-contained for deploys and lets reviewers see what changed in a release.
+- **Vite `base` is pinned to `/canvas/`.** Asset URLs in the built `index.html` and chunks resolve correctly once copied into the parent site.
+- **No chrome in the built output.** The canvas `index.html` renders a bare page. The parent site frames it via its own URL path (`/canvas/`); users reach it from the main site's nav.
+- **Single-user, no server.** Deployment is static asset hosting — no build-time backend coupling. Phase 3's backend is deployed separately and its URL is configured client-side.
+
+### Release script
+
+`scripts/release.sh` in the canvas repo handles the copy:
+
+```bash
+./scripts/release.sh ../path/to/unlost.ventures
+```
+
+The script:
+1. Fails fast if the canvas repo has uncommitted changes or the target is not a git repo.
+2. Runs `npm run build`.
+3. Removes the target `canvas/` directory contents (after a confirmation, or a `--force` flag in CI).
+4. Copies `dist/*` into `canvas/`.
+5. Writes `canvas/VERSION` containing the canvas repo's current commit hash and timestamp, so the parent-site commit records which canvas build is live.
+6. Leaves the commit and push on the parent-site repo to the maintainer (release is a reviewable PR, not an automatic push).
+
+CI automation is out of scope for phase 1. A GitHub Action that triggers the release on tag push can be added later once the manual flow is stable.
+
+### Rollback
+
+A bad canvas release is reverted by reverting the parent-site commit that bumped `canvas/`. The previous canvas build is restored exactly because `dist/` contents are deterministic from the canvas repo commit recorded in `canvas/VERSION`.
 
 ## Backend (phase 3, optional)
 
@@ -205,6 +254,6 @@ Canvas state never leaves the browser except as context in chat requests. Upload
 
 ## Open questions
 
-- **Deploy strategy for the Vite build** under the existing static parent site. Resolved in phase 1.
 - **Patch preview UX.** Inline diff vs. side-by-side vs. "ghost cards." Resolved in phase 3.
 - **Upload file types.** PDF-only initially? Text extraction library choice (`pdf-parse`, `unpdf`, etc.).
+- **Release automation.** Manual `scripts/release.sh` invocation is the phase-1 default; a tag-triggered CI action that opens a PR against the parent site can be added later.

@@ -37,34 +37,41 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
    - Replace vendored `lib/purify.es.js` and `lib/html-to-image.es.min.js` with npm packages.
    - `npm run dev` serves the app; `npm run build` emits `dist/`.
 
-2. **Type definitions first**
+2. **Repo split & standalone layout**
+   - **Preserve history.** From the parent repo, run `git subtree split --prefix=canvas -b canvas-only` to produce a branch with only the `canvas/` directory's history. Create the new empty repo and push that branch as `main`. Verify `git log` in the new repo shows commits from late 2024 onward.
+   - **Drop parent-site coupling.** In the new repo, rename `canvas.html` → `index.html` (Vite picks it up as the default entry). Delete the pre-migration stub `index.html` (the "no access" page). Remove the parent-chrome wrappers from the HTML (`<header>`, `<nav>`, `<footer>`, `<div class="bg">`, `<div class="hhnav">`, `<div class="mmlogo">`, hamburger, aurora container) so the page contains only the canvas UI, controls, and how-to hints. Keep the same page title, cross-page menu links are removed.
+   - **Remove M1 workarounds.** Delete the `stripParentAssets` plugin from `vite.config.ts`. Remove `server.fs.allow: ['..']`. Remove `build.rollupOptions.input: 'canvas.html'` (defaults to `index.html` now).
+   - **Delete vendored and dead files.** `lib/` (no longer imported), `canvas_test.html` (M7 replaces it with Vitest), `network.js` (phase-3 rework, not carried forward as-is).
+   - **Integration wiring.** Add `scripts/release.sh` that runs `npm run build` and copies `dist/*` into a parent-site checkout's `canvas/` directory (argument: path to the parent-site repo). Document the flow in `README.md` and `doc/ARCH.md#deployment`.
+   - **First release dry-run.** Run `scripts/release.sh ../unlost.ventures`, confirm the parent site's `/canvas/` still serves the app correctly against the live chrome.
+
+3. **Type definitions first**
    - Create `src/types/canvas.ts`: `Meta`, `Cell`, `Card`, `Analysis`, `CanvasState`, `CardType`.
    - Create `src/types/config.ts`: `Settings`, `CanvasConfig`, `ScoringRule`, `CanvasTypeRef`.
    - Validate one model + one config loads against the types (compile check only).
 
-3. **Port `util.js` → `src/util/*.ts`**
+4. **Port `util.js` → `src/util/*.ts`**
    - Split by concern: `dom.ts`, `editable.ts`, `dragdrop.ts`, `longpress.ts`, `overlay.ts`, `sanitize.ts`, `io.ts`, `svg.ts`, `log.ts`.
    - No behavior change; add types for every signature.
 
-4. **Port `canvas.js` → `src/canvas/*.ts`**
+5. **Port `canvas.js` → `src/canvas/*.ts`**
    - One file per class: `Canvas.ts`, `Cell.ts`, `Card.ts`, `PreCanvas.ts`, `PostCanvas.ts`.
    - Replace `static` drag-tracking globals with a module-level `DragState` object (still mutable, but typed).
    - Port `PostCanvas.evaluateFormula` into `src/scoring/formula.ts` with its own test file.
 
-5. **Port `main.ts`**
+6. **Port `main.ts`**
    - Keep the `Application` / `Controls` / `Settings` classes.
    - Remove the circular `main ↔ canvas` import (pass `app`/`conf` through constructors or a small context module).
-   - Keep `network.ts` port as a stub; full rework happens in phase 3.
 
-6. **Tests**
+7. **Tests**
    - Port the three existing Jasmine specs (`LoadSpec`, `CardSpec`, `InteractSpec`) to Vitest with jsdom.
    - Add unit tests for `evaluateFormula` (table-driven).
    - `npm run test` runs green.
 
-7. **Deployment adjustment**
-   - Decide: copy shared parent-site assets into the Vite build, or have the parent site include the built bundle. Default: copy `../styles.css`, `../aurora.js`, `../aurora.css`, `../unlost.svg` into `public/shared/` at build time and rewrite references.
-   - `canvas.html` becomes `index.html` at the Vite root.
-   - Verify the built app behaves identically to the current one: load every config in `conf/`, drag cards, save/load LS, export SVG.
+8. **Release verification**
+   - Run `scripts/release.sh` end-to-end against the parent site repo.
+   - Walk the phase 1–2 equivalence checklist by hand against the deployed `/canvas/` URL: load every config in `conf/`, drag cards, save/load LS, export SVG, round-trip a pre-migration saved canvas.
+   - Update `README.md` and `doc/ARCH.md` with final build/run/release commands.
 
 ### Done when
 
@@ -78,6 +85,7 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 
 - The contenteditable + innerHTML round-trip (`convertBR`/`convertNL`, sanitize) is fragile; tests must cover it before porting.
 - Circular imports between `main.js` and `canvas.js` break cleanly under TS strict; plan the dependency direction up front.
+- **Repo split drift:** once the canvas lives in its own repo, drift between the parent site's vendored `canvas/` dist and the canvas repo's `HEAD` is possible. Mitigation: keep a `VERSION` or commit-hash file in `dist/` so the parent-site checkin records which canvas build is live.
 
 ---
 
@@ -182,7 +190,8 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 
 ## Cross-cutting
 
+- **Repo topology.** After phase 1 M2, canvas source lives in a standalone repo. The unlost.ventures site repo retains a `canvas/` directory that holds *only* the built `dist/` output, updated via `scripts/release.sh`. See [ARCH.md#deployment](ARCH.md#deployment).
 - **Branching:** one branch per phase, merge only when its "done when" checklist is green.
 - **Docs:** update `README.md` at the end of each phase (build/run/test commands change in phase 1).
-- **Deprecations:** `canvas.html`, `canvas_test.html`, `network.js`, and the vendored `lib/` drop out during phase 1–3; do not preserve them for back-compat.
+- **Deprecations:** `canvas.html`, `canvas_test.html`, `network.js`, and the vendored `lib/` drop out during phase 1 M2; do not preserve them for back-compat.
 - **localStorage format:** unchanged across all phases. A canvas saved in the current app must load in the phase-3 app.

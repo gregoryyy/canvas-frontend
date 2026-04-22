@@ -50,6 +50,22 @@ Then open:
 http://localhost:8000/canvas/
 ```
 
+> **Migration note.** The app is being re-platformed to TypeScript + Vite + React in its own repository (see [doc/PLAN.md](doc/PLAN.md)). After phase 1 M2 (repo split), `npm run dev` replaces the `python3 -m http.server` flow and the canvas no longer depends on parent-site chrome.
+
+## Deployment / integration with unlost.ventures
+
+The canvas will live in a **standalone repository** (post-phase-1-M2). It builds to `dist/`, and that built output is copied into this parent site's `canvas/` directory on each release:
+
+```
+canvas repo (source)   →   npm run build   →   dist/   →   unlost.ventures/canvas/   →   deploy
+```
+
+The parent site repo tracks the `canvas/` directory as **vendored build output** — committed, not `.gitignore`d — so reviewers can see exactly what changed in each canvas release and the parent-site deploy pipeline stays unchanged.
+
+A `scripts/release.sh` in the canvas repo handles the copy and records the source commit hash in `canvas/VERSION`. Rollback = revert the parent-site commit.
+
+See [doc/ARCH.md#deployment](doc/ARCH.md#deployment) for the integration flow, rules, and release-script behavior.
+
 ## URL Parameters
 
 - `?model=<name>` loads `models/<name>.json`

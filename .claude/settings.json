@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/gregor/Documents/devel/arbylon.net/unlost/canvas mv conf public/conf)",
+      "Bash(git -C /Users/gregor/Documents/devel/arbylon.net/unlost/canvas mv models public/models)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(npx vite *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
