@@ -1,4 +1,4 @@
-# Canvas Application
+# Unlost Preseed Canvas Application
 
 Interactive browser-based canvas tool for working with structured strategy and analysis boards such as Preseed Canvas, Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, and TOWS.
 
