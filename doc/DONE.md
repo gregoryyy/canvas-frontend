@@ -207,19 +207,56 @@ Gaps: none. Phase 1 tests green; ready for M8 release verification.
 
 ---
 
+### M8 — Release verification — ◯ partially done (docs updated; two blockers for dry-run)
+
+Landed:
+- [README.md](../README.md) fully rewritten. Stale refs (`main.js`, `util.js`, `canvas.js`, `network.js`, `lib/`, `canvas_test.html`, `python3 -m http.server`, migration note) gone. New structure: Getting started, Project layout (TS tree), URL parameters, Interaction model, Controls, Data format, Testing, Release / deployment, Notes. Points at [doc/ARCH.md#deployment](ARCH.md) for release details.
+- [ARCH.md](ARCH.md) reviewed — no stale references; document was written to target-state so the finished phase-1 port already matches. Release-script section already specifies the exact behavior implemented in [scripts/release.sh](../scripts/release.sh).
+- Automated verification run: `tsc`, `eslint`, `vitest` (20/20), `vite build` all clean against HEAD.
+
+**Asset / deploy decisions** (resolved after the docs rewrite):
+
+1. **`base: '/'` kept in [vite.config.ts](../vite.config.ts).** User's call: the canvas deploys at the *root* of its own target (whether that's a standalone subdomain, `/canvas/` mounted via reverse-proxy rewrite, or the root of the `canvas/` dir copied into the parent site — all three resolve `/assets/index-*.js` correctly because the canvas is served at `/`). This inverts the M1 deviation's eventual resolution — turns out `/canvas/` was never the right `base`; the canvas just needs to be served *at* its own root.
+
+2. **`global/` moved into [public/global/](../public/global/) and fonts into [public/fonts/](../public/fonts/).** User's call (from option (b) of the previously-open list). The chrome is now a first-class part of the canvas deploy, no dependency on anything the parent site serves. Absolute paths everywhere:
+   - `global/{aurora.css, aurora.js, script.js, styles.css, unlost.svg}` → [public/global/](../public/global/)
+   - `global/fonts/Montserrat/` → [public/fonts/Montserrat/](../public/fonts/)
+   - [public/global/styles.css](../public/global/styles.css) `@font-face` url updated from `/global/fonts/…` to `/fonts/…` via `sed`.
+   - [index.html](../index.html) refs changed from relative `global/*` to absolute `/global/*` (so Vite leaves them alone as public-served assets instead of trying to bundle them and failing because the old path doesn't exist).
+   - [.gitignore](../.gitignore) adds `.DS_Store` so macOS metadata doesn't leak into `dist/`.
+
+Served layout in `dist/`:
+
+| Asset | Path | How |
+|---|---|---|
+| App JS + canvas/layout CSS | `/assets/index-*.{js,css}` | bundled by Vite |
+| Chrome styles | `/global/{styles,aurora}.css` | public-served |
+| Chrome scripts | `/global/{script,aurora}.js` | public-served |
+| Logo | `/global/unlost.svg` | public-served |
+| Fonts | `/fonts/Montserrat-*.ttf` | public-served, referenced by `/global/styles.css` `@font-face` |
+| Canvas configs | `/conf/*.json` | public-served |
+| Canvas models | `/models/*.json` | public-served |
+
+Build is now warning-free (the previous `can't be bundled without type='module'` warnings for the chrome scripts are gone because Vite treats absolute paths as public-served, not bundle candidates). Bundle numbers: HTML 7.01 kB (was 12.63 kB — dropped the inline SVG for the logo, it's now served as a file), CSS 9.35 kB (was 12.87 kB — chrome CSS served separately, not in the app bundle), JS 56.26 kB unchanged.
+
+**Manual steps remaining** (require a browser + the parent-site checkout — can't automate):
+
+- Run `scripts/release.sh ../unlost.ventures` (or the actual parent-site path). Confirm: build succeeds, `canvas/` cleared, `dist/` copied, `canvas/VERSION` written with the right commit hash.
+- Walk the phase 1–2 equivalence checklist from [PLAN.md](PLAN.md) against the deployed URL: load every config in [public/conf/](../public/conf/), drag cards (desktop + touch long-press), save/load via LS controls, export SVG, round-trip a pre-migration saved canvas if one exists, verify the `?model=...&config=...&debug=...` URL params behave.
+
+Gaps: just the dry-run + manual walkthrough.
+
+---
+
 ## Phase 1 status
 
 | Milestone | Status |
 |---|---|
 | M1 Tooling | ✅ |
-| M2 Repo split | ✅ (chrome retained, release dry-run pending) |
+| M2 Repo split | ✅ (chrome retained) |
 | M3 Type definitions | ✅ |
 | M4 util.js port | ✅ |
 | M5 canvas.js port + scoring extraction | ✅ |
 | M6 main.js port + circular-import removal | ✅ |
 | M7 Tests (Vitest + jsdom) | ✅ |
-| M8 Release verification | ⬜ |
-
-## Up next
-
-M8 — release verification. Run `scripts/release.sh ../unlost.ventures` against the parent-site repo, walk the phase 1–2 equivalence checklist from [PLAN.md](PLAN.md) (load every config, drag cards, save/load LS, export SVG, round-trip a pre-migration saved canvas), and update [README.md](../README.md) with the final build / run / release commands. Also resolves the parked `base: '/'` vs `'/canvas/'` decision from M1.
+| M8 Release verification | ◯ docs + assets in place; manual dry-run + equivalence walk pending |

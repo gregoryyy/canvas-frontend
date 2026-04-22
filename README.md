@@ -1,121 +1,64 @@
-# Unlost Preseed Canvas Application
+# Unlost Preseed Canvas
 
-Interactive browser-based canvas tool for working with structured strategy and analysis boards such as Preseed Canvas, Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, and TOWS.
+Interactive browser-based canvas tool for structured strategy and analysis boards: Preseed Canvas, Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, TOWS.
 
-The app is implemented as plain ES modules and runs fully in the browser. Canvas state is stored locally in `localStorage`, with optional import/export and optional file-upload integration.
+Client-only app. Canvas state lives in `localStorage`; JSON import/export is supported. An optional LLM-backed chat sidebar (phase 3, not yet implemented) will be able to write directly into cells.
 
-## Features
+Stack: TypeScript (strict), Vite, Vitest + jsdom. Phase 2 introduces React.
 
-- Multiple canvas types loaded from JSON configs in `conf/`
-- Canvas content loaded from JSON models in `models/`
-- Inline editing for title, description, analysis text, cards, and scores
-- Create, remove, and reorder cards directly on the board
-- Help overlays per cell
-- Local persistence via browser `localStorage`
-- Export local storage as JSON and export the rendered board as SVG
-- Optional upload integration via `network.js`
-- Basic Jasmine browser tests
-
-## Project Layout
-
-```text
-canvas/
-├── index.html            # Main browser entrypoint
-├── main.js               # App bootstrap, state, controls
-├── canvas.js             # Canvas, cell, card, pre/post canvas logic
-├── util.js               # DOM helpers, storage, export, sanitization
-├── network.js            # Optional file upload and websocket client
-├── canvas.css            # Base component styles
-├── layout.css            # Canvas layout styles
-├── conf/                 # Canvas definitions and settings
-├── models/               # Example and template canvas content
-├── lib/                  # Third-party browser libraries
-└── test/                 # Jasmine specs
-```
-
-## Running Locally
-
-`index.html` references shared site assets from the parent directory (`../styles.css`, `../aurora.js`, `../script.js`, `../unlost.svg`), so serve the parent site root, not the `canvas/` folder by itself.
-
-Example:
+## Getting started
 
 ```bash
-cd ..
-python3 -m http.server 8000
+npm install
+npm run dev       # Vite dev server (http://localhost:5173/)
+npm run build     # emits dist/
+npm run test      # Vitest
+npm run typecheck # tsc --noEmit
+npm run lint      # eslint
 ```
 
-Then open:
+## Project layout
 
 ```text
-http://localhost:8000/canvas/
+canvas-frontend/
+├── index.html              Vite entry
+├── src/
+│   ├── main.ts             bootstrap: DOMContentLoaded + beforeunload + Ctrl+S
+│   ├── app.ts              Application / Settings / Controls classes
+│   ├── context.ts          runtime app/conf/ctl holders (phase-1 workaround)
+│   ├── canvas/             Canvas, Cell, Card, PreCanvas, PostCanvas, DragState
+│   ├── scoring/formula.ts  hand-rolled parser for score formulas
+│   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
+│   └── util/               dom, sanitize, dragdrop, longpress, editable, overlay, svg, io, log
+├── public/conf/            canvas-type JSON definitions (served as /conf/*.json)
+├── public/models/          example/template canvas JSON (served as /models/*.json)
+├── test/                   Vitest specs + helpers
+├── scripts/release.sh      build + publish dist/ into the parent site
+└── doc/                    ARCH.md, PLAN.md, DONE.md
 ```
 
-> **Migration note.** The app is being re-platformed to TypeScript + Vite + React in its own repository (see [doc/PLAN.md](doc/PLAN.md)). After phase 1 M2 (repo split), `npm run dev` replaces the `python3 -m http.server` flow and the canvas no longer depends on parent-site chrome.
+## URL parameters
 
-## Deployment / integration with unlost.ventures
-
-The canvas will live in a **standalone repository** (post-phase-1-M2). It builds to `dist/`, and that built output is copied into this parent site's `canvas/` directory on each release:
-
-```
-canvas repo (source)   →   npm run build   →   dist/   →   unlost.ventures/canvas/   →   deploy
-```
-
-The parent site repo tracks the `canvas/` directory as **vendored build output** — committed, not `.gitignore`d — so reviewers can see exactly what changed in each canvas release and the parent-site deploy pipeline stays unchanged.
-
-A `scripts/release.sh` in the canvas repo handles the copy and records the source commit hash in `canvas/VERSION`. Rollback = revert the parent-site commit.
-
-See [doc/ARCH.md#deployment](doc/ARCH.md#deployment) for the integration flow, rules, and release-script behavior.
-
-## URL Parameters
-
-- `?model=<name>` loads `models/<name>.json`
-- `?config=<name>` loads `conf/<name>.json`
-- `?debug=true` enables debug logging
-
-Defaults:
-
-- model: `template`
-- config: taken from `model.meta.canvas`, or `preseed` if missing
+- `?model=<name>` — loads `/models/<name>.json` (default: `template`)
+- `?config=<name>` — loads `/conf/<name>.json` (default: `model.meta.canvas`, fallback `preseed`)
+- `?debug=true` — enables debug logging via `util/log.ts`
 
 Examples:
 
-```text
-/canvas/?model=example
-/canvas/?model=template&config=leancanvas
-/canvas/?model=test&debug=true
+```
+/?model=example
+/?model=template&config=leancanvas
+/?model=test&debug=true
 ```
 
-## How It Works
+## Interaction model
 
-At startup, `main.js`:
-
-1. Reads URL parameters.
-2. Loads the selected model from `models/`.
-3. Loads the matching canvas config from `conf/`.
-4. Builds the application state and renders the board.
-
-The main state consists of:
-
-- `meta`: title, description, canvas type
-- `canvas`: ordered list of cells and cards
-- `analysis`: free-text notes and optional computed score
-
-Canvas type definitions in `conf/*.json` control:
-
-- visible sections
-- layout class
-- cell titles and help text
-- which cells support scoring
-- score formulas
-
-## Interaction Model
-
-- Click a card or text field to edit it inline
-- Double-click or long-press a cell title to open its help overlay
+- Click a card or text field to edit inline
+- Double-click or long-press a cell title to toggle its help overlay
 - Double-click or long-press an empty cell area to create a new card
-- Clear a card’s text and blur the field to delete the card
-- Drag cards to reorder them or move them between cells
-- Use `Ctrl+S` or `Cmd+S` to save to local storage
+- Clear a card's text and blur to delete it
+- Drag cards to reorder within a cell or move between cells (long-press 500 ms on touch)
+- `Ctrl+S` / `Cmd+S` saves to localStorage
 
 Card type commands at the start of a card:
 
@@ -123,28 +66,15 @@ Card type commands at the start of a card:
 - `:!` comment
 - `:=` analysis
 - `:*` emphasis
-- `:-` reset to default styling
+- `:-` reset to default
 
-## Storage and Export
+## Controls
 
-The app stores saved canvases in browser `localStorage` under the key `preseedcanvas`.
+`Save to LS`, `Load from LS`, `Clear LS`, `Export LS`, `Import LS`, `Export SVG`, `Canvas Type`, `Clear Canvas`. The app also auto-saves on `beforeunload` when a canvas title is set.
 
-Available controls:
+## Data format
 
-- `Save to LS`
-- `Load from LS`
-- `Clear LS`
-- `Export LS`
-- `Import LS`
-- `Export SVG`
-- `Canvas Type`
-- `Clear Canvas`
-
-The app also attempts an automatic save on page unload when a canvas title exists.
-
-## Data Format
-
-Models in `models/*.json` use this shape:
+localStorage key: `preseedcanvas`. Saved canvases are keyed by title. Each canvas JSON shape:
 
 ```json
 {
@@ -156,38 +86,35 @@ Models in `models/*.json` use this shape:
     "date": "20240219"
   },
   "canvas": [
-    {
-      "id": 1,
-      "cards": [
-        { "content": "Problem" }
-      ],
-      "score": 0
-    }
+    { "id": 1, "cards": [{ "content": "Problem" }], "score": 0 }
   ],
-  "analysis": {
-    "content": "Analysis: ..."
-  }
+  "analysis": { "content": "Analysis: ..." }
 }
 ```
 
-Canvas configs in `conf/*.json` define settings, scoring, and the ordered cell structure rendered by the app.
+Canvas-type configs in `/conf/*.json` define settings (`canvasd`, `localstorage`, `layout`), scoring formulas, and the ordered cell structure.
 
 ## Testing
 
-Browser tests are defined in:
-
-- `test/LoadSpec.js`
-- `test/CardSpec.js`
-- `test/InteractSpec.js`
-
-Test runner:
-
-```text
-/canvas/canvas_test.html?model=test
+```bash
+npm run test              # one-shot Vitest run
+npm run test -- --watch   # watch mode
 ```
+
+Specs live under `test/` (`*.test.ts`). jsdom is the default environment. `test/helpers.ts` bootstraps an `Application` against JSON fixtures from `public/` via a fetch mock.
+
+## Release / deployment
+
+The canvas deploys as a vendored `dist/` snapshot inside the parent `unlost.ventures` site:
+
+```bash
+scripts/release.sh ../unlost.ventures
+```
+
+The script runs `npm run build`, clears the target `canvas/` directory, copies `dist/*`, and writes `canvas/VERSION` with the source commit hash. The parent-site commit is left to the maintainer (reviewable PR). See [doc/ARCH.md#deployment](doc/ARCH.md#deployment) for the full flow.
 
 ## Notes
 
-- The app is client-side by default; no canvas content is sent to a server unless upload features are explicitly enabled in config.
-- Optional upload support is controlled by `conf/*.json` via `settings.canvasd`.
-- Sanitization is handled in `util.js` with DOMPurify before content is stored or rendered.
+- Sanitization: DOMPurify with `ALLOWED_TAGS: ['br', 'p', 'i', 'b', 'a']`, applied at all state ↔ DOM boundaries (`util/sanitize.ts`).
+- Debug logging: pass `?debug=true` to enable; `util/log.ts` prints caller-annotated messages.
+- The chat / upload features sketched in `conf/*.json` (`settings.canvasd`) are phase-3 scope — not wired up in phase 1.
