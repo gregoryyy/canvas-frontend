@@ -25,7 +25,8 @@
       "Bash(echo \"---eslint $?---\")",
       "Bash(npx vitest *)",
       "Bash(echo \"---vitest $?---\")",
-      "Bash(echo \"eslint $?\")"
+      "Bash(echo \"eslint $?\")",
+      "Bash(echo \"---tsc $?---\")"
     ]
   }
 }

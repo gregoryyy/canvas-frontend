@@ -1,4 +1,4 @@
-import { app } from '../../main';
+import { app } from '../context';
 import type { CanvasState } from '../types/canvas';
 import type { CanvasConfig } from '../types/config';
 import { evaluateFormula } from '../scoring/formula';

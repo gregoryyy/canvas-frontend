@@ -1,4 +1,4 @@
-import { app, conf } from '../../main';
+import { app, conf } from '../context';
 import type { CanvasState } from '../types/canvas';
 import type { CanvasConfig } from '../types/config';
 import { createElement } from '../util/dom';

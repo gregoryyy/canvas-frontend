@@ -1,5 +1,5 @@
-import { app } from '../../main';
-import type { Cell as CellData } from '../types/canvas';
+import { app } from '../context';
+import type { CardType } from '../types/canvas';
 import type { CellStructure } from '../types/config';
 import { createElement } from '../util/dom';
 import { makeDroppable } from '../util/dragdrop';
@@ -15,6 +15,14 @@ import { dragState } from './dragState';
 // accept both. Narrowed in phase 2.
 type Score = string | number | undefined;
 
+// Shape the Cell constructor accepts as `content`. Satisfied by a plain Cell
+// JSON object (initial load), a Cell instance (restructure), or [] (no
+// content yet).
+interface CellContent {
+  cards?: Array<{ content: string; type?: CardType }>;
+  score?: Score;
+}
+
 export class Cell {
   index: number;
   id: number;
@@ -28,7 +36,7 @@ export class Cell {
   constructor(
     index: number,
     structure: CellStructure,
-    content: Partial<CellData> | readonly never[],
+    content: CellContent | readonly never[],
   ) {
     this.index = index;
     this.id = structure.id;
@@ -36,8 +44,8 @@ export class Cell {
     this.helptitle = structure.subtitle;
     this.helptext = structure.description;
     this.hasScore = structure.score === 'yes';
-    // content is either a CellData object (initial load / restructure) or [] (no content yet)
-    const c = content as Partial<CellData>;
+    // cast merges the [] branch; readonly-empty has no cards/score to access
+    const c = content as CellContent;
     this.score = this.hasScore ? (c.score ?? 0) : undefined;
     this.cards = c.cards?.map((card) => new Card(card.content, card.type)) ?? [];
   }

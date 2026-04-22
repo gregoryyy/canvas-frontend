@@ -137,6 +137,54 @@ Gaps: none. Ready for M6.
 
 ---
 
+### M6 — Port main.js → src/main.ts + break the circular import — ✅ done
+
+Landed:
+- [src/main.ts](../src/main.ts) — typed `Application` / `Settings` / `Controls`, DOMContentLoaded bootstrap, `beforeunload` auto-save, Ctrl+S/Cmd+S keydown handler. 1:1 with the legacy main.js; behavior preserved including the silent `catch` on save errors, the `conf || new Settings(...)` short-circuit in `Settings.create`, and the ignored param on `newApp.render(defaultConfigName)` (dropped — it was already ignored in the original).
+- [src/context.ts](../src/context.ts) — runtime context module. Uses `export let app` + `setApp()` pattern so importers under [src/canvas/](../src/canvas/) get live-binding semantics identical to the pre-migration `export { app } from './main.js'`. Types are intentionally loose (`any`) — typing them would reintroduce the import cycle; phase 2 replaces this with a React context or zustand store. File-level eslint-disable for `no-explicit-any`.
+- All five [src/canvas/](../src/canvas/) modules switched from `import { app } from '../../main'` → `import { app } from '../context'`. [PreCanvas.ts](../src/canvas/PreCanvas.ts) tightened: `canvas` field from `unknown` to `string` (it was always a canvas-type identifier string in practice), and the `PreCanvasCtorData` legacy union collapsed to plain `Meta`.
+- [src/canvas/Cell.ts](../src/canvas/Cell.ts) constructor's content parameter replaced `Partial<CellData> | readonly never[]` with a dedicated `CellContent` interface that accepts plain JSON, a `Cell` instance (what `restructure` passes), or `[]`. Needed because `Cell.score` uses the wider `Score = string | number | undefined` (runtime mixed-typing) while `CellData.score` is `number | undefined`.
+- [index.html](../index.html) loads `./src/main.ts` as the module entry (Vite handles the TS transpilation transparently).
+
+Deleted:
+- `main.js`, `util.js` (M4 shim), `canvas.js` (M5 shim), `main.d.ts` (M5 type shim). Plus stale eslint ignores (`main.js`, `canvas.js`, `util.js`) and the tsconfig `main.d.ts` include entry.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → 12/12 passing (formula.test.ts unaffected).
+- `npm run build` succeeds — 36 modules transformed (37 → 36: the two re-export shims collapsed away), single 56.23 kB JS chunk (gzipped 20.01 kB).
+- Zero `.js` files remaining in app source (app root has only config files: [eslint.config.js](../eslint.config.js), [vite.config.ts](../vite.config.ts), [scripts/release.sh](../scripts/release.sh)).
+
+Decisions / deviations:
+- **Context module over constructor injection.** Plan allowed either: "pass `app`/`conf` through constructors or a small context module." Constructor injection would have required wiring `app` through every Cell / Card / PreCanvas / PostCanvas method via `this.app` — dozens of edits across five classes, all mechanical, all churn. Context module is one import-path change per canvas file (`'../../main'` → `'../context'`) and keeps the rest of the call sites untouched. Phase 2's React refactor replaces this anyway.
+- **`export let` + live bindings instead of getter functions.** The alternative `export function getApp()` would force every call site in canvas files to change (`app.X` → `getApp().X`). `export let app` + `setApp()` preserves the existing call-site syntax exactly, with identical live-binding semantics to what JS modules already provide. Read-only on the import side; writable only via the explicit setter.
+- **`any` types in [context.ts](../src/context.ts).** Typing `app` as `Application` would require importing it from main.ts → canvas/*.ts → context.ts → main.ts (cycle). Structural interfaces (`AppLike`) would drag Canvas / PreCanvas / PostCanvas types into the context module — same cycle, one level removed. `any` is the honest escape hatch for an intermediate build step. Phase 2 removes the need entirely.
+- **Signature changes from the 1:1 rule (minor):** `Application.render()` dropped the unused `defaultConfigName` arg; `uploadLs()` method on Application was never called (only `Application.downloadLs()` has a matching [Controls](../src/main.ts) button, and even that uses the util helper, not an Application method) — removed. Both are dead-code cleanups that don't alter observable behavior.
+
+Insights:
+- **Circular import wasn't actually a runtime problem pre-migration.** [main.js](../main.js) declared `let app = undefined` at load and reassigned after `DOMContentLoaded`; canvas classes imported `app` eagerly but only *read* it inside instance methods that ran post-bootstrap. The cycle was cosmetic — it confused TS's strict analysis more than it confused the runtime. The new `setApp()` pattern makes the timing explicit: bootstrap calls `setApp(newApp)` exactly once after construction completes, and every read thereafter resolves via live binding.
+- **`export let` is ES-module-legal and widely underused.** TypeScript's strictness often nudges people toward `export const { app: any }` object patterns, but `export let` with setters is structurally cleaner for small contexts like this. Worth remembering.
+- **Re-export shims were a cheap port scaffold.** M4's [util.js](../util.js) and M5's [canvas.js](../canvas.js) shims bought uninterrupted runtime compat across three milestones while the underlying modules were being typed piece by piece. At M6 they vanish without ceremony. Pattern worth repeating any time a large module tree is being typed incrementally.
+- **Vite does TS-entry modules natively.** `<script type="module" src="./src/main.ts">` works in dev and build — no loader config needed. A subtle "TS-ifying existed all along" moment that's easy to miss coming from older build toolchains.
+
+Gaps: none. **Phase 1 M6 done — every `.js` source is now `.ts`, the app runs through a single typed entry.**
+
+---
+
+## Phase 1 status
+
+| Milestone | Status |
+|---|---|
+| M1 Tooling | ✅ |
+| M2 Repo split | ✅ (chrome retained, release dry-run pending) |
+| M3 Type definitions | ✅ |
+| M4 util.js port | ✅ |
+| M5 canvas.js port + scoring extraction | ✅ |
+| M6 main.js port + circular-import removal | ✅ |
+| M7 Tests (full Vitest coverage) | ⬜ |
+| M8 Release verification | ⬜ |
+
 ## Up next
 
-M6 — port [main.js](../main.js) → `src/main.ts`. Removes the circular `main ↔ canvas` import, deletes [main.d.ts](../main.d.ts) and the [util.js](../util.js) / [canvas.js](../canvas.js) shims, switches [index.html](../index.html) to load `./src/main.ts` directly.
+M7 — port the three Jasmine specs ([test/LoadSpec.js](../test/LoadSpec.js), [test/CardSpec.js](../test/CardSpec.js), [test/InteractSpec.js](../test/InteractSpec.js)) to Vitest with jsdom. [test/formula.test.ts](../test/formula.test.ts) already lives in the new format and passes — it's the template for the rest.

@@ -1,31 +1,19 @@
-import { app } from '../../main';
-import type { Cell as CellData, Meta } from '../types/canvas';
+import { app } from '../context';
+import type { Meta } from '../types/canvas';
 import { createElement } from '../util/dom';
 import { makeEditable } from '../util/editable';
 import { convertBR, convertNL, sanitize } from '../util/sanitize';
 
-// Source data for PreCanvas: the `meta` object from a loaded model. `canvas`
-// here is the canvas-type identifier string (e.g. "preseed"), not an array.
-interface PreCanvasData extends Meta {
-  canvas: string;
-}
-
-// When PreCanvas is constructed from a Canvas instance's state (legacy path in
-// pre-migration code), data may also carry `canvas` as a Cell[]. Retained for
-// compatibility with the shape produced by Application.toJSON.
-type PreCanvasCtorData = (PreCanvasData & { canvas?: unknown })
-  | (Meta & { canvas?: unknown | CellData[] });
-
 export class PreCanvas {
   title: string;
   description: string | undefined;
-  canvas: unknown;
+  canvas: string;
   display: boolean;
 
-  constructor(data: PreCanvasCtorData, display = false) {
+  constructor(data: Meta, display = false) {
     this.title = data.title;
     this.description = data.description;
-    this.canvas = (data as { canvas?: unknown }).canvas;
+    this.canvas = data.canvas;
     this.display = display;
   }
 
@@ -64,7 +52,7 @@ export class PreCanvas {
     this.rerender();
   }
 
-  toJSON(): { title: string; description: string | undefined; canvas: unknown } {
+  toJSON(): { title: string; description: string | undefined; canvas: string } {
     return { title: this.title, description: this.description, canvas: this.canvas };
   }
 }

@@ -1,4 +1,4 @@
-import { app } from '../../main';
+import { app } from '../context';
 import type { CardType } from '../types/canvas';
 import { createElement } from '../util/dom';
 import { makeDraggable } from '../util/dragdrop';

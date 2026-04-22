@@ -8,11 +8,6 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'public/**',
-      // Pre-migration ES module sources. main/canvas/util port to src/*.ts in
-      // phase 1 M4–M6. Ignore until then.
-      'main.js',
-      'canvas.js',
-      'util.js',
       // Legacy Jasmine specs (ported to Vitest in M7) and vendored Jasmine.
       'test/**/*.js',
     ],
