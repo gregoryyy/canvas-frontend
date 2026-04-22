@@ -7,7 +7,7 @@ import { lg } from '../util/log';
 import { addLongPressListener } from '../util/longpress';
 import { decodeHtml, sanitize, trimPluralS } from '../util/sanitize';
 import { Card } from './Card';
-import { dragState } from './dragState';
+import { dragState } from './DragState';
 
 // Score is typed as string | number because the legacy runtime assigns both:
 // the initial load assigns a number (from JSON), and the dropdown `change`

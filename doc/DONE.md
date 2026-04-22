@@ -172,6 +172,41 @@ Gaps: none. **Phase 1 M6 done — every `.js` source is now `.ts`, the app runs 
 
 ---
 
+### M7 — Port Jasmine specs → Vitest + jsdom — ✅ done
+
+Landed:
+- **main.ts split into app.ts + main.ts.** [src/app.ts](../src/app.ts) holds the `Settings` / `Application` / `Controls` classes (side-effect-free, exported). [src/main.ts](../src/main.ts) is now a ~55-line bootstrap that just wires up DOMContentLoaded, beforeunload, and Ctrl+S. Tests import the classes directly without the bootstrap firing.
+- [test/helpers.ts](../test/helpers.ts) — fixture loading (`loadFixture`), fetch mock (`installFetchMock` — serves files from `public/` based on the requested path), Application bootstrap (`bootstrapApp` — resets DOM + localStorage, loads fixtures, creates `Settings` + `Application`, writes them to context), and a `flush()` microtask-drain helper for async paths.
+- [test/load.test.ts](../test/load.test.ts) — ports `LoadSpec`: initial-state assertion (title, cells[4].cards[1]) and save → clear → load round-trip.
+- [test/card.test.ts](../test/card.test.ts) — ports `CardSpec`: edit, remove, add, and the `:?` type-command card-class assertion.
+- [test/interact.test.ts](../test/interact.test.ts) — ports `InteractSpec`: help-overlay dblclick toggle and score-change → total-update propagation.
+- **Jasmine artifacts deleted:** [test/CardSpec.js](../test/CardSpec.js), [test/InteractSpec.js](../test/InteractSpec.js), [test/LoadSpec.js](../test/LoadSpec.js), [test/lib/](../test/lib/) (vendored Jasmine 5.1.2). Stale `test/**/*.js` entry removed from [eslint.config.js](../eslint.config.js) ignores.
+- **File rename:** `src/canvas/dragState.ts` → [src/canvas/DragState.ts](../src/canvas/DragState.ts) for casing consistency with the other files in [src/canvas/](../src/canvas/) (Canvas, Cell, Card, PreCanvas, PostCanvas). Imports in Canvas.ts / Card.ts / Cell.ts updated.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **20/20 passing** (12 formula + 2 load + 4 card + 2 interact).
+- `npm run build` succeeds — 37 modules transformed, 56.26 kB bundle (20.02 kB gzipped).
+
+Deviations / decisions:
+- **`main.ts` split into `app.ts` + `main.ts`** (not in the plan, but forced by testability). Importing main.ts registers a DOMContentLoaded listener that fetches model/config JSON over the network; at test-time that fails and pollutes with console.error. Splitting separates the classes from the bootstrap cleanly. Bonus: `main.ts` is now a 55-line entry point that's trivial to reason about. Phase 2 React refactor lands classes in components anyway.
+- **Interact score test rewritten, not literally ported.** The original [test/InteractSpec.js](../test/InteractSpec.js) checked `helpElem.getAttribute('display')` — which always returns `null` (`display` is a CSS property, not an HTML attribute), so the original assertion was a tautology that never failed. Ported to check `helpElem.style.display` — the property the app actually sets. Applied to the original Jasmine runner, the new assertion would have exposed the bug; applied to our Vitest port, it passes.
+- **LoadSpec round-trip needed an explicit title in `loadFromLs`.** `app.clear()` resets `meta.title` to `'Company name'`, so the no-arg `app.loadFromLs()` call in the original Jasmine spec couldn't have found the saved `'Example Startup'` record — the test was aspirational. Ported test passes `'Example Startup'` explicitly, matching the obvious intent.
+- **Map-backed `localStorage` polyfill in tests.** Node 22's experimental `localStorage` leaks into the vitest+jsdom environment as a plain object without `getItem` / `setItem` / `removeItem` / `clear` methods. [test/helpers.ts](../test/helpers.ts) installs a small Map-backed stub via `Object.defineProperty(globalThis, 'localStorage', …)` before bootstrap. Scoped to the test helper — zero impact on the real app which uses browser-native localStorage.
+- **Fetch mock keys off the URL path.** The app calls `fetch('conf/foo.json')`; under jsdom those URLs are relative to `document.URL` (about:blank or similar). The mock regex-matches the `(conf|models)/...` tail of whatever URL arrives and reads from the matching `public/` file. Robust to jsdom's base-URL behavior.
+- **`dragState.ts` → `DragState.ts`** for filename casing consistency — requested inline while M7 was in progress. Import sites updated via sed.
+
+Insights:
+- **The original Jasmine tests depended on a full-browser harness** (the deleted `canvas_test.html` loaded the app and then Jasmine over it). Vitest + jsdom gives the same reach without a browser, but the harness-gone means *we* bootstrap the app in each test — which surfaces a clear line between "app setup" (helpers.ts) and "assertions" (the spec bodies). Cleaner than the Jasmine setup, which relied on global `app` / `ctl` / `Card` from the test runner.
+- **Two real bugs discovered in the original specs.** The overlay test used the wrong API (`getAttribute('display')`), and the save-load round-trip assumed a title resolution that `clear()` invalidates. Both are latent bugs in the *tests*, not the app — but the Vitest port surfaces them because strict comparisons fail loudly where silent null/undefined in the original passed by accident.
+- **`Application.loadFromLs` is fire-and-forget.** It kicks off a `fetch().then(...)` chain but returns `void`. Tests work around this with a small `flush()` (20ms setTimeout) — enough for microtasks and the mocked fetch to drain. A phase-2 refactor should promisify this; the callers in Controls are all `.bind(app)` callbacks that don't need a return value, so the refactor is cheap.
+- **`Object.defineProperty(globalThis, 'localStorage', …)`** is the right pattern for jsdom-quirk workarounds. Direct assignment silently fails because `globalThis.localStorage` has an unwritable descriptor in some Node / jsdom combos. `defineProperty` with `writable: true, configurable: true` overrides cleanly.
+
+Gaps: none. Phase 1 tests green; ready for M8 release verification.
+
+---
+
 ## Phase 1 status
 
 | Milestone | Status |
@@ -182,9 +217,9 @@ Gaps: none. **Phase 1 M6 done — every `.js` source is now `.ts`, the app runs 
 | M4 util.js port | ✅ |
 | M5 canvas.js port + scoring extraction | ✅ |
 | M6 main.js port + circular-import removal | ✅ |
-| M7 Tests (full Vitest coverage) | ⬜ |
+| M7 Tests (Vitest + jsdom) | ✅ |
 | M8 Release verification | ⬜ |
 
 ## Up next
 
-M7 — port the three Jasmine specs ([test/LoadSpec.js](../test/LoadSpec.js), [test/CardSpec.js](../test/CardSpec.js), [test/InteractSpec.js](../test/InteractSpec.js)) to Vitest with jsdom. [test/formula.test.ts](../test/formula.test.ts) already lives in the new format and passes — it's the template for the rest.
+M8 — release verification. Run `scripts/release.sh ../unlost.ventures` against the parent-site repo, walk the phase 1–2 equivalence checklist from [PLAN.md](PLAN.md) (load every config, drag cards, save/load LS, export SVG, round-trip a pre-migration saved canvas), and update [README.md](../README.md) with the final build / run / release commands. Also resolves the parked `base: '/'` vs `'/canvas/'` decision from M1.

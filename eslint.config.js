@@ -8,8 +8,6 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'public/**',
-      // Legacy Jasmine specs (ported to Vitest in M7) and vendored Jasmine.
-      'test/**/*.js',
     ],
   },
   js.configs.recommended,

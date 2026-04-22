@@ -5,7 +5,7 @@ import { makeDraggable } from '../util/dragdrop';
 import { makeEditable } from '../util/editable';
 import { lg } from '../util/log';
 import { convertBR, convertNL, sanitize } from '../util/sanitize';
-import { dragState } from './dragState';
+import { dragState } from './DragState';
 
 export class Card {
   static count = 0;

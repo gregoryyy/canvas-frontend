@@ -5,7 +5,7 @@ import { createElement } from '../util/dom';
 import { lg } from '../util/log';
 import { Card } from './Card';
 import { Cell } from './Cell';
-import { dragState, resetDragState } from './dragState';
+import { dragState, resetDragState } from './DragState';
 
 export class Canvas {
   cells: Cell[];
