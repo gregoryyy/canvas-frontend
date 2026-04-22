@@ -105,6 +105,38 @@ Gaps: none. Ready for M5.
 
 ---
 
+### M5 — Port canvas.js → src/canvas/*.ts + src/scoring/formula.ts — ✅ done
+
+Landed:
+- [src/canvas/Canvas.ts](../src/canvas/Canvas.ts), [Cell.ts](../src/canvas/Cell.ts), [Card.ts](../src/canvas/Card.ts), [PreCanvas.ts](../src/canvas/PreCanvas.ts), [PostCanvas.ts](../src/canvas/PostCanvas.ts) — one file per class, types wired to [src/types/canvas.ts](../src/types/canvas.ts) and [src/types/config.ts](../src/types/config.ts).
+- [src/canvas/dragState.ts](../src/canvas/dragState.ts) — module-level `dragState` object + `resetDragState()` replacing the six `static` fields on Cell / Card (`Cell.dragSource/dragDest`, `Card.dragSource/dragDest/dragSourceIndex/dragDestIndex`). `Card.count` stays as a static because [main.js:75](../main.js#L75) still writes it directly — plan only targeted the drag statics.
+- [src/scoring/formula.ts](../src/scoring/formula.ts) — `evaluateFormula` extracted from PostCanvas; signature unchanged (`(formula, context) => number`), still reads `score(n)` live from DOM.
+- [test/formula.test.ts](../test/formula.test.ts) — 12 Vitest specs covering parser basics (numbers, precedence, parens), context lookup, DOM `score()` integration (with jsdom-backed `<select>` elements), and a preseed-style weighted total from [public/conf/preseed.json](../public/conf/preseed.json). All passing.
+- [main.d.ts](../main.d.ts) — type shim for [main.js](../main.js) so canvas TS modules can `import { app, conf } from '../../main'` without enabling `allowJs`. Declares `app`/`conf`/`ctl` as `any` (file-level `eslint-disable` for `no-explicit-any`). Deletes in M6.
+- [tsconfig.json](../tsconfig.json) — `main.d.ts` added to `include`.
+- [canvas.js](../canvas.js) — slimmed from 458 lines to ~12: re-export shim forwarding `Canvas` / `Cell` / `Card` / `PreCanvas` / `PostCanvas` from the TS modules. Same pattern as M4's `util.js`. Keeps [main.js](../main.js)'s `import … from './canvas.js'` line unchanged until M6.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → 12/12 specs in [test/formula.test.ts](../test/formula.test.ts) pass.
+- `npm run build` succeeds — 37 modules transformed (up from 30 in M4), single 56.01 kB JS chunk (gzipped 19.90 kB).
+
+Deviations / decisions:
+- **`Cell.score` typed as `string | number | undefined`, not `number`.** The legacy runtime actually stores both: initial load assigns a number (from JSON), but the dropdown `change` handler assigns the raw `<select>.value` string. Serialization and DOM reads accept either. Tightening this is phase 2 territory — 1:1 demands keeping the mixed type.
+- **`DragState.sourceCell` / `destCell` typed as `string | number | undefined`.** Same reason: `Cell.render`'s `makeDroppable` callback sets the destination to a number (`this.index`), but `Card.render`'s drag callbacks set it to a string (from `getAttribute('data-index')`). The strict `===` in `Canvas.updateDragDrop` depends on this: a card-drop-onto-empty-cell-area always takes the "cross-cell" branch because `"2" === 2` is false — arguably a bug, preserved 1:1.
+- **main.d.ts + main.js over a context module.** Plan §M6 flags the circular `main ↔ canvas` import for later cleanup. Writing a context-passing refactor in M5 would mean touching [main.js](../main.js) (M6 work) — out of scope. The `.d.ts` shim gives TS enough type info to compile; Vite resolves the real module at runtime, and the circular structure is inherited unchanged from the pre-migration code.
+- **`as unknown as {...}` in the dead `Card.getCellCardPos` static.** The legacy code calls `.cellIndex()` / `.cardCellPos()` on a raw `HTMLElement`, which have no such methods — broken at runtime, but unused anywhere in the app. Kept 1:1 with a cast rather than deleted.
+
+Insights:
+- **ES-module live bindings carry the circular import across the port.** [main.js](../main.js) does `let app = undefined` at module-load, then populates after `DOMContentLoaded`. TS modules under [src/canvas/](../src/canvas/) import `app` eagerly but only *read* it inside instance methods (called post-bootstrap). Same lazy access pattern as pre-migration — no changes needed to the runtime structure.
+- **`Card.count` readable/writable from main.js.** Keeping it as a TS `static count = 0` preserves the `Card.count = 0` reset-before-Application.create pattern. TS doesn't prevent external writes to non-`readonly` statics — matches JS semantics exactly. Once main.js ports in M6, this can become `private` and expose a `reset()` helper.
+- **Formula evaluator's DOM coupling limits testing.** `score(n)` reads `document.getElementById('score${n}')` inside `parseFactor`. jsdom makes this tractable for unit tests (add fake `<select>` elements), but phase 2 should consider passing a `scoreLookup: (n) => number` function to `evaluateFormula` — decouples parser from DOM and simplifies React integration.
+
+Gaps: none. Ready for M6.
+
+---
+
 ## Up next
 
-M5 — port [canvas.js](../canvas.js) → `src/canvas/*.ts` (one file per class: `Canvas`, `Cell`, `Card`, `PreCanvas`, `PostCanvas`) plus `src/scoring/formula.ts` for `evaluateFormula` with its own Vitest spec. The type definitions in [src/types/canvas.ts](../src/types/canvas.ts) start getting consumed.
+M6 — port [main.js](../main.js) → `src/main.ts`. Removes the circular `main ↔ canvas` import, deletes [main.d.ts](../main.d.ts) and the [util.js](../util.js) / [canvas.js](../canvas.js) shims, switches [index.html](../index.html) to load `./src/main.ts` directly.

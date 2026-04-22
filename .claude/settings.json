@@ -21,7 +21,11 @@
       "Bash(echo \"---tsc exit $?---\")",
       "Bash(node --check util.js)",
       "Bash(echo \"exit $?\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(echo \"---eslint $?---\")",
+      "Bash(npx vitest *)",
+      "Bash(echo \"---vitest $?---\")",
+      "Bash(echo \"eslint $?\")"
     ]
   }
 }
