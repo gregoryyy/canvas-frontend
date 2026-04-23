@@ -341,6 +341,40 @@ Gaps: none. Ready for M3 (editable + drag/drop hooks).
 
 ---
 
+### M4 — Overlays and menus — ✅ done
+
+Landed:
+- [src/components/HoverHelp.tsx](../src/components/HoverHelp.tsx) — `<div class="hover-help">` with optional `<h4>` / `<p>`, visibility via `open` prop. Dumb.
+- [src/components/ConfirmStep.tsx](../src/components/ConfirmStep.tsx) — click-twice-to-confirm button. First click shows `Label?` in red and arms a timeout; second click fires `onConfirm` and resets. Optional `stopPropagation` prop for nesting inside other clickable containers. Matches the legacy `confirmStep` util 1:1.
+- [src/components/OverlayMenu.tsx](../src/components/OverlayMenu.tsx) — popover menu rendered via `createPortal` into `document.body`. Position computed in `useLayoutEffect` from the trigger's bounding rect (above the trigger, clamped to scrollY). Click-outside listener closes. Per-item Delete uses `<ConfirmStep stopPropagation>` so the delete click doesn't also fire item select.
+- [src/components/Toast.tsx](../src/components/Toast.tsx) — single toast, portal-rendered, auto-hides after `duration`, dismisses on the hide-transition end.
+- [src/components/ToastContainer.tsx](../src/components/ToastContainer.tsx) — fan-out host + module-level `showToast(message, isError?)` entry point. Signature matches the legacy `showToast` so imperative call sites port without change; no-op when no container is mounted.
+- [src/components/Cell.tsx](../src/components/Cell.tsx) updated to use `<HoverHelp>` instead of an inline `div.hover-help`; added `onDoubleClick` on the title that toggles the help overlay (mirrors the legacy dblclick trigger; long-press wiring is M3 via `useLongPress`).
+- [test/overlays.test.tsx](../test/overlays.test.tsx) — 13 specs across the four components (dumb display, portal mounting, click-outside close, confirm-twice flow, propagation blocking, toast enqueue + no-container no-op). One new spec in [test/components.test.tsx](../test/components.test.tsx) covers the Cell dblclick-toggle wiring.
+
+Verification:
+- `tsc --noEmit` ✓, `eslint .` ✓
+- `vitest run` → **73/73 passing** (20 phase-1 + 19 store + 19 components + 14 overlays + 1 Cell-toggle)
+- `npm run build` → 33 modules, 56.26 kB JS. React + overlay components still tree-shaken out until M6 mounts `<App />` + `<ToastContainer />`.
+
+Alongside: `canvas.css` + `layout.css` moved [styles/](.) → [public/styles/](../public/styles/) and the `<link>` refs in [index.html](../index.html) rewritten to absolute `/styles/...`. Consistent with the other public-served assets (`/global/*`, `/fonts/*`). Vite no longer bundles them into `/assets/index-*.css` — they ship as static files, same pattern as the chrome assets.
+
+Decisions / deviations:
+- **`HoverHelp`'s visibility via inline `style.display`** (not a CSS class toggle) matches the legacy `helpDiv.style.display = 'block' / 'none'` pattern. A class-based variant (`.hover-help.open`) would be cleaner but requires touching `canvas.css`, and the 1:1 rule applies.
+- **Long-press not wired into Cell yet.** The legacy help-overlay toggle also fires on long-press (`addLongPressListener(parent, hoverHelp)`); that wiring needs the M3 `useLongPress` hook. Cell's dblclick toggle ships in M4; `useLongPress` binding lands in M3.
+- **`showToast` kept as a module-level function, not a context/provider.** A `ToastProvider` + `useToast()` hook would be more idiomatic React, but changes the call-site ergonomics — every imperative caller (phase-1 `app.ts`, future non-component code) would need to receive the hook. Module-level matches the legacy API exactly; callers port without changes. Slight quirk: only one `ToastContainer` can be active at a time; the mount/unmount effect claims and releases the module's `pushToast` binding.
+- **Toast CSS transition test dropped.** The legacy pattern is: mount → next-frame add `.toast-visible` (triggers CSS transition) → `setTimeout(duration)` remove class (triggers hide transition) → `transitionend` → remove from DOM. Testing all of that with fake timers + `requestAnimationFrame` fakery + `act` is fragile and implementation-coupled. Tests verify the observable DOM (toast mounts, message text, error class) and leave the visual transition to CSS/e2e.
+- **`OverlayMenu` includes `position: absolute` inline** so the portal placement works without needing `.overlay-menu` CSS to already specify `position`. The legacy util did the same. If `canvas.css` already sets `position: absolute`, this is redundant but harmless.
+
+Insights:
+- **Portal + position-via-useLayoutEffect is the right recipe for anchored popovers.** Rendering to `document.body` escapes parent `overflow: hidden`; measuring via `useLayoutEffect` runs after the portal commits but before paint, so the measured rect is accurate without a flash. Computing `rect.top - menu.offsetHeight` once on open matches the legacy behavior — it doesn't reposition on scroll. Good enough for this app; phase-3 should consider floating-ui if complex positioning is needed.
+- **`fireEvent.click(container.querySelector('div > div'))` picks the first matching div, not the nested one.** CSS selector `div > div` matches EVERY div whose parent is a div, and `querySelector` returns the first. Initial test selector was ambiguous — giving the inner element a dedicated class fixed it. Worth remembering: rely on explicit `data-testid` or className instead of structural selectors when interacting with nested elements.
+- **React 19's SyntheticEvent `stopPropagation` works across portal boundaries the same way it works within a tree** — parents in the React tree (not the DOM tree) still don't receive events that a descendant stopped. The ConfirmStep-inside-OverlayMenu delete button needs `stopPropagation` because the `onClick` on the menu item is a React handler on a tree ancestor of the ConfirmStep portal-less child.
+
+Gaps: none. Ready for M3 (editable + drag/drop hooks) — will add `useEditable`, `useDragDrop`, `useLongPress`. `useLongPress` in particular will supplement Cell's dblclick toggle with a long-press alternate trigger, matching legacy behavior on touch.
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
@@ -348,6 +382,6 @@ Gaps: none. Ready for M3 (editable + drag/drop hooks).
 | M1 State store + persistence | ✅ |
 | M2 Dumb components | ✅ |
 | M3 Editable + drag/drop hooks | ⬜ |
-| M4 Overlays and menus | ⬜ |
+| M4 Overlays and menus | ✅ |
 | M5 Controls panel | ⬜ |
 | M6 Tests | ⬜ |

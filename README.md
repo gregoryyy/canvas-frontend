@@ -32,7 +32,7 @@ canvas-frontend/
 │   ├── state/              phase-2 store + persistence + useStore hook
 │   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
 │   └── util/               dom, sanitize, dragdrop, longpress, editable, overlay, svg, io, log
-├── styles/                 canvas.css, layout.css (app styling)
+├── public/styles/          canvas.css, layout.css (app styling)
 ├── public/conf/            canvas-type JSON definitions (served as /conf/*.json)
 ├── public/models/          example/template canvas JSON (served as /models/*.json)
 ├── public/global/          chrome assets (aurora, logo, scripts)

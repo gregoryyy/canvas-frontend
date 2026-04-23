@@ -1,4 +1,4 @@
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/components/App';
 import { Canvas } from '../src/components/Canvas';
@@ -72,6 +72,17 @@ describe('Cell', () => {
     const help = container.querySelector('.hover-help')!;
     expect(help.querySelector('h4')!.textContent).toBe(structure.subtitle);
     expect(help.querySelector('p')!.innerHTML).toBe(structure.description);
+  });
+
+  it('toggles the help overlay on dblclick of the title (M4 wiring)', () => {
+    const { container } = render(<Cell cell={cellData} structure={structure} />);
+    const title = container.querySelector<HTMLElement>('.cell-title')!;
+    const help = container.querySelector<HTMLDivElement>('.hover-help')!;
+    expect(help.style.display).toBe('none');
+    fireEvent.doubleClick(title);
+    expect(help.style.display).toBe('block');
+    fireEvent.doubleClick(title);
+    expect(help.style.display).toBe('none');
   });
 });
 

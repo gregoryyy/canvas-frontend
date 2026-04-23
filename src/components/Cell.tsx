@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { Cell as CellData } from '../types/canvas';
 import type { CellStructure } from '../types/config';
 import { Card } from './Card';
+import { HoverHelp } from './HoverHelp';
 
 interface CellProps {
   cell: CellData;
@@ -25,10 +27,13 @@ interface CellProps {
  */
 export function Cell({ cell, structure }: CellProps) {
   const hasScore = structure.score === 'yes';
+  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <div className="cell" id={String(structure.id)} data-index={cell.id}>
       <div className="cell-title-container">
-        <h3 className="cell-title">{structure.title}</h3>
+        <h3 className="cell-title" onDoubleClick={() => setHelpOpen((o) => !o)}>
+          {structure.title}
+        </h3>
         {hasScore && (
           <select
             id={`score${structure.id}`}
@@ -44,12 +49,11 @@ export function Cell({ cell, structure }: CellProps) {
             <option value="5">5</option>
           </select>
         )}
-        <div className="hover-help">
-          {structure.subtitle && <h4>{structure.subtitle}</h4>}
-          {structure.description && (
-            <p dangerouslySetInnerHTML={{ __html: structure.description }} />
-          )}
-        </div>
+        <HoverHelp
+          subtitle={structure.subtitle}
+          description={structure.description}
+          open={helpOpen}
+        />
       </div>
       <div className="cell-card-container">
         {(cell.cards ?? []).map((card, i) => (
