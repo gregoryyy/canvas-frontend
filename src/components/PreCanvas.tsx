@@ -1,5 +1,8 @@
+import { useEffect, useRef } from 'react';
+import { useEditable } from '../hooks/useEditable';
+import { setMeta } from '../state/store';
 import type { Meta } from '../types/canvas';
-import { convertNL } from '../util/sanitize';
+import { convertBR, convertNL, sanitize } from '../util/sanitize';
 
 interface PreCanvasProps {
   meta: Meta;
@@ -7,18 +10,39 @@ interface PreCanvasProps {
 }
 
 /**
- * Title + optional description above the canvas. Matches the legacy
- * PreCanvas.render: the `#precanvas` div with its `<h2>` is always rendered;
- * the `<p>` description is only emitted when `display` is true (driven by
- * `settings.layout.precanvas === 'yes'` per config).
+ * Title + optional description above the canvas. M3 wires useEditable on
+ * both elements and dispatches `setMeta` on commit. Title uses textContent
+ * (plain text, no HTML); description uses innerHTML (BR preserved).
+ *
+ * DOM content is set imperatively via useEffect rather than JSX children to
+ * avoid React fighting with contenteditable user edits.
  */
 export function PreCanvas({ meta, display }: PreCanvasProps) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (titleRef.current) titleRef.current.textContent = meta.title;
+  }, [meta.title]);
+
+  useEffect(() => {
+    if (descRef.current && meta.description !== undefined) {
+      descRef.current.innerHTML = convertNL(meta.description);
+    }
+  }, [meta.description]);
+
+  useEditable(titleRef, () => {
+    setMeta({ title: sanitize(titleRef.current?.textContent ?? '') });
+  });
+
+  useEditable(descRef, (html) => {
+    setMeta({ description: sanitize(convertBR(html)) });
+  });
+
   return (
     <div id="precanvas">
-      <h2>{meta.title}</h2>
-      {display && meta.description !== undefined && (
-        <p dangerouslySetInnerHTML={{ __html: convertNL(meta.description) }} />
-      )}
+      <h2 ref={titleRef} />
+      {display && meta.description !== undefined && <p ref={descRef} />}
     </div>
   );
 }

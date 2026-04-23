@@ -1,6 +1,9 @@
+import { useEffect, useRef } from 'react';
+import { useEditable } from '../hooks/useEditable';
+import { setAnalysis } from '../state/store';
 import type { Analysis } from '../types/canvas';
 import type { CanvasConfig } from '../types/config';
-import { convertNL } from '../util/sanitize';
+import { convertBR, convertNL, sanitize } from '../util/sanitize';
 
 interface PostCanvasProps {
   analysis: Analysis | undefined;
@@ -9,18 +12,25 @@ interface PostCanvasProps {
 }
 
 /**
- * Analysis + optional score total below the canvas. Matches the legacy
- * PostCanvas.render structure. Returns null when `display` is false
- * (driven by `settings.layout.postcanvas === 'yes'`).
- *
- * Phase-2 M2 renders a static "0.0" placeholder for the score span; the
- * real `evaluateFormula` wire-up lands in M3/M5 along with the score
- * dropdown change handlers.
+ * Analysis + optional score total below the canvas. M3 wires useEditable on
+ * the paragraph; on commit dispatches `setAnalysis`. Score span stays at the
+ * `0.0` placeholder — real `evaluateFormula` integration waits for M5.
  */
 export function PostCanvas({ analysis, config, display }: PostCanvasProps) {
+  const paragraphRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (paragraphRef.current) {
+      paragraphRef.current.innerHTML = convertNL(analysis?.content ?? '');
+    }
+  }, [analysis?.content]);
+
+  useEditable(paragraphRef, (html) => {
+    setAnalysis(sanitize(convertBR(html)));
+  });
+
   if (!display) return null;
   const hasScore = Boolean(config.scoring[0]?.total);
-  const content = analysis?.content ?? '';
 
   return (
     <div id="postcanvas">
@@ -33,7 +43,7 @@ export function PostCanvas({ analysis, config, display }: PostCanvasProps) {
           </>
         )}
       </div>
-      <p dangerouslySetInnerHTML={{ __html: convertNL(content) }} />
+      <p ref={paragraphRef} />
     </div>
   );
 }

@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { type ChangeEvent, type MouseEvent, useRef, useState } from 'react';
+import { type DragSource, useDroppable } from '../hooks/useDragDrop';
+import { useLongPress } from '../hooks/useLongPress';
+import { addCard, moveCard, setScore } from '../state/store';
 import type { Cell as CellData } from '../types/canvas';
 import type { CellStructure } from '../types/config';
+import { trimPluralS } from '../util/sanitize';
 import { Card } from './Card';
 import { HoverHelp } from './HoverHelp';
 
@@ -10,28 +14,45 @@ interface CellProps {
 }
 
 /**
- * Presentational cell. Matches the legacy DOM:
- *   <div class="cell" id="{id}" data-index="{id}">
- *     <div class="cell-title-container">
- *       <h3 class="cell-title">{title}</h3>
- *       [score select if hasScore]
- *       <div class="hover-help">[h4 subtitle][p description]</div>
- *     </div>
- *     <div class="cell-card-container">[cards]</div>
- *   </div>
- *
- * `hover-help` is in the DOM but styled hidden by default; M4 adds the
- * dblclick/long-press toggle. Score select is controlled by the store; the
- * no-op onChange satisfies React's controlled-input contract until M3
- * replaces it with a real handler.
+ * Cell — title, optional scoring dropdown, hover-help overlay, card list.
+ * M3 wires long-press alternates for the dblclick triggers, drag/drop target
+ * on the card container (drop-on-empty-area → append), and dispatches
+ * `addCard` / `setScore` / `moveCard` to the store.
  */
 export function Cell({ cell, structure }: CellProps) {
   const hasScore = structure.score === 'yes';
   const [helpOpen, setHelpOpen] = useState(false);
+
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleHelp = (): void => setHelpOpen((o) => !o);
+  const createCard = (): void => {
+    addCard(cell.id, 'New ' + trimPluralS(structure.title));
+  };
+
+  useLongPress(titleRef, toggleHelp);
+  useLongPress(containerRef, createCard);
+
+  useDroppable(containerRef, (source: DragSource) => {
+    // Drop-on-empty-area → append. Card-level drop handlers fire first and
+    // clear the shared drag source, so this only runs when drop landed
+    // outside any card.
+    moveCard(source.cellId, source.cardIndex, cell.id, cell.cards?.length ?? 0);
+  });
+
+  const handleScoreChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+    setScore(cell.id, e.target.value);
+  };
+
+  const handleContainerDoubleClick = (e: MouseEvent<HTMLDivElement>): void => {
+    if (e.target === e.currentTarget) createCard();
+  };
+
   return (
     <div className="cell" id={String(structure.id)} data-index={cell.id}>
       <div className="cell-title-container">
-        <h3 className="cell-title" onDoubleClick={() => setHelpOpen((o) => !o)}>
+        <h3 ref={titleRef} className="cell-title" onDoubleClick={toggleHelp}>
           {structure.title}
         </h3>
         {hasScore && (
@@ -39,7 +60,7 @@ export function Cell({ cell, structure }: CellProps) {
             id={`score${structure.id}`}
             className="scoring-dropdown"
             value={String(cell.score ?? 0)}
-            onChange={() => undefined}
+            onChange={handleScoreChange}
           >
             <option value="0">-</option>
             <option value="1">1</option>
@@ -55,9 +76,13 @@ export function Cell({ cell, structure }: CellProps) {
           open={helpOpen}
         />
       </div>
-      <div className="cell-card-container">
+      <div
+        ref={containerRef}
+        className="cell-card-container"
+        onDoubleClick={handleContainerDoubleClick}
+      >
         {(cell.cards ?? []).map((card, i) => (
-          <Card key={i} card={card} />
+          <Card key={i} card={card} cellId={cell.id} cardIndex={i} />
         ))}
       </div>
     </div>

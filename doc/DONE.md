@@ -375,13 +375,50 @@ Gaps: none. Ready for M3 (editable + drag/drop hooks) — will add `useEditable`
 
 ---
 
+### M3 — Editable + drag/drop hooks — ✅ done
+
+Landed:
+- [src/hooks/useLongPress.ts](../src/hooks/useLongPress.ts) — mouse + touch long-press with 10 px move-cancel threshold. Callback captured via a ref so identity changes don't re-attach listeners. Full cleanup on unmount (listeners removed, pending timer cleared).
+- [src/hooks/useEditable.ts](../src/hooks/useEditable.ts) — `contenteditable="true"` + Enter inserts `<br><br>` via Selection/Range API + blur fires `onCommit(innerHTML)`. Cleans up on unmount.
+- [src/hooks/useDragDrop.ts](../src/hooks/useDragDrop.ts) — `useDraggable(ref, source, opts)` + `useDroppable(ref, onDrop)`. Module-level `currentSource` tracker coordinates between them. When `longPressMs > 0`, drag initiation is gated on a mouse- or touch-long-press (same threshold as `useLongPress`) instead of native `dragstart`. Drop bubbling: card's drop handler fires first, clears `currentSource`; cell's handler sees `null` and skips — no caller-side filtering needed.
+- [src/components/Card.tsx](../src/components/Card.tsx) rewritten to use the hooks. Edit commit parses prefix commands (`:?`, `:!`, `:=`, `:*`, `:-`) and dispatches `updateCard` or `removeCard`. Drag + drop-on-card dispatches `moveCard` with the proper post-removal `toIndex` (accounts for same-cell forward shift).
+- [src/components/Cell.tsx](../src/components/Cell.tsx) updated: `useLongPress` on title (help toggle, alternate to dblclick) and on the card container (create card). `useDroppable` on the container handles drop-on-empty-area → append. Score select dispatches `setScore`; dblclick on container empty area dispatches `addCard`.
+- [src/components/PreCanvas.tsx](../src/components/PreCanvas.tsx) + [src/components/PostCanvas.tsx](../src/components/PostCanvas.tsx) — `useEditable` on title / description / analysis paragraphs, dispatching `setMeta` / `setAnalysis`. Title uses textContent (plain text); description + analysis use innerHTML (BR-preserved).
+- Store's `Card.tsx` (and the editable-bearing components) set DOM content imperatively via `useEffect` on the relevant field, not via JSX children. This avoids React's reconciler touching the contenteditable DOM mid-edit (the classic "React fights with contenteditable" footgun).
+- [test/hooks.test.tsx](../test/hooks.test.tsx) — **11 specs** covering long-press fire/cancel paths (movement, mouseup, non-left button), editable contenteditable setup + blur commit + Enter-insert-BR + shift-Enter pass-through, and drag-drop source/target coordination (draggable attr, onDrop with source record, highlight class lifecycle).
+- [test/components.test.tsx](../test/components.test.tsx) Card tests updated to pass the new `cellId` / `cardIndex` props.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **84/84 passing** (73 prior + 11 hooks).
+- `npm run build` → 33 modules, 56.26 kB. Bundle unchanged — hooks + interactive components still unmounted; M6 brings them live.
+
+Decisions / deviations:
+- **Module-level `currentSource` in `useDragDrop`** instead of React context. HTML5 drag-drop only allows one active drag at a time, so a single module-level slot is faithful to the hardware constraint and matches the legacy `Cell.dragSource` / `Card.dragSource` statics. A React context would be strictly unnecessary overhead.
+- **Ref-based innerHTML updates, not `dangerouslySetInnerHTML`.** For every editable element (Card, PreCanvas title + description, PostCanvas analysis), the component renders the root tag empty and a `useEffect` writes `innerHTML` (or `textContent` for plain-text title) on prop change. This pattern avoids React reconciling the DOM subtree when the user is mid-edit — a dangerous interaction where React would overwrite in-progress typing.
+- **Long-press handler duplicates useLongPress logic inside useDraggable** when `longPressMs > 0`. Could call `useLongPress` from inside `useDraggable`, but hooks must be called unconditionally — passing a huge duration when longPressMs=0 to effectively disable is uglier than duplication. ~20 lines duplicated, kept inline.
+- **Hooks return void, not a ref.** `useEditable(ref, onCommit)` expects an already-created ref. Callback-ref pattern (`const editableRef = useEditable(...)`) would handle conditionally-mounted elements cleanly — worth considering in phase 3 refactor.
+- **`Card` prop signature widened** from `{ card }` to `{ card, cellId, cardIndex }`. Drag source needs the positional identity; pre-existing M2 Card tests updated with the new props.
+- **Conditionally-rendered editable children** (`{display && <p ref={descRef} />}` in PreCanvas) have a quirk: if `display` toggles at runtime, the useEffect for contenteditable setup doesn't re-run (ref object identity is stable). In practice `display` is driven by config at load time and doesn't toggle dynamically — acceptable limitation, noted for phase-3 cleanup.
+
+Insights:
+- **`pageX` is a getter in jsdom.** `fireEvent.mouseMove(el, { pageX: 20 })` doesn't set pageX directly — jsdom's MouseEvent derives `pageX` as `clientX + scrollX`. Tests need to pass `clientX` for the hook's `me.pageX` reads to return non-zero values. One failing test until this was figured out.
+- **Passing refs-as-dependencies to useEffect is stable by identity** (the ref OBJECT doesn't change across renders), so the effect runs once on mount. This is why the hook pattern works reliably for always-mounted refs and why conditionally-mounted refs need callback refs instead.
+- **React 19's SyntheticEvent + HTML5 native drag events interop cleanly.** `fireEvent.dragStart` / `fireEvent.drop` trigger the native listeners the hooks attach via `addEventListener` (not React's delegated system). No SyntheticEvent wrapping issues here because the hooks bypass React's event system entirely — they attach raw DOM listeners.
+- **Store-driven re-render + imperative DOM update don't fight each other** as long as the effect only fires on *prop change*. Card's `useEffect(..., [card.content])` runs only when content actually changes in state — not during user edits (which mutate DOM without changing state until blur). On blur, dispatch fires, state updates, prop changes, effect runs, DOM snapped to sanitized value. Clean cycle.
+
+Gaps: none. Ready for M5 (Controls panel wiring).
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
 |---|---|
 | M1 State store + persistence | ✅ |
 | M2 Dumb components | ✅ |
-| M3 Editable + drag/drop hooks | ⬜ |
+| M3 Editable + drag/drop hooks | ✅ |
 | M4 Overlays and menus | ✅ |
 | M5 Controls panel | ⬜ |
 | M6 Tests | ⬜ |

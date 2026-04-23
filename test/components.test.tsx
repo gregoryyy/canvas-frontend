@@ -20,19 +20,25 @@ describe('Card', () => {
   afterEach(cleanup);
 
   it('renders content in a .card div', () => {
-    const { container } = render(<Card card={{ content: 'hello world' }} />);
+    const { container } = render(
+      <Card card={{ content: 'hello world' }} cellId={1} cardIndex={0} />,
+    );
     const div = container.querySelector('div.card')!;
     expect(div.textContent).toBe('hello world');
     expect(div.className).toBe('card');
   });
 
   it('adds the type class when type is set', () => {
-    const { container } = render(<Card card={{ content: 'x', type: 'query' }} />);
+    const { container } = render(
+      <Card card={{ content: 'x', type: 'query' }} cellId={1} cardIndex={0} />,
+    );
     expect(container.querySelector('div.card')!.className).toBe('card query');
   });
 
   it('converts \\n in content to <br>', () => {
-    const { container } = render(<Card card={{ content: 'line1\nline2' }} />);
+    const { container } = render(
+      <Card card={{ content: 'line1\nline2' }} cellId={1} cardIndex={0} />,
+    );
     expect(container.querySelector('div.card')!.innerHTML).toBe('line1<br>line2');
   });
 });
