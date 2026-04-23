@@ -303,12 +303,50 @@ Gaps: none. Ready for M2 (presentational React components subscribing via `useSy
 
 ---
 
+### M2 — Dumb React components — ✅ done
+
+Landed:
+- **React toolchain installed.** `react@19.2`, `react-dom@19.2`, `@types/react`, `@types/react-dom`, `@vitejs/plugin-react@6`, `@testing-library/react@16.3`. [vite.config.ts](../vite.config.ts) wires the React plugin (covers dev HMR, production build, and Vitest's JSX transform). [tsconfig.json](../tsconfig.json) adds `"jsx": "react-jsx"`.
+- [src/state/useStore.ts](../src/state/useStore.ts) — `useStore(selector)` hook wrapping `useSyncExternalStore` against the M1 store.
+- Six presentational components under [src/components/](../src/components/), all 1:1 with the legacy DOM so phase-1 CSS still applies:
+  - [Card.tsx](../src/components/Card.tsx) — `<div class="card[ TYPE]">` with NL→`<br>` via `convertNL`.
+  - [Cell.tsx](../src/components/Cell.tsx) — title, optional scoring dropdown, hover-help overlay (DOM present, toggle in M4), card list.
+  - [Canvas.tsx](../src/components/Canvas.tsx) — `<div id="canvas" class="{canvasclass}">` grid of cells.
+  - [PreCanvas.tsx](../src/components/PreCanvas.tsx) — always-rendered title; description only when `display`.
+  - [PostCanvas.tsx](../src/components/PostCanvas.tsx) — returns null when `display=false`; placeholder `0.0` score span (real `evaluateFormula` wire-up is M3/M5).
+  - [Controls.tsx](../src/components/Controls.tsx) — button bar + hidden `<input type="file">`; dumb (no click handlers).
+- [App.tsx](../src/components/App.tsx) — top-level composition. Reads `meta` / `cells` / `analysis` / `config` from the store and fans them down to child components. Returns null until config is initialized.
+- [test/components.test.tsx](../test/components.test.tsx) — **18 specs** across all components plus App. Uses `@testing-library/react`. Covers: class names / IDs / data-index, conditional rendering (score dropdown, file-menu buttons, display flags), store-driven re-render under `act()`.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **57/57** (20 phase-1 + 19 store + 18 components).
+- `npm run build` → 35 modules, 56.26 kB bundle, **unchanged from pre-React**. The components aren't imported by [main.ts](../src/main.ts) yet, so Rollup tree-shakes them out along with React itself. Phase-2 M6 will mount `<App />` and the bundle will pick up React.
+
+Decisions / deviations:
+- **Components live alongside the phase-1 imperative app, not inside it.** Nothing in [main.ts](../src/main.ts) imports from [src/components/](../src/components/). The running app is still the imperative `Application` / `Canvas` / `Cell` / `Card` classes from phase 1 — swapping happens in M6 after hooks (M3) and overlays (M4) land. Building the React tree alongside lets M3/M4/M5 stack on top without breaking anything in between.
+- **`dangerouslySetInnerHTML` where legacy used `innerHTML`.** Card content, PreCanvas description, PostCanvas analysis, and Cell help description all go through it. Contents were already sanitized on store write, so no additional sanitization on render. Preserves legacy HTML rendering (links in help, `<br>` for newlines) without parsing into React nodes — a phase-2-later cleanup if desired.
+- **Score select is controlled with a no-op `onChange`.** Dumb component contract: read-only from user perspective, reactive to store updates. `readOnly` on `<select>` in React doesn't suppress the controlled-input warning reliably across versions; `onChange={() => undefined}` does. M3 replaces it with the real handler.
+- **Score total placeholder `0.0` in PostCanvas.** The legacy `evaluateFormula` reads live from the DOM via `document.getElementById`, so computing during render would see empty values (React's commit phase hasn't landed yet). Deferred to M3/M5 when the score dropdown has a real change handler that can trigger a re-compute.
+- **Card uses index-as-key.** Not ideal for stable identity across reorders — cards don't currently have an id. M3 drag/drop may add a stable `cardId` to the store if re-ordering causes React to lose edit state or focus.
+
+Insights:
+- **The subscribe-based store composes cleanly with React 19's `useSyncExternalStore`.** No extra boilerplate. The store's structural equality for untouched branches means components that only read `s.meta` don't re-render when a card is added — same "only-affected-subtrees re-render" behavior zustand or Redux-toolkit would deliver, without a library.
+- **`act()` is required for store mutations triggered outside React.** The re-render test initially failed because store.addCard notifies listeners synchronously, but React 18+ batches the state update to the next tick. Wrapping the mutation in `act()` from `@testing-library/react` forces the update to flush synchronously for assertions. Real runtime doesn't need `act()`; only tests do.
+- **React 19's JSX transform means no `import * as React from 'react'` at the top of every file.** With `"jsx": "react-jsx"` in tsconfig, only hooks and types need explicit imports. Files stay tight.
+- **The "unused import gets dead-code-eliminated at build time" story is clean.** The new dependencies are heavy (React ~40 kB gzipped on its own), but because [main.ts](../src/main.ts) doesn't touch the components, Rollup omits them. Bundle size sits at 20 kB gzipped until phase-2 M6 actually mounts `<App />`.
+
+Gaps: none. Ready for M3 (editable + drag/drop hooks).
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
 |---|---|
 | M1 State store + persistence | ✅ |
-| M2 Dumb components | ⬜ |
+| M2 Dumb components | ✅ |
 | M3 Editable + drag/drop hooks | ⬜ |
 | M4 Overlays and menus | ⬜ |
 | M5 Controls panel | ⬜ |
