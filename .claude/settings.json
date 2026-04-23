@@ -32,7 +32,10 @@
       "Bash(./release.sh)",
       "Bash(./release.sh --help)",
       "WebFetch(domain:gist.github.com)",
-      "WebFetch(domain:unlost.ventures)"
+      "WebFetch(domain:unlost.ventures)",
+      "Bash(bash -n release.sh)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)"
     ]
   }
 }

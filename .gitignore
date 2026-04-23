@@ -1,5 +1,10 @@
-node_modules/
-dist/
-.vite/
+**/node_modules/
+**/dist/
+**/.vite/
+**/__pycache__/
+**/.venv/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
 *.log
 .DS_Store

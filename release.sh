@@ -55,7 +55,7 @@ fi
 target_abs="$(cd "$target" && pwd)"
 target_canvas="$target_abs/canvas"
 
-( cd "$canvas_repo" && npm run build )
+( cd "$canvas_repo/frontend" && npm run build )
 
 mkdir -p "$target_canvas"
 if [[ -n "$(ls -A "$target_canvas" 2>/dev/null)" ]]; then
@@ -68,7 +68,7 @@ if [[ -n "$(ls -A "$target_canvas" 2>/dev/null)" ]]; then
   find "$target_canvas" -mindepth 1 -delete
 fi
 
-cp -R "$canvas_repo/dist/." "$target_canvas/"
+cp -R "$canvas_repo/frontend/dist/." "$target_canvas/"
 
 commit="$(git -C "$canvas_repo" rev-parse HEAD)"
 timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
