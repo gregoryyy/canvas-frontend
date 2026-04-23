@@ -6,7 +6,7 @@ Python + FastAPI backend for Unlost Canvas. Adds LLM-assisted analysis on top of
 
 Capabilities: chat sidebar, PDF uploads, RAG retrieval, pi-check analyzer.
 
-**Status:** not yet implemented. This directory is a skeleton. Design lives in [../doc/ARCH_AI.md](../doc/ARCH_AI.md); the active phase-3 plan is in [../doc/design/PLAN.md](../doc/design/PLAN.md).
+**Status:** not yet implemented. This directory is a skeleton. Design lives in [../doc/ARCH_AI.md](../doc/ARCH_AI.md); the active phase-3 plan is in [../doc/PLAN.md](../doc/PLAN.md).
 
 ## Getting started (once implemented)
 

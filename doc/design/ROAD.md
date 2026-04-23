@@ -1,6 +1,6 @@
 # Roadmap
 
-Longer-term direction beyond the active plan in [PLAN.md](PLAN.md). Items here are not committed and not scheduled; they get promoted to PLAN.md when a milestone is decided. Organized by theme, not by date.
+Longer-term direction beyond the active plan in [PLAN.md](../PLAN.md). Items here are not committed and not scheduled; they get promoted to PLAN.md when a milestone is decided. Organized by theme, not by date.
 
 The active plan ships **backend-first** AI (Python + FastAPI per [../ARCH_AI.md](../ARCH_AI.md)) in milestones M1 … M6 of phase 3. Most items below either extend the backend architecture with new capabilities or extend the canvas in directions that are independent of the AI track.
 
@@ -12,7 +12,7 @@ External references, prior art, and library pointers that inform these items are
 
 ## AI & analysis
 
-Several items below are listed as candidates in [PLAN.md M6](PLAN.md#milestones); they get promoted into PLAN as their own milestone when real demand justifies committing.
+Several items below are listed as candidates in [PLAN.md M6](../PLAN.md#milestones); they get promoted into PLAN as their own milestone when real demand justifies committing.
 
 ### LLM Wiki — local wikified context
 

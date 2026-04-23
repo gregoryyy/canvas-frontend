@@ -7,7 +7,7 @@ Client-only app. Canvas state lives in `localStorage`; JSON import/export is sup
 **Project scope.** Monorepo with two stacks:
 
 - **`frontend/`** — the browser app (TypeScript + React + Vite). Phases 1–2 **complete**. The canvas itself works standalone; AI features (added in phase 3) require the backend.
-- **`backend/`** — Python + FastAPI service that owns the AI side: PDF extraction, RAG, LLM proxy, analyze pipelines. Primary workflow: **pitch-deck ingestion → draft a Preseed Canvas → drill into companion canvases** for deep dives. Phase 3, **skeleton only** — `pyproject.toml`, `.env.example`, and an empty package under `src/canvas_ai/`. Design in [doc/ARCH_AI.md](doc/ARCH_AI.md); the active phase-3 plan is in [doc/design/PLAN.md](doc/design/PLAN.md).
+- **`backend/`** — Python + FastAPI service that owns the AI side: PDF extraction, RAG, LLM proxy, analyze pipelines. Primary workflow: **pitch-deck ingestion → draft a Preseed Canvas → drill into companion canvases** for deep dives. Phase 3, **skeleton only** — `pyproject.toml`, `.env.example`, and an empty package under `src/canvas_ai/`. Design in [doc/ARCH_AI.md](doc/ARCH_AI.md); the active phase-3 plan is in [doc/PLAN.md](doc/PLAN.md).
 - **`shared/`** — cross-stack artifacts (patch schema, test fixtures). Placeholder until the first phase-3 substage lands; see [shared/README.md](shared/README.md).
 
 Phase 3 is **backend-first by design**. The browser-only alternative sketched in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) is archived — not a tracked alternative, not a fallback. Lean server-sided logic: PDF extraction, embeddings, RAG, and LLM orchestration live on the backend; the frontend stays light and talks to it over HTTP.
@@ -40,7 +40,7 @@ cp .env.example .env       # set OPENAI_BASE_URL, OPENAI_API_KEY, MODEL, CORS_OR
 uv run uvicorn canvas_ai.server:app --reload --port 8000
 ```
 
-Not runnable yet — first real code lands with phase 3 M1. See [backend/README.md](backend/README.md) and [doc/design/PLAN.md](doc/design/PLAN.md) for the milestone plan.
+Not runnable yet — first real code lands with phase 3 M1. See [backend/README.md](backend/README.md) and [doc/PLAN.md](doc/PLAN.md) for the milestone plan.
 
 ## Project layout
 
@@ -81,8 +81,9 @@ unlost-canvas/                   monorepo root
 ├── doc/                         project-wide docs
 │   ├── ARCH.md                  whole-project architecture
 │   ├── ARCH_AI.md               backend design (Python + FastAPI)
-│   ├── design/                  forward-looking (ROAD.md, PLAN.md, ARCH_FE.md, STACK.md, SOTA.md, TODO.md)
-│   └── done/                    completed-phase records (DONE.md, PLAN.md)
+│   ├── PLAN.md                  active plan — phase 3 milestones
+│   ├── design/                  longer-term ideas (ROAD.md, STACK.md, SOTA.md, TODO.md; ARCH_FE.md archived)
+│   └── done/                    completed-phase records (DONE.md, PLAN.md — phases 1–2)
 ├── release.sh                   build frontend/dist and publish into the parent site
 └── README.md
 ```
@@ -180,7 +181,7 @@ The script runs `npm run build` inside `frontend/`, clears the target `canvas/` 
 
 - [doc/ARCH.md](doc/ARCH.md) — whole-project architecture, including the backend's role and the deployment flow.
 - [doc/ARCH_AI.md](doc/ARCH_AI.md) — backend design (Python + FastAPI), patch protocol, backend module layout.
-- [doc/design/ROAD.md](doc/design/ROAD.md), [doc/design/PLAN.md](doc/design/PLAN.md) — phase-3 roadmap and the active plan.
+- [doc/design/ROAD.md](doc/design/ROAD.md), [doc/PLAN.md](doc/PLAN.md) — phase-3 roadmap and the active plan.
 - [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) — frontend-only (no-backend) alternative for phase 3.
 - [doc/design/STACK.md](doc/design/STACK.md), [doc/design/SOTA.md](doc/design/SOTA.md) — stack rationale and state of the art.
 - [doc/done/DONE.md](doc/done/DONE.md), [doc/done/PLAN.md](doc/done/PLAN.md) — archived record of phases 1–2.

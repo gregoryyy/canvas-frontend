@@ -1,6 +1,6 @@
 # State of the art — references
 
-Curated external and prior-work references that inform the design choices in [ROAD.md](ROAD.md), [PLAN.md](PLAN.md), [../ARCH_AI.md](../ARCH_AI.md), and [ARCH_FE.md](ARCH_FE.md). Kept as a living index: short entries, each with a one-paragraph orientation and a pointer to the primary source.
+Curated external and prior-work references that inform the design choices in [ROAD.md](ROAD.md), [../PLAN.md](../PLAN.md), [../ARCH_AI.md](../ARCH_AI.md), and [ARCH_FE.md](ARCH_FE.md). Kept as a living index: short entries, each with a one-paragraph orientation and a pointer to the primary source.
 
 Organized by theme, not by date. When an entry is promoted to a concrete design or plan item, link back to it from the corresponding section in that document rather than duplicating the content here.
 

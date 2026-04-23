@@ -1,6 +1,6 @@
 # Architecture
 
-Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [design/](design/) (see [design/ROAD.md](design/ROAD.md) for the roadmap and [design/PLAN.md](design/PLAN.md) for the active phase-3 plan). The backend design is specified in [ARCH_AI.md](ARCH_AI.md). The browser-only alternative [design/ARCH_FE.md](design/ARCH_FE.md) is archived — not a tracked alternative.
+Target architecture for the Canvas app. Describes the end state after all phases. The active phase-3 plan is in [PLAN.md](PLAN.md); the backend design is specified in [ARCH_AI.md](ARCH_AI.md); the phase 1–2 migration record is archived in [done/PLAN.md](done/PLAN.md). Longer-term ideas live in [design/ROAD.md](design/ROAD.md). The browser-only alternative [design/ARCH_FE.md](design/ARCH_FE.md) is archived — not a tracked alternative.
 
 ## Overview
 

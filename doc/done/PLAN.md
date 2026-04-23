@@ -1,6 +1,6 @@
-# Plan
+# Plan (archive — phases 1 and 2)
 
-Migration plan from the current plain-ES-module app to the target in [ARCH.md](../ARCH.md). Three phases, each shippable on its own.
+Archive of the phases 1–2 migration plan: porting the plain-ES-module app to TypeScript + Vite + Vitest (phase 1) and then to React (phase 2). Both phases are complete; see [DONE.md](DONE.md) for the record. The active plan for phase 3 is in [../PLAN.md](../PLAN.md).
 
 ## Rule: 1:1 functional equivalence (phases 1–2)
 
@@ -20,8 +20,6 @@ Phases 1 and 2 are a re-platforming, not a redesign. The finished phase-2 build 
 - Same sanitization ruleset (DOMPurify with the same allow-list: `br, p, i, b, a`).
 
 If a refactor would change any of the above, it does not land in phases 1–2. New features, polish, and "while we're in there" changes wait for phase 3 or later.
-
-Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integration as **new** features. The rest of the app still behaves identically with those features turned off.
 
 ## Phase 1 — TypeScript + Vite + Vitest
 
@@ -134,7 +132,13 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 
 ---
 
-## Phase 3 — Backend + chat sidebar
+## Phase 3 — original sketch (superseded)
+
+> **⚠️ Historical — kept for reference only.**
+>
+> This is the phase-3 sketch as it existed when phase 2 was still in progress: a Node + Fastify + TypeScript backend with an "optional / feature-flagged" chat sidebar. It has been **superseded** by the active plan at [../PLAN.md](../PLAN.md), which commits to a Python + FastAPI backend-first architecture with a pitch-deck → draft Preseed workflow and text / file / URL input channels.
+>
+> Preserved so later readers can trace how the design evolved. Do not plan work against this sketch.
 
 **Goal:** Optional LLM-backed chat sidebar that can answer questions and write summaries directly into canvas cells and the analysis field.
 
@@ -185,6 +189,14 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 - Structured output reliability varies across models; Ollama models especially. Fallback: parse best-effort JSON, surface parse failures as plain-text replies.
 - Prompt size: a filled canvas plus chat history plus extracted PDF text can blow past context windows. Need a summarization or chunking strategy before this becomes a blocker.
 - Privacy: uploaded files are processed server-side. Document this clearly; keep upload off by default.
+
+### What changed between this sketch and current [../PLAN.md](../PLAN.md)
+
+- **Stack.** Node + Fastify + TypeScript → Python + FastAPI. Rationale in [../design/STACK.md](../design/STACK.md): Python is the RAG / ML-library mother tongue, and the frontend-TS symmetry argument lost once Python's ecosystem was weighed in.
+- **Posture.** "Optional, feature-flagged, app works with backend off" → backend-first. AI features require the backend; the browser-only alternative is archived.
+- **Patch validation.** Zod on the backend → Pydantic on the backend, Zod on the frontend auto-generated from `shared/patch.schema.json`.
+- **Primary workflow.** "Chat sidebar that can write summaries" → text / file / URL → draft Preseed Canvas → refine → companion canvases. Ordering is driven by the user journey, not by API surface.
+- **Input channels.** File-first (PDF upload) → text-first (paste description in chat), with file upload in M3 and URL crawl in M4. Ships the first usable draft before the RAG subsystem exists.
 
 ---
 
