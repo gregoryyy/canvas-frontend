@@ -412,6 +412,44 @@ Gaps: none. Ready for M5 (Controls panel wiring).
 
 ---
 
+### M5 — Controls panel — ✅ done
+
+Landed:
+- [src/components/Controls.tsx](../src/components/Controls.tsx) rewritten from the M2 dumb button set to fully-wired handlers. Every legacy `Controls.render` behavior mapped to a store action:
+  - `Clear Canvas` / `Save to LS` / `Clear LS` / `Export SVG` / `Export LS` → `<ConfirmStep>` (click-twice) dispatching `clearAll` / `saveToLs` / `clearLocalStorage` / `convertDivToSvg` / `downloadLs`. Each fires `showToast(...)` after.
+  - `Canvas Type` / `Load from LS` → toggle `<OverlayMenu>`. Canvas-type menu reads the list from `useStore(s => s.canvasTypes)`; load menu reads saved canvas names directly from localStorage.
+  - Menu-item select fires `loadJson(...)` then `changeType(cfg)` (Canvas Type) or `init(cfg, content)` (Load from LS, since meta may differ).
+  - Per-item Delete on the Load menu uses nested `<ConfirmStep stopPropagation>` → removes the entry from the LS dictionary.
+  - `Import LS` → hidden file input with `onChange` calling `uploadLs(event.nativeEvent, LS_KEY)`; UI triggered via `fileInputRef.current?.click()`.
+- [src/components/App.tsx](../src/components/App.tsx) — mounts `<ToastContainer />` so the `showToast` calls from Controls have somewhere to land.
+- Store extensions in [src/state/store.ts](../src/state/store.ts):
+  - `AppState.canvasTypes: CanvasTypesList` + `setCanvasTypes(list)` — populated once at bootstrap from `conf/configs.json`; `init` preserves it.
+  - `clearLocalStorage()` action for the Clear LS button.
+- [test/helpers.ts](../test/helpers.ts) — `bootstrapApp` also sets `canvasTypes` on the phase-2 store.
+- [test/controls.test.tsx](../test/controls.test.tsx) — **11 specs** covering every handler path (Clear/Save/Clear LS confirm-twice, single-click is a no-op, Canvas Type menu open+toggle+select, Load from LS name list + per-item Delete, filemenu on/off).
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **95/95 passing** (84 prior + 11 controls).
+- `npm run build` → 33 modules, 56.26 kB. React tree still unmounted; M6 brings it live.
+
+Decisions / deviations:
+- **`canvasTypes` in the store, not in Controls-local state.** Could have fetched `conf/configs.json` inside Controls on mount (lazy). Storing at the app level matches the legacy pattern (`conf.canvasTypes`) and lets other components reach for it later (e.g., a future "canvas type indicator" in the signature area).
+- **`Load from LS` reads localStorage directly, not via `store.loadFromLs`.** The store action updates state synchronously with the LS content, but the actual load needs to fetch the matching config first; doing that on top of a state update would flash old-config + new-content. Reading LS raw and dispatching `init(cfg, content)` atomically produces one clean state change.
+- **No "clicked" flash effect.** Legacy adds a `.clicked` class for 500 ms on every button click for visual feedback. Skipped in M5 — visually minor, easy to add later (an `onClick` wrapper that toggles a class or a dedicated hook). Noted as a phase-2 polish item.
+- **No connection to `persistence.ts` yet.** `enablePersistence()` (beforeunload + Ctrl+S auto-save) remains uncalled. Enabling it now would double-save against the still-active phase-1 `main.ts` listeners. M6 swaps those out; the effect lands in App at that point.
+- **Toggle click on trigger doesn't race with OverlayMenu's click-outside handler.** The overlay's handler early-returns when the click target is inside `triggerRef.current`; the button's `onClick` then flips `openMenu` state. Tested and works as expected.
+
+Insights:
+- **Explicit JSX per button beats `buttons.map(...)` once behaviors diverge.** The M2 dumb version could use a uniform map because every button was a `<div>`. M5 has three shapes (ConfirmStep, plain div with onClick, plain div with ref+onClick) plus conditionally-rendered file-menu buttons — a map over a discriminated union works but reads no better than straight JSX. The data-driven version returns if the button set grows large.
+- **`OverlayMenu` slots cleanly into Controls without changes.** The M4 API (`open` / `triggerRef` / `items` / `onSelect` / `onDelete` / `onClose`) covers both menus with zero conditional logic in the component itself. Confirms the M4 abstraction was right-sized.
+- **`ConfirmStep`'s click-twice semantics work inside Controls without wrapping.** One render per ConfirmStep (primed ↔ idle), state tracked internally; parent just provides the action. No need for a shared "confirming" state across buttons.
+
+Gaps: none. Phase 2 M6 mounts everything and retires the phase-1 imperative app.
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
@@ -420,5 +458,5 @@ Gaps: none. Ready for M5 (Controls panel wiring).
 | M2 Dumb components | ✅ |
 | M3 Editable + drag/drop hooks | ✅ |
 | M4 Overlays and menus | ✅ |
-| M5 Controls panel | ⬜ |
+| M5 Controls panel | ✅ |
 | M6 Tests | ⬜ |

@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { vi } from 'vitest';
 import { Application, Settings } from '../src/app';
 import { setApp, setConf } from '../src/context';
+import { setCanvasTypes } from '../src/state/store';
 
 export function loadFixture<T = unknown>(relativePath: string): T {
   return JSON.parse(readFileSync(resolve(relativePath), 'utf8')) as T;
@@ -73,14 +74,17 @@ export function bootstrapApp(options: BootstrapOptions = {}): void {
   const config = loadFixture<{ settings: never }>(`public/conf/${configName}.json`);
   const model = loadFixture(`public/models/${modelName}.json`);
 
-  const newConf = new Settings((config as { settings: never }).settings as never);
-  newConf.canvasTypes = [
+  const canvasTypes: [string, string][] = [
     ['Preseed Canvas', 'preseed'],
     ['Business Model Canvas', 'bmcanvas'],
     ['Lean Canvas', 'leancanvas'],
   ];
+  const newConf = new Settings((config as { settings: never }).settings as never);
+  newConf.canvasTypes = canvasTypes;
   setConf(newConf);
   setApp(Application.create(config as never, model as never));
+  // Phase-2 store mirror — components use useStore(s => s.canvasTypes).
+  setCanvasTypes(canvasTypes);
 }
 
 /**

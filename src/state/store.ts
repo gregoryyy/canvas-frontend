@@ -13,7 +13,7 @@
  */
 
 import type { Analysis, Card, CardType, Cell, CanvasState, Meta } from '../types/canvas';
-import type { CanvasConfig } from '../types/config';
+import type { CanvasConfig, CanvasTypesList } from '../types/config';
 import { sanitizeJSON } from '../util/sanitize';
 
 const lsKey = 'preseedcanvas';
@@ -23,6 +23,12 @@ export interface AppState {
   cells: Cell[];
   analysis: Analysis | undefined;
   config: CanvasConfig | undefined;
+  /**
+   * List of all available canvas-type definitions ([name, file]). Populated
+   * once at bootstrap from `conf/configs.json`; doesn't reset on `init` or
+   * `changeType`.
+   */
+  canvasTypes: CanvasTypesList;
 }
 
 const emptyMeta: Meta = { title: '', canvas: '', version: '', date: '' };
@@ -32,6 +38,7 @@ let state: AppState = {
   cells: [],
   analysis: undefined,
   config: undefined,
+  canvasTypes: [],
 };
 
 type Listener = () => void;
@@ -63,11 +70,12 @@ function setState(updater: (s: AppState) => AppState): void {
  * pre-phase-2 Application.create → Canvas ctor path exactly.
  */
 export function init(config: CanvasConfig, content: CanvasState): void {
-  setState(() => ({
+  setState((s) => ({
     config,
     meta: { ...content.meta, canvas: config.meta.canvas },
     cells: cellsFromContent(config, content),
     analysis: content.analysis,
+    canvasTypes: s.canvasTypes,
   }));
 }
 
@@ -255,6 +263,16 @@ export function loadFromLs(title: string): CanvasState | undefined {
     analysis: content.analysis,
   }));
   return content;
+}
+
+/** Replace the list of available canvas types (bootstrap populates once). */
+export function setCanvasTypes(list: CanvasTypesList): void {
+  setState((s) => ({ ...s, canvasTypes: list }));
+}
+
+/** Wipe every saved canvas from localStorage. State in memory is untouched. */
+export function clearLocalStorage(): void {
+  localStorage.removeItem(lsKey);
 }
 
 /** Re-export types so phase-2 components can import from one place. */

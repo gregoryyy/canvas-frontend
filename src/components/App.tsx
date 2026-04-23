@@ -3,6 +3,7 @@ import { Canvas } from './Canvas';
 import { Controls } from './Controls';
 import { PostCanvas } from './PostCanvas';
 import { PreCanvas } from './PreCanvas';
+import { ToastContainer } from './ToastContainer';
 
 /**
  * Top-level composition. Subscribes to the store for meta / cells / analysis
@@ -32,6 +33,7 @@ export function App() {
         display={layout.postcanvas === 'yes'}
       />
       <Controls config={config} />
+      <ToastContainer />
     </>
   );
 }
