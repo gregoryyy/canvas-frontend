@@ -27,14 +27,19 @@ canvas-frontend/
 │   ├── app.ts              Application / Settings / Controls classes
 │   ├── context.ts          runtime app/conf/ctl holders (phase-1 workaround)
 │   ├── canvas/             Canvas, Cell, Card, PreCanvas, PostCanvas, DragState
+│   ├── components/         React components (phase 2)
 │   ├── scoring/formula.ts  hand-rolled parser for score formulas
+│   ├── state/              phase-2 store + persistence + useStore hook
 │   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
 │   └── util/               dom, sanitize, dragdrop, longpress, editable, overlay, svg, io, log
+├── styles/                 canvas.css, layout.css (app styling)
 ├── public/conf/            canvas-type JSON definitions (served as /conf/*.json)
 ├── public/models/          example/template canvas JSON (served as /models/*.json)
+├── public/global/          chrome assets (aurora, logo, scripts)
+├── public/fonts/           Montserrat font files
 ├── test/                   Vitest specs + helpers
-├── scripts/release.sh      build + publish dist/ into the parent site
-└── doc/                    ARCH.md, PLAN.md, DONE.md
+├── release.sh              build + publish dist/ into the parent site
+└── doc/                    ARCH.md, PLAN.md, DONE.md, TODO.md
 ```
 
 ## URL parameters
@@ -108,7 +113,7 @@ Specs live under `test/` (`*.test.ts`). jsdom is the default environment. `test/
 The canvas deploys as a vendored `dist/` snapshot inside the parent `unlost.ventures` site:
 
 ```bash
-scripts/release.sh ../unlost.ventures
+./release.sh ../unlost.ventures
 ```
 
 The script runs `npm run build`, clears the target `canvas/` directory, copies `dist/*`, and writes `canvas/VERSION` with the source commit hash. The parent-site commit is left to the maintainer (reviewable PR). See [doc/ARCH.md#deployment](doc/ARCH.md#deployment) for the full flow.

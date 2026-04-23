@@ -27,7 +27,10 @@
       "Bash(echo \"---vitest $?---\")",
       "Bash(echo \"eslint $?\")",
       "Bash(echo \"---tsc $?---\")",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(sed -i '' 's|scripts/release.sh|./release.sh|g' release.sh)",
+      "Bash(./release.sh)",
+      "Bash(./release.sh --help)"
     ]
   }
 }

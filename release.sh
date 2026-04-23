@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the canvas app and publish dist/ into the parent site's canvas/ dir.
 #
-#   scripts/release.sh <path-to-unlost.ventures> [--force]
+#   ./release.sh <path-to-unlost.ventures> [--force]
 #
 # Fails fast if the canvas repo has uncommitted changes or the target is not a
 # git repo. Does NOT commit or push on the target — the parent-site change is
@@ -30,7 +30,7 @@ for arg in "$@"; do
 done
 
 if [[ -z "$target" ]]; then
-  echo "usage: scripts/release.sh <path-to-unlost.ventures> [--force]" >&2
+  echo "usage: ./release.sh <path-to-unlost.ventures> [--force]" >&2
   exit 1
 fi
 

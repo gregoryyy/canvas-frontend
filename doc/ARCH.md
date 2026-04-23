@@ -141,7 +141,7 @@ The canvas source lives in its own repository (split in phase 1 M2). The parent 
 ```
 canvas repo ── npm run build ──► dist/
                                    │
-                                   │ scripts/release.sh (copy)
+                                   │ release.sh (copy)
                                    ▼
                  unlost.ventures/canvas/  ◄── vendored dist snapshot
                                    │
@@ -160,10 +160,10 @@ canvas repo ── npm run build ──► dist/
 
 ### Release script
 
-`scripts/release.sh` in the canvas repo handles the copy:
+`release.sh` in the canvas repo handles the copy:
 
 ```bash
-./scripts/release.sh ../path/to/unlost.ventures
+./release.sh ../path/to/unlost.ventures
 ```
 
 The script:
@@ -255,4 +255,4 @@ Canvas state never leaves the browser except as context in chat requests. Upload
 
 - **Patch preview UX.** Inline diff vs. side-by-side vs. "ghost cards." Resolved in phase 3.
 - **Upload file types.** PDF-only initially? Text extraction library choice (`pdf-parse`, `unpdf`, etc.).
-- **Release automation.** Manual `scripts/release.sh` invocation is the phase-1 default; a tag-triggered CI action that opens a PR against the parent site can be added later.
+- **Release automation.** Manual `release.sh` invocation is the phase-1 default; a tag-triggered CI action that opens a PR against the parent site can be added later.
