@@ -6,7 +6,7 @@ Cross-stack artifacts consumed by both [../frontend/](../frontend/) and [../back
 
 ## What belongs here
 
-### `patch.schema.json` (primary artifact — lands with backend 3B-a / frontend 3F-a)
+### `patch.schema.json` (primary artifact — lands with phase 3 M1)
 
 The `Patch` discriminated union as JSON Schema. The backend is the source of truth (Pydantic models in `../backend/src/canvas_ai/patches/schema.py`); this file is exported via `BaseModel.model_json_schema()` and checked in. The frontend regenerates Zod validators from it with `json-schema-to-zod` (or an equivalent codegen) as part of `npm run build`.
 

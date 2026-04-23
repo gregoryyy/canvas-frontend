@@ -18,11 +18,11 @@ The Preseed Canvas is the canonical canvas this app implements. The `model=canva
 
 - **URL:** [unlost.ventures/content/render.html?model=p2c](https://unlost.ventures/content/render.html?model=p2c)
 
-Pitch2Canvas is prior work in the same problem space as the phase-3 `pi-check` analyzer: taking a pitch deck and producing a filled canvas. It predates the current TS/React rewrite of the canvas and was built against the earlier ES-module version. Architectural takeaways worth carrying forward into pi-check (to be verified and elaborated when the 3F-e or 3B-c substage is scoped):
+Pitch2Canvas is prior work in the same problem space as the phase-3 `pi-check` analyzer: taking a pitch deck and producing a filled canvas. It predates the current TS/React rewrite of the canvas and was built against the earlier ES-module version. Architectural takeaways worth carrying forward into pi-check (to be verified and elaborated when the M3 `draft` milestone is scoped):
 
 - Deck → canvas as the primary use case, not deck → free-form summary.
 - Cell-by-cell drafting where each cell's `description` is a prompt slot (same principle as [../ARCH_AI.md#prompt-assembly](../ARCH_AI.md#prompt-assembly) codifies).
-- Separation of proposed content from applied content (the genesis of the patch-accept/reject UX in ARCH_AI.md and ARCH_FE.md).
+- Separation of proposed content from applied content (the genesis of the patch-accept/reject UX in [../ARCH_AI.md](../ARCH_AI.md)).
 
 Concrete p2c design notes, inputs/outputs, and any lessons learned should be imported here when they're revisited for the pi-check substage.
 

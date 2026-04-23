@@ -1,10 +1,12 @@
 # Architecture
 
-Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [design/](design/) (see [design/ROAD.md](design/ROAD.md) for the roadmap and [design/PLAN.md](design/PLAN.md) for the phase-3 frontend-only candidate plan).
+Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [design/](design/) (see [design/ROAD.md](design/ROAD.md) for the roadmap and [design/PLAN.md](design/PLAN.md) for the active phase-3 plan). The backend design is specified in [ARCH_AI.md](ARCH_AI.md). The browser-only alternative [design/ARCH_FE.md](design/ARCH_FE.md) is archived — not a tracked alternative.
 
 ## Overview
 
-Interactive, client-first canvas tool for structured strategy/analysis boards (Preseed, Lean, BMC, Product Vision, SWOT, TOWS). Canvas content lives in the browser; an optional backend provides LLM-assisted analysis via a chat sidebar that can write directly into the canvas.
+Interactive canvas tool for structured strategy/analysis boards. The **Preseed Canvas** is the primary surface; Lean, BMC, Product Vision, SWOT, and TOWS are deep-dive companions. The canvas itself is client-side (browser + `localStorage`). Phase 3 adds a Python + FastAPI **backend** that owns all AI-assisted work — PDF extraction, RAG, LLM proxy, analyze pipelines — accessed via a chat sidebar that can propose structured patches the user accepts or rejects.
+
+The primary workflow is *upload a pitch deck → draft a Preseed Canvas → drill into companion canvases*. The architecture is backend-first; the frontend talks to the backend over HTTP and does not duplicate server-side work in the browser.
 
 ## System diagram
 
@@ -34,7 +36,7 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
                 POST /api/chat     │  { canvas, history, message }
                 POST /api/upload   │ (multipart)
                                    ▼
-┌── Backend (phase 3, optional) ──────────────────┐      ┌── LLM provider ──┐
+┌── Backend (phase 3) ────────────────────────────┐      ┌── LLM provider ──┐
 │  FastAPI (Python)                               │      │                  │
 │  ├─ /api/chat    → prompt assembly → LLM client ┼─────►│ OpenAI-compatible│
 │  ├─ /api/upload  → text extract → context store │◄─────┤ OpenAI | Ollama  │
@@ -43,7 +45,7 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
 ```
 
 - Phases 1–2 are everything **above** the dashed boundary — the browser, the store, localStorage, static config/model fetches. This is the entire app until phase 3.
-- Phase 3 adds the ChatSidebar, the backend, and the LLM provider. Canvas state is still owned by the browser store; the backend only sees canvas snapshots sent as chat context and returns patches that the user explicitly accepts.
+- Phase 3 adds the ChatSidebar, the backend, and the LLM provider. Canvas state is still owned by the browser store; the backend only sees canvas snapshots sent as chat context, and it owns PDF extraction, RAG, and analyze pipelines. Patches returned by the backend are surfaced in the UI and applied only on explicit user acceptance.
 
 ## Principles
 
@@ -65,7 +67,7 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
 | Linting       | ESLint + TypeScript ESLint, Prettier                     |
 | Sanitization  | DOMPurify (npm)                                          |
 | SVG export    | html-to-image (npm)                                      |
-| Backend       | Python + FastAPI, optional, phase 3                      |
+| Backend       | Python + FastAPI, phase 3 (required for AI features)     |
 | LLM API       | OpenAI-compatible chat completions (OpenAI or Ollama)    |
 
 ## Repository layout
@@ -131,7 +133,7 @@ frontend/
 │   │   ├── sanitize.ts
 │   │   ├── svg.ts            # convertDivToSvg
 │   │   └── io.ts             # loadJson, download/upload LS
-│   ├── ai/                   # phase 3 — see doc/design/ARCH_FE.md
+│   ├── ai/                   # phase 3 — thin client for the backend (see ARCH_AI.md)
 │   └── styles/               # canvas.css, layout.css
 ├── public/
 │   ├── conf/                 # canvas type definitions (unchanged)
@@ -210,9 +212,11 @@ A bad canvas release is reverted by reverting the parent-site commit that bumped
 
 ### Role
 
-Thin proxy from the frontend chat sidebar to an OpenAI-compatible LLM endpoint, plus a file-upload endpoint for documents (pitch decks, etc.) that are passed to the LLM as context.
+The backend owns the AI side of the app: LLM proxy, PDF / document ingestion, RAG (chunking, embedding, retrieval), and the analyze pipelines (draft, critique, side-docs). The frontend is a lean client that renders canvas, chat, and patch-preview UI, and sends the current canvas as context on each request.
 
-The backend does **not** own canvas state. The frontend sends the current canvas as part of each chat turn; the backend returns (a) a chat reply and (b) optional structured patches that the frontend applies to cells.
+The backend does **not** own canvas state. Canvas content lives in the browser (`localStorage`); the backend only sees snapshots sent as request context. Uploaded documents are stored per-session in the backend (in-memory, TTL-evicted) and are discarded when the session expires.
+
+Full backend design, API, and prompt architecture: [ARCH_AI.md](ARCH_AI.md).
 
 ### Shape
 

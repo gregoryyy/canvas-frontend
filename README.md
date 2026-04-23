@@ -6,11 +6,11 @@ Client-only app. Canvas state lives in `localStorage`; JSON import/export is sup
 
 **Project scope.** Monorepo with two stacks:
 
-- **`frontend/`** — the always-usable browser app (TypeScript + React + Vite). Phases 1–2 **complete**. This is everything the user sees today.
-- **`backend/`** — optional Python + FastAPI service that adds LLM-assisted analysis. Primary workflow: **pitch-deck ingestion → draft a Preseed Canvas → drill into companion canvases** for deep dives. Capabilities: chat sidebar, PDF uploads, RAG retrieval, pi-check analyzer. Phase 3, **skeleton only** — `pyproject.toml`, `.env.example`, and an empty package under `src/canvas_ai/`. Design in [doc/ARCH_AI.md](doc/ARCH_AI.md); the active phase-3 plan is in [doc/design/PLAN.md](doc/design/PLAN.md).
+- **`frontend/`** — the browser app (TypeScript + React + Vite). Phases 1–2 **complete**. The canvas itself works standalone; AI features (added in phase 3) require the backend.
+- **`backend/`** — Python + FastAPI service that owns the AI side: PDF extraction, RAG, LLM proxy, analyze pipelines. Primary workflow: **pitch-deck ingestion → draft a Preseed Canvas → drill into companion canvases** for deep dives. Phase 3, **skeleton only** — `pyproject.toml`, `.env.example`, and an empty package under `src/canvas_ai/`. Design in [doc/ARCH_AI.md](doc/ARCH_AI.md); the active phase-3 plan is in [doc/design/PLAN.md](doc/design/PLAN.md).
 - **`shared/`** — cross-stack artifacts (patch schema, test fixtures). Placeholder until the first phase-3 substage lands; see [shared/README.md](shared/README.md).
 
-The frontend is fully usable with no backend configured; an alternative all-in-browser design (no backend at all, user brings their own LLM provider) is tracked in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) and [doc/design/PLAN.md](doc/design/PLAN.md).
+Phase 3 is **backend-first by design**. The browser-only alternative sketched in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) is archived — not a tracked alternative, not a fallback. Lean server-sided logic: PDF extraction, embeddings, RAG, and LLM orchestration live on the backend; the frontend stays light and talks to it over HTTP.
 
 Stacks at a glance:
 
@@ -40,7 +40,7 @@ cp .env.example .env       # set OPENAI_BASE_URL, OPENAI_API_KEY, MODEL, CORS_OR
 uv run uvicorn canvas_ai.server:app --reload --port 8000
 ```
 
-Not runnable yet — first real code lands with phase 3B-a. See [backend/README.md](backend/README.md).
+Not runnable yet — first real code lands with phase 3 M1. See [backend/README.md](backend/README.md) and [doc/design/PLAN.md](doc/design/PLAN.md) for the milestone plan.
 
 ## Project layout
 

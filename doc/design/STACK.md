@@ -118,7 +118,7 @@ No stack wins on all seven. The ranking above — with PDF extraction and growth
 
 - **Zero-ops.** Fits the frontend-first ethos of this project; deploys in seconds.
 - **TS-native.** Workers is TypeScript in practice.
-- **Already in the architecture.** The [frontend-only design's](ARCH_FE.md#the-cors-problem) CORS proxy for cloud LLM providers is a Cloudflare Worker. Extending that into a thin "backend" is natural.
+- **Familiar territory.** Edge platforms are often where a small backend starts, especially when the rest of the stack is frontend-leaning.
 - **Global latency.** Edge-local execution.
 
 **Cons:**

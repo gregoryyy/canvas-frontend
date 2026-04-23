@@ -2,7 +2,9 @@
 
 Longer-term direction beyond the active plan in [PLAN.md](PLAN.md). Items here are not committed and not scheduled; they get promoted to PLAN.md when a milestone is decided. Organized by theme, not by date.
 
-The active plan ships frontend-only AI ([ARCH_FE.md](ARCH_FE.md)) in substages `3F-a` … `3F-e`. Most items below build on top of that base, or extend the canvas in directions that are independent of the AI track.
+The active plan ships **backend-first** AI (Python + FastAPI per [../ARCH_AI.md](../ARCH_AI.md)) in milestones M1 … M6 of phase 3. Most items below either extend the backend architecture with new capabilities or extend the canvas in directions that are independent of the AI track.
+
+The browser-only alternative sketched in [ARCH_FE.md](ARCH_FE.md) is **archived** — not a tracked alternative, not a fallback, not a later option. Items in this roadmap assume the backend exists.
 
 External references, prior art, and library pointers that inform these items are curated in [SOTA.md](SOTA.md). Link out to SOTA entries rather than duplicating context here.
 
@@ -10,16 +12,7 @@ External references, prior art, and library pointers that inform these items are
 
 ## AI & analysis
 
-### Backend track (`3B-*`)
-
-The full server-side design lives in [../ARCH_AI.md](../ARCH_AI.md). Promote to PLAN.md when one of the following becomes a real need:
-
-- **Web RAG against third-party sources.** LinkedIn profiles, Crunchbase, company websites, market reports. Browsers can't fetch these directly (third-party CORS); a backend with an outbound allowlist can.
-- **Cross-device or shared config.** Investor profiles edited by a partner, reused across machines.
-- **Server-side document extraction at scale.** Multi-hundred-page decks where in-browser PDF.js gets slow.
-- **Centralized cost / rate control.** When usage outgrows "single user, own keys."
-
-Substages mirror [../ARCH_AI.md#phasing-within-phase-3](../ARCH_AI.md#phasing-within-phase-3): chat proxy → uploads + doc RAG → pi-check → side-docs → web/profile RAG. Frontend treats the backend as one more "Custom backend" provider — the UI built in `3F-*` does not change.
+Several items below are listed as candidates in [PLAN.md M6](PLAN.md#milestones); they get promoted into PLAN as their own milestone when real demand justifies committing.
 
 ### LLM Wiki — local wikified context
 
@@ -66,7 +59,7 @@ An agentic mode that, given a canvas cell (or the canvas as a whole), runs a mul
 - **Knowledge target.** The user (or the framework) declares a target: "fill cell 4 to a confidence of at least X," or "until marginal information gain drops below Y." Without a target, open-ended agents drift and cost adds up; with one, the loop terminates.
 - **Confidence metric.** Per proposed patch, a structured self-assessment: coverage (did the sources address the cell's `description`?), source diversity, contradiction count, LLM's own calibrated uncertainty (via logprobs when available, or an `instructor`-style self-eval pass). The UI shows the score alongside the patch.
 - **Stopping rule.** Confidence reaches target, max step count, or budget cap — whichever comes first. The agent surfaces what it's *still* uncertain about as `:?` query cards rather than guessing.
-- **Dependencies.** Needs the LLM Wiki, RAG (docs + web + profile), and the patch/cite pipeline already in place. Natural addition at substage 3B-c or later.
+- **Dependencies.** Needs the LLM Wiki, RAG (docs + web + profile), and the patch/cite pipeline already in place. Natural addition at M6 or later, once the core pi-check pipeline (M3 / M4) is proven.
 - **Reference.** Related patterns in [SOTA.md](SOTA.md) (add: DeepResearch / agentic-search reference when scoped).
 
 ### GraphRAG + LLM Wiki for adaptive deep research
@@ -141,11 +134,11 @@ Items from [TODO.md](TODO.md) that pre-date phase 3 but remain relevant:
 
 ---
 
-## Backend integration (canvas storage, not AI)
+## Canvas storage backend (separate from AI backend)
 
-Independent of the AI backend (`3B-*`):
+Independent of the phase-3 AI backend ([../ARCH_AI.md](../ARCH_AI.md)), which handles LLM orchestration and RAG rather than canvas persistence:
 
-- **Upload / download canvases to/from a server.** Originally branched as `v1_1_2_upload` against `/devel/canvas-backend`. Useful for sharing analyses across devices or with collaborators. Single-user, no auth in v1; a token-auth gate later if multi-user materializes.
+- **Upload / download canvases to/from a server.** Originally branched as `v1_1_2_upload` against `/devel/canvas-backend`. Useful for sharing analyses across devices or with collaborators. Single-user, no auth in v1; a token-auth gate later if multi-user materializes. Could plausibly share the same Python + FastAPI service as the AI backend, or live as a second service — decide at promotion time.
 - **Compressed share-link.** Use `bzip2` or `fflate.js` to encode an entire canvas into a URL fragment for "send me your canvas" workflows without a server. (Originally noted as `v2`.)
 
 ---
@@ -153,7 +146,7 @@ Independent of the AI backend (`3B-*`):
 ## App distribution
 
 - **Webpage app.** The current `unlost.ventures/canvas/` deploy. No change planned; phase-1 release flow ([../ARCH.md#deployment](../ARCH.md#deployment)) is stable.
-- **iOS App Store / hybrid app.** Wrap the existing build in Capacitor or a lightweight WKWebView shell. Frontend-only architecture makes this nearly drop-in: `localStorage` works, the canvas UI is responsive, and the AI features (with Ollama as the obvious mismatch on iOS) point at cloud providers via the same proxy mechanism.
+- **iOS App Store / hybrid app.** Wrap the existing build in Capacitor or a lightweight WKWebView shell. The canvas itself is drop-in: `localStorage` works and the UI is responsive. AI features require the backend to be reachable — for a hosted deploy the app points at a public backend URL; for a local-only user the app won't surface AI. The backend-first architecture does not preclude this, but the backend must be hosted before an App Store release makes sense.
 - **Desktop app.** Tauri or Electron wrapper if the iOS path proves the value. Lower priority than mobile.
 
 ---

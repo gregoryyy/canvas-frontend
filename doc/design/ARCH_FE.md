@@ -1,4 +1,4 @@
-# Frontend-Only AI Architecture
+# Frontend-Only AI Architecture (archived)
 
 Alternative phase-3 design: AI assistance and (lightweight) RAG implemented **entirely in the browser**, with no canvas-specific backend. The user brings their own LLM provider — Ollama on localhost, an OpenAI-compatible API with their own key, or any compatible endpoint — and configures it through a settings page in the canvas itself.
 
