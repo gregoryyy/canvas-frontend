@@ -27,7 +27,7 @@ Both features share the same backend, the same patch protocol, and the same prov
 
 - **Frontend stays authoritative.** Backend reads canvas snapshots; it never owns or mutates state. Patches are *proposals*; the store applies them only on user accept.
 - **Provider-agnostic.** All LLM calls go through one OpenAI-compatible client. Swappable between OpenAI, Ollama, and any compatible proxy via `OPENAI_BASE_URL` + `MODEL`.
-- **Structured-first, prose-fallback.** The LLM is asked to emit `{ reply, patches }` JSON validated by Zod. If parsing fails, the reply is surfaced as plain text and the user is told no patches were proposed.
+- **Structured-first, prose-fallback.** The LLM is asked to emit `{ reply, patches }` JSON validated by Pydantic. If parsing fails, the reply is surfaced as plain text and the user is told no patches were proposed.
 - **Schema-driven prompts.** The canvas-type config (e.g. [public/conf/preseed.json](../public/conf/preseed.json)) is the source of truth for cell titles, subtitles, descriptions, and scoring rules. Prompts are templated against that schema so adding a canvas type does not require backend changes.
 - **Stateless apart from short-lived context.** Uploaded documents and chat history live in process memory keyed by a session-scoped `contextId` with a TTL. Restarting the backend does not lose canvas state (it never had it) and only loses in-flight uploads.
 - **Defensive on cost and context.** Token budgets are enforced server-side. Overflow triggers summarization, not silent truncation.
@@ -51,23 +51,23 @@ Both features share the same backend, the same patch protocol, and the same prov
      │ │  POST /api/rag        { query, sources[] }                         
      │ │  POST /api/analyze    { canvas, contextId, mode }                  
      ▼ ▼                                                                    
-┌── Backend (Fastify, TS) ─────────────────────────────────────────────┐    
+┌── Backend (FastAPI, Python) ─────────────────────────────────────────┐    
 │                                                                      │    
 │  routes/                                                             │    
-│    chat.ts       ─┐                                                  │    
-│    upload.ts     ─┤                                                  │    
-│    rag.ts        ─┼──►  PromptAssembler ──►  LlmClient ──►  Provider │    
-│    analyze.ts    ─┘            ▲                  │                  │    
+│    chat.py       ─┐                                                  │    
+│    upload.py     ─┤                                                  │    
+│    rag.py        ─┼──►  PromptAssembler ──►  LlmClient ──►  Provider │    
+│    analyze.py    ─┘            ▲                  │                  │    
 │                                │                  ▼                  │    
 │  context/      (TTL store)     │            ResponseParser           │    
-│    docs        uploaded files  │            (Zod: { reply, patches })│    
+│    docs        uploaded files  │          (Pydantic: reply, patches) │    
 │    sessions    chat histories  │                  │                  │    
 │                                │                  ▼                  │    
 │  rag/                          │            PatchValidator           │    
-│    extract.ts  PDF → text   ───┘            (against canvas schema)  │    
-│    web.ts      url → text                          │                 │    
-│    embed.ts    text → vec                          ▼                 │    
-│    search.ts   vec → snippets               { reply, patches[] }     │    
+│    extract.py  PDF → text   ───┘            (against canvas schema)  │    
+│    web.py      url → text                          │                 │    
+│    embed.py    text → vec                          ▼                 │    
+│    search.py   vec → snippets               { reply, patches[] }     │    
 │                                                                      │    
 └──────────────┬────────────────────┬───────────────────┬──────────────┘    
                ▼                    ▼                   ▼                   
@@ -85,54 +85,58 @@ The boxes inside Backend are the modules added by phase 3. The browser side is u
 
 ```
 backend/
-├── package.json
+├── pyproject.toml        # project metadata, deps (managed with uv / pip / poetry)
 ├── .env.example          # OPENAI_BASE_URL, OPENAI_API_KEY, MODEL,
 │                         # EMBED_BASE_URL?, EMBED_MODEL?,
 │                         # WEB_FETCH_ALLOWLIST, RATE_LIMIT_*,
 │                         # CONTEXT_TTL_MIN, MAX_INPUT_TOKENS
-├── src/
-│   ├── server.ts         # Fastify bootstrap, CORS, rate-limit, error map
-│   ├── config.ts         # env parsing + zod-validated config object
+├── src/canvas_ai/
+│   ├── server.py         # FastAPI app, CORS middleware, rate-limit, exception handlers
+│   ├── config.py         # pydantic-settings (env parsing + validation)
 │   ├── routes/
-│   │   ├── chat.ts       # POST /api/chat
-│   │   ├── upload.ts     # POST /api/upload
-│   │   ├── rag.ts        # POST /api/rag
-│   │   └── analyze.ts    # POST /api/analyze
+│   │   ├── chat.py       # POST /api/chat
+│   │   ├── upload.py     # POST /api/upload
+│   │   ├── rag.py        # POST /api/rag
+│   │   └── analyze.py    # POST /api/analyze
 │   ├── llm/
-│   │   ├── client.ts     # OpenAI-compatible client; streaming + non-stream
-│   │   ├── tokens.ts     # tokenizer + budget enforcement
-│   │   └── parse.ts      # JSON-mode parsing + Zod validation, fallback
+│   │   ├── client.py     # OpenAI-compatible client; streaming + non-stream
+│   │   ├── tokens.py     # tokenizer (tiktoken) + budget enforcement
+│   │   └── parse.py      # JSON-mode parsing + Pydantic validation, fallback
 │   ├── prompts/
-│   │   ├── system.ts     # base system prompt (role, output contract)
-│   │   ├── canvas.ts     # canvas-schema → prompt fragment
-│   │   ├── chat.ts       # chat turn assembly
-│   │   └── analyze.ts    # pi-check pipeline prompts (per phase, see below)
+│   │   ├── system.py     # base system prompt (role, output contract)
+│   │   ├── canvas.py     # canvas-schema → prompt fragment
+│   │   ├── chat.py       # chat turn assembly
+│   │   └── analyze.py    # pi-check pipeline prompts (per phase, see below)
 │   ├── rag/
-│   │   ├── extract.ts    # PDF/DOCX/TXT → text + page metadata
-│   │   ├── chunk.ts      # text → chunks (page-aware)
-│   │   ├── embed.ts      # chunks → vectors (provider-agnostic)
-│   │   ├── store.ts      # in-process vector index (hnswlib-node or sqlite-vec)
-│   │   ├── web.ts        # URL fetch (allowlist) + readability extract
-│   │   └── search.ts     # query → top-k snippets with source attribution
+│   │   ├── extract.py    # PDF (pdfplumber / pymupdf) / DOCX / TXT → text + page metadata
+│   │   ├── chunk.py      # text → chunks (page-aware)
+│   │   ├── embed.py      # chunks → vectors (provider-agnostic)
+│   │   ├── store.py      # in-process vector index (hnswlib or chromadb)
+│   │   ├── web.py        # URL fetch (allowlist) + trafilatura / readability extract
+│   │   └── search.py     # query → top-k snippets with source attribution
 │   ├── context/
-│   │   ├── docs.ts       # uploaded-doc store, contextId → DocBundle
-│   │   └── sessions.ts   # chat history per session, optional
+│   │   ├── docs.py       # uploaded-doc store, contextId → DocBundle
+│   │   └── sessions.py   # chat history per session, optional
 │   ├── patches/
-│   │   ├── schema.ts     # Zod schema for the Patch union
-│   │   └── validate.ts   # patch ↔ canvas-schema cross-check
+│   │   ├── schema.py     # Pydantic discriminated union for Patch
+│   │   └── validate.py   # patch ↔ canvas-schema cross-check
 │   ├── providers/        # investor-profile / hypothesis store (file-backed)
-│   │   └── profile.ts
+│   │   └── profile.py
 │   └── analyze/
-│       ├── pipeline.ts   # orchestrates extract → categorize → draft → score
-│       └── side_docs.ts  # SWOT, TOWS, 5-Forces, 7-Powers generators
-└── test/                 # vitest specs, mocked LLM client
+│       ├── pipeline.py   # orchestrates extract → categorize → draft → score
+│       └── side_docs.py  # SWOT, TOWS, 5-Forces, 7-Powers generators
+└── tests/                # pytest specs, mocked LLM client
 ```
+
+Tooling: `uv` for dependency/env management (alternative: `poetry` or plain `pip` + `venv`), `ruff` for lint and format, `mypy` or `pyright` for static typing, `pytest` for tests, `uvicorn` as the ASGI server.
 
 ---
 
 ## Public API
 
 All endpoints are JSON in / JSON out unless noted. Errors return `{ error: { code, message, details? } }` with appropriate HTTP status. CORS is locked to the canvas origin(s) by config.
+
+Request / response shapes below are shown in TypeScript — they are the wire contract, and the frontend already has these types. The backend defines the equivalent Pydantic models in `patches/schema.py` and the route-handler signatures; `schema.py` is the single source of truth on the server side. Keeping the two in sync is a code-review discipline, aided optionally by a small codegen step (e.g. `datamodel-code-generator` from a shared JSON Schema export) — see [design/STACK.md](design/STACK.md).
 
 ### `POST /api/chat`
 
@@ -232,7 +236,7 @@ type Patch =
   | { op: 'setMeta';    field: 'title' | 'description'; value: string; rationale?: string }
 ```
 
-**Validation rules** (enforced server-side in `patches/validate.ts` before the response leaves the backend; the frontend revalidates on receive):
+**Validation rules** (enforced server-side in `patches/validate.py` before the response leaves the backend; the frontend revalidates on receive):
 
 - `cellId` must exist in the current `canvasConfig.canvas[].id`.
 - `cardIndex` for `update` / `remove` must be in range against the *snapshot the request was made on*. Stale indices are dropped with a warning in `reply`, not auto-rebased.
@@ -250,9 +254,9 @@ type Patch =
 
 Each LLM call is built from four ingredients, in order:
 
-1. **System prompt** ([prompts/system.ts](#)). Defines the role ("you are a startup analyst working with a canvas-based framework"), the output contract (always `{ reply, patches }` JSON), and the safety rules (never invent citations, never propose patches outside the provided schema, prefer asking a question over guessing).
+1. **System prompt** ([prompts/system.py](#)). Defines the role ("you are a startup analyst working with a canvas-based framework"), the output contract (always `{ reply, patches }` JSON), and the safety rules (never invent citations, never propose patches outside the provided schema, prefer asking a question over guessing).
 
-2. **Canvas schema fragment** ([prompts/canvas.ts](#)). Generated from `canvasConfig`:
+2. **Canvas schema fragment** ([prompts/canvas.py](#)). Generated from `canvasConfig`:
    - For each cell: `id`, `title`, `subtitle`, `description` — these are the prompt slots that tell the LLM what content belongs in that cell.
    - Scoring rules summarized when relevant.
    - Card-type vocabulary (`:?` query, `:!` warning, `:=` analysis, `:*` highlight, `:-` deemphasis).
@@ -263,13 +267,13 @@ Each LLM call is built from four ingredients, in order:
 
 5. **RAG block** (optional). Top-k snippets retrieved for the query, each tagged with a `[citeN]` marker so the LLM can cite them in `cite[]` of patches.
 
-Assembly is budget-aware: `llm/tokens.ts` measures each fragment, and the assembler trims in a fixed order (history → cell content overflow → RAG snippets → canvas description) until it fits `MAX_INPUT_TOKENS`. The trim log is returned to the caller in `usage` for debugging, never silently swallowed.
+Assembly is budget-aware: `llm/tokens.py` measures each fragment with `tiktoken` (OpenAI models) or a model-specific tokenizer, and the assembler trims in a fixed order (history → cell content overflow → RAG snippets → canvas description) until it fits `MAX_INPUT_TOKENS`. The trim log is returned to the caller in `usage` for debugging, never silently swallowed.
 
 ---
 
 ## RAG architecture
 
-The [TODO.md pi-check sketch](future/TODO.md#preseed-analyzer-pi-check) lists three RAG source classes: uploaded documents, external web facts (LinkedIn, company sites, market reports), and investor-specific hypotheses. The backend treats each as a separate `RagSource` with its own retriever, but they share the same embedding model and the same snippet shape.
+The [TODO.md pi-check sketch](design/TODO.md#preseed-analyzer-pi-check) lists three RAG source classes: uploaded documents, external web facts (LinkedIn, company sites, market reports), and investor-specific hypotheses. The backend treats each as a separate `RagSource` with its own retriever, but they share the same embedding model and the same snippet shape.
 
 ### `RagSource = 'docs' | 'web' | 'profile'`
 
@@ -283,20 +287,21 @@ The [TODO.md pi-check sketch](future/TODO.md#preseed-analyzer-pi-check) lists th
 
 Triggered by `/api/upload`:
 
-1. **Extract.** PDF → text via `unpdf` (preferred — pure JS, no native deps) with per-page boundaries preserved. DOCX via `mammoth`. Text/markdown passes through.
+1. **Extract.** PDF → text via `pdfplumber` (default, MIT-licensed, good layout + table handling) or `pymupdf` (faster, AGPL — opt-in), with per-page boundaries preserved. DOCX via `python-docx`. Text/markdown passes through. `unstructured` is available as an opt-in for mixed-format decks.
 2. **Chunk.** Page-aware sliding window: ~500 tokens, 100 overlap, never crosses a page boundary so citations stay accurate.
-3. **Embed.** Through the `EMBED_*` config — defaults to OpenAI `text-embedding-3-small` if unset, but Ollama / `nomic-embed-text` is supported by pointing `EMBED_BASE_URL` at it. Local-first deployments run both LLM and embeddings against Ollama with no external calls.
-4. **Index.** In-process via `hnswlib-node` (fast, no extra service). Index lives inside the `DocBundle` and dies with the `contextId` TTL.
-5. **Search.** At chat time, the user message + a synthesized "what facts about <cell.title> are needed" query (one per affected cell) drives top-k retrieval. Retrieved snippets are deduplicated and budget-trimmed.
+3. **Embed.** Through the `EMBED_*` config — defaults to OpenAI `text-embedding-3-small` if unset, but Ollama / `nomic-embed-text` is supported by pointing `EMBED_BASE_URL` at it. Local-first deployments run both LLM and embeddings against Ollama with no external calls. `sentence-transformers` is available as a pure-Python fallback (e.g. `BAAI/bge-small-en-v1.5`) when no embedding endpoint is reachable.
+4. **Index.** In-process via `hnswlib` (Python bindings; fast, no extra service) or `chromadb` (persistable, more features, heavier). Index lives inside the `DocBundle` and dies with the `contextId` TTL.
+5. **Search.** At chat time, the user message + a synthesized "what facts about <cell.title> are needed" query (one per affected cell) drives top-k retrieval. A `rank_bm25` keyword pass runs alongside for rare-term recall. Retrieved snippets are deduplicated and budget-trimmed.
 
 ### Web RAG (`web`)
 
 For market reports, company webpages, and competition lookups. Live fetch only — no crawling, no persistent index.
 
 - **Allowlist.** `WEB_FETCH_ALLOWLIST` env var (`linkedin.com,crunchbase.com,...`) gates outbound fetches. Empty allowlist disables web RAG entirely.
-- **Extraction.** `@mozilla/readability` + `jsdom` for clean main-content extraction; raw HTML stripped.
+- **Extraction.** `trafilatura` (primary — handles varied layouts well and strips boilerplate) with `readability-lxml` as a fallback. Raw HTML stripped.
+- **Fetching.** `httpx` async client with per-request timeout and retry caps.
 - **No background fetching.** Only triggered by explicit `ragSources: ['web']` in a chat request, and only against URLs the user (or a previous assistant turn) has provided. The backend does not "search the web."
-- **Caching.** Per-process LRU keyed by URL with a 1-hour TTL — avoids hammering the same page during an analyzer run.
+- **Caching.** Per-process LRU (via `cachetools`) keyed by URL with a 1-hour TTL — avoids hammering the same page during an analyzer run.
 
 ### Profile RAG (`profile`)
 
@@ -349,21 +354,21 @@ For all three modes, `options.stream: true` opens an SSE channel and emits `prog
 
 ## Provider abstraction
 
-Single interface in [llm/client.ts](#):
+Single interface in [llm/client.py](#):
 
-```ts
-interface LlmClient {
-  chat(req: ChatRequest, opts?: { stream?: boolean }): Promise<ChatResponse>;
-  embed(texts: string[]): Promise<number[][]>;
-}
+```python
+class LlmClient(Protocol):
+    async def chat(self, req: ChatRequest, *, stream: bool = False) -> ChatResponse: ...
+    async def embed(self, texts: list[str]) -> list[list[float]]: ...
 ```
 
-Implemented once over the OpenAI Chat Completions + Embeddings APIs. Provider differences (Ollama's lack of a real JSON mode, OpenAI's strict mode, Anthropic-compatible proxies that reorder fields) are handled inside this module, not at call sites.
+Implemented once over the OpenAI Chat Completions + Embeddings APIs using the official `openai` Python SDK (the async client works against any OpenAI-compatible base URL, including Ollama and LM Studio). Provider differences (Ollama's lack of a real JSON mode, OpenAI's strict mode, Anthropic-compatible proxies that reorder fields) are handled inside this module, not at call sites.
 
 **JSON-mode handling:**
-- OpenAI: `response_format: { type: 'json_object' }` — strict.
-- Ollama: `format: 'json'` — best-effort, often produces extra prose around the JSON. Parser strips with a brace-balanced scan.
+- OpenAI: `response_format={"type": "json_object"}` — strict.
+- Ollama: `extra_body={"format": "json"}` — best-effort, often produces extra prose around the JSON. Parser strips with a brace-balanced scan.
 - Anthropic via proxy: tool-use trick or prompt-only — config flag selects.
+- Optional: `instructor` can wrap the client for Pydantic-native structured outputs when the model supports tool-use.
 
 **Failure modes:**
 - Network/5xx from provider → backend returns `502` with `error.code: 'provider_unavailable'`.
@@ -374,7 +379,7 @@ Implemented once over the OpenAI Chat Completions + Embeddings APIs. Provider di
 
 ## Configuration
 
-`backend/.env.example` documents every variable. Effective config is parsed and zod-validated at startup; bad config crashes with a clear message rather than failing at first request.
+`backend/.env.example` documents every variable. Effective config is parsed and validated by `pydantic-settings` at startup; bad config crashes with a clear message rather than failing at first request.
 
 | Var                       | Default                       | Purpose                                 |
 |---------------------------|-------------------------------|-----------------------------------------|
@@ -423,7 +428,7 @@ Each substage is independently shippable: 3a alone is a useful chat assistant; 3
 
 ## Open questions
 
-- **Vector index choice.** `hnswlib-node` (native binding, fast) vs `sqlite-vec` (zero deps, persistable). Default is `hnswlib-node` for speed; revisit if persistence across restarts becomes a need.
+- **Vector index choice.** `hnswlib` (Python bindings; fast, in-memory only) vs `chromadb` (persistable, more features, heavier) vs `faiss` (Meta's library; fastest but C++ binding hassle). Default is `hnswlib` for speed and zero ops; revisit if persistence across restarts becomes a need.
 - **Streaming UX for analyze.** Show patches arriving live (richer feedback, more UI work) vs. all-at-once with a progress spinner (simpler). Lean toward all-at-once in 3c, add streaming in a later iteration.
 - **Side-doc storage.** Side-docs returned by `/api/analyze` are currently view-only on the frontend. Persisting them requires a decision on whether they live in `localStorage` alongside the canvas or a separate slot.
 - **Profile management UI.** Profiles are file-backed and edited by hand in v1. A profile editor in the frontend is plausible but not in scope until 3e ships and the format stabilizes.
@@ -432,150 +437,8 @@ Each substage is independently shippable: 3a alone is a useful chat assistant; 3
 
 ---
 
-## Appendix A — Stack choice: TypeScript vs. Python vs. others
+## Stack choice
 
-This document specifies Node + TypeScript + Fastify. That choice is neither obvious nor forced; most of the backend's work (PDF extraction, embeddings, vector search, prompt assembly) has a stronger ecosystem in Python. The decision came down to the project's specific shape — one developer, a TypeScript frontend, and a patch protocol that wants to be validated identically on both sides of the wire. This appendix records the tradeoffs so that a future reader (or a future maintainer considering a rewrite) can re-run the decision against changed circumstances.
+See [design/STACK.md](design/STACK.md) for the full pros/cons comparison of Python vs. TypeScript vs. Rust / Go / edge runtimes, the weighted decision matrix, and the triggers that would prompt revisiting the choice.
 
-### Decision criteria
-
-What the backend actually does, ranked by weight in the choice:
-
-1. **Share the patch schema with the frontend.** The Zod schema in [patches/schema.ts](#) is the contract between client and server. Re-authoring it in a different language creates drift risk.
-2. **Extract text from PDFs reliably.** The first non-trivial thing a deck upload needs.
-3. **Chunk, embed, and search vectors.** Core RAG loop.
-4. **Stream tokens through an SSE channel.** Chat UX depends on this feeling responsive.
-5. **Stay operationally small.** One-dev project; every new language, runtime, or toolchain added is a tax paid forever.
-6. **Leave room for growth.** If pi-check grows into batch evals, finetuning, or custom retrieval math, which ecosystem pays off?
-
-No stack wins on all six. The ranking above is what tipped Node/TS.
-
-### TypeScript + Node + Fastify (the chosen stack)
-
-**Pros:**
-
-- **Literal type sharing with the frontend.** Zod schemas, `Patch`, `CanvasState`, `CanvasConfig`, `CardType` import unchanged from the canvas repo (or from a tiny shared package). The client parses what the server sends with the same validator the server wrote it with. This is the strongest argument; the patch protocol is the heart of the integration and its schema lives in exactly one place.
-- **Identical sanitization.** DOMPurify runs both sides; the server-side defense-in-depth sanitize pass uses the same allow-list the frontend commits with.
-- **One-toolchain project.** Same `tsc`, same Vitest, same ESLint, same editor setup as the frontend. The developer context-switches between frontend and backend in the same language.
-- **OpenAI-compat ergonomics.** The `fetch`-based client is ~50 lines; SSE parsing is straightforward. JSON mode, streaming, and tool-use all work.
-- **Fast enough.** Single-user backend is latency-bound on LLM calls, not CPU-bound. Node keeps up with any reasonable throughput this project will see.
-- **Deployment simplicity.** `node dist/server.js` or a tiny Dockerfile. No virtualenv, no wheel caches, no Python-version drift.
-
-**Cons:**
-
-- **PDF extraction is the weakest link.** `pdfjs-dist` and `unpdf` cover clean machine-generated PDFs well, but scanned or complex decks benefit from the heavier Python tools (see below). Fallback: shell out to a Python PDF tool from Node, which negates much of the "one-toolchain" argument.
-- **Thinner ML/RAG ecosystem.** `hnswlib-node`, `@xenova/transformers`, `minisearch` cover v1. Anything deeper (re-rankers, custom tokenizers, evaluation harnesses, small local models not available in ONNX format) is a harder Node lift than a Python one.
-- **No native tensor library.** If retrieval math grows (cross-encoder re-ranking, hybrid-search learning-to-rank, local fine-grained scoring models), Node has no numpy-equivalent. Workarounds (WASM builds, ONNX runtime) exist but are friction.
-- **Smaller pool of RAG library choices.** Langchain.js and llamaindex-ts exist but lag their Python counterparts. Not a dealbreaker — this design intentionally avoids those frameworks — but it narrows options if a need emerges.
-
-### Python (FastAPI or Litestar)
-
-**Pros:**
-
-- **Best-in-class PDF extraction.** `pymupdf` (fitz), `pdfplumber`, `unstructured`, `pypdf` — multiple mature options, each with clear strengths (layout preservation, table extraction, OCR bridges). A complex deck extracts more cleanly here than anywhere else.
-- **The RAG/ML ecosystem.** `sentence-transformers`, `transformers`, `instructor`, `langchain`, `llamaindex`, `haystack`, `dspy`, `guidance` — whatever the design evolves toward, Python probably has a library. The frontend-only design's `@xenova/transformers` is a browser port of a Python-native project; Python gets the original.
-- **Structured outputs with Pydantic.** `instructor` (Pydantic + OpenAI) is arguably the cleanest structured-output experience in any language. A `Patch` as a Pydantic discriminated union is idiomatic and validates with the same ergonomics as Zod.
-- **Growth path.** If pi-check ever grows into evals, finetuning, scoring-model training, or anything with numpy/pandas in the critical path, the project is already in the right ecosystem. The frontier of LLM application tooling continues to appear in Python first.
-- **Local-model hosting.** If the backend ever wants to host a model itself (vLLM, llama-cpp-python, transformers), Python is the native path. Node's options (node-llama-cpp, ollama-js as client) are fine but thinner.
-- **FastAPI is excellent.** Type-hinted handlers, auto-generated OpenAPI, async I/O, Pydantic integration — comparable to Fastify's ergonomics, arguably better on the docs/validation axis.
-
-**Cons:**
-
-- **Two-language project.** The patch schema has to live twice: once as Zod in the frontend, once as Pydantic in the backend. Keeping them in sync is a code-review discipline problem. Code generation (Pydantic → TS via `datamodel-code-generator` + converters, or OpenAPI → TS) works but adds a build step and a source-of-truth question.
-- **No code sharing.** Sanitization, chunking, prompt-schema fragments — all duplicated or re-implemented.
-- **Heavier ops.** Virtualenv / `uv` / `poetry`, Python version pinning, separate lint/format toolchain (ruff + mypy), different CI shape. Each of these is small in isolation; together they are real.
-- **Cold starts are slower.** Python-on-Lambda, FastAPI-on-Cloud-Run — all measurably slower to cold-start than Node equivalents. Doesn't matter for a long-running single-user backend; matters if deployment ever goes serverless.
-- **Streaming SSE is workable but less idiomatic.** FastAPI's `StreamingResponse` does the job; it's not as clean as Node's `reply.raw.write`.
-- **Dependency weight.** `pymupdf` alone is ~50 MB; a Python RAG container easily hits 500 MB. Node containers are typically under 200 MB.
-
-### Rust (Axum or Actix)
-
-**Pros:**
-
-- **Fast, small, safe.** One binary, minimal memory, strong type system.
-- **Great for high-throughput.** Not the bottleneck here, but "free performance" is not nothing.
-- **Growing ML story.** `candle` (Hugging Face's Rust ML framework), `ort` (ONNX Runtime bindings), `tokenizers` (native Rust). Not at Python parity but trending.
-
-**Cons:**
-
-- **Smallest relevant ecosystem.** PDF extraction (`lopdf`, `pdf-extract`) lags Python and TS. Structured-output libraries exist (`serde` + hand-rolled validators) but nothing at Pydantic/Zod polish.
-- **Development speed is the bottleneck, not runtime speed.** Small feature-in-progress codebases pay a tax in compile times and borrow-checker ceremony for performance the project will not use.
-- **No type sharing with frontend.** `ts-rs` or similar tools bridge Rust structs to TS, but that's a build step and another source-of-truth question.
-- **Overkill.** Single-user backend, latency-bound on LLM calls. Rust's wins are invisible here.
-
-**When Rust would be the right call:** if the project ever grows into a multi-tenant service with tight latency SLOs and a stable feature set. Not phase 3.
-
-### Go (Gin / Echo / Chi)
-
-**Pros:**
-
-- **Simple and fast.** Small binary, good concurrency, clean stdlib.
-- **Operational ergonomics.** Single binary, easy cross-compile, easy deploy.
-- **Growing LLM tooling.** `langchaingo` exists; OpenAI-compat clients are straightforward.
-
-**Cons:**
-
-- **Generics are young.** Writing a clean discriminated-union `Patch` validator feels worse than in TS, Python, or Rust.
-- **Weakest PDF and RAG story of the mainstream options.** Existing libs are usable but not battle-tested.
-- **No type sharing with frontend.** Same build-step problem as Python/Rust.
-- **No compelling reason to pick this** over TS for this project's shape.
-
-### Deno / Bun (alt TypeScript runtimes)
-
-**Pros:**
-
-- **Same ecosystem as the chosen Node path**, with advantages per runtime: Deno ships TS natively with a permissions model; Bun has near-instant startup and a faster package manager.
-- **Drop-in for most of the design.** The `fetch`-based LLM client doesn't care; Fastify might; routing could be rewritten against each runtime's native HTTP server.
-
-**Cons:**
-
-- **Maturity gap in some deps.** `hnswlib-node` is a native binding; compatibility varies. `@xenova/transformers` works on all three.
-- **Operator unfamiliarity.** Adds a small tax to deployment if the hosting story is not already Deno/Bun-ready.
-
-**When to consider:** if cold-start or startup time becomes a real concern, Bun is worth a look. Not phase-3 urgent.
-
-### Edge / serverless-first (Cloudflare Workers, Vercel Edge, Deno Deploy)
-
-**Pros:**
-
-- **Zero-ops.** Fits the frontend-first ethos of this project; deploys in seconds.
-- **TS-native.** Workers is TypeScript in practice.
-- **Already in the architecture.** The [frontend-only design's](../future/ARCH_FE.md#the-cors-problem) CORS proxy for cloud LLM providers is a Cloudflare Worker. Extending that into a thin "backend" is natural.
-- **Global latency.** Edge-local execution.
-
-**Cons:**
-
-- **Memory and time caps.** Workers: 128 MB memory, 30s CPU on paid plans. PDF extraction of a large deck + embedding + index loading can blow past these.
-- **Stateful caches are awkward.** Uploaded-doc TTL store wants in-process memory; edge platforms force you into KV / R2 / D1 / Durable Objects for anything cross-request. Each is a new abstraction.
-- **Library compatibility.** Native modules (`hnswlib-node`) don't run. `pdfjs-dist` works but slowly. `@xenova/transformers` works but the WASM model load eats into the memory budget.
-- **Vendor lock-in.** Porting off Workers into a long-running server is non-trivial once Durable Objects or KV get involved.
-
-**When this is the right call:** if RAG ever moves fully to the client and the backend role shrinks to "authenticated proxy + occasional LLM call." Not a fit for the pi-check pipeline as specified.
-
-### Summary matrix
-
-Weights reflect this project's shape, not absolute merit.
-
-| Criterion (weight)                       | TS/Node     | Python      | Rust        | Go          | Edge        |
-|------------------------------------------|-------------|-------------|-------------|-------------|-------------|
-| Type-share with frontend (high)          | **best**    | poor        | poor        | poor        | best        |
-| PDF extraction quality (high)            | ok          | **best**    | weak        | weak        | ok          |
-| RAG library ecosystem (med)              | ok          | **best**    | weak        | weak        | ok          |
-| Structured-output ergonomics (high)      | **best**    | **best**    | ok          | weak        | best        |
-| Streaming SSE ergonomics (med)           | **best**    | ok          | ok          | ok          | good        |
-| Operational simplicity (med)             | **best**    | ok          | good        | good        | **best**    |
-| Dev velocity for small team (high)       | **best**    | good        | poor        | good        | good        |
-| Growth path (ML / evals / finetuning) (low) | ok       | **best**    | ok          | weak        | poor        |
-| Cold-start / deploy story (low)          | good        | ok          | **best**    | **best**    | **best**    |
-
-TypeScript loses on two cells (PDF extraction, growth-path ML). Both are real, neither is in the critical path for phase 3.
-
-### When to reconsider
-
-Concrete triggers that should prompt revisiting this decision:
-
-- **PDF extraction quality becomes a blocker.** If `unpdf` / `pdfjs-dist` misread a material fraction of real decks and a Python tool (likely `pymupdf`) reads them correctly, a Python extraction *service* called from the Node backend is the cheapest fix — not a full rewrite.
-- **Retrieval evolves beyond k-NN.** Cross-encoder re-ranking, learning-to-rank, or custom scoring models tip the ecosystem weight toward Python. A Python *sidecar* is still better than a rewrite; wholesale migration is only justified if multiple substages move that way.
-- **The project grows multi-user and SLO-bound.** Not a Python trigger — a Rust or Go trigger — and well out of phase-3 scope.
-- **Cost containment requires edge execution.** Unlikely given the single-user scope.
-
-The pattern across all of these: **add a specialist process for a specialist job, don't rewrite the whole backend.** TS/Node stays the right home for the orchestration, the type-shared patch protocol, and the chat/streaming path. If a specialist job emerges, shell out.
+Short version: Python wins on the three highest-weighted criteria (PDF extraction quality, RAG library ecosystem, growth path toward evals and scoring calibration). TypeScript would win on schema-sharing with the frontend; that advantage is real but ranks below the extraction/RAG work that dominates pi-check. Mitigation for the schema-drift cost: JSON-Schema export from Pydantic plus TS codegen from the JSON Schema, kept in CI — see STACK.md.

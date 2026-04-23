@@ -68,7 +68,7 @@ The 1:1 equivalence rule from phases 1–2 still applies to the existing canvas 
 │  │  providers/   client (OpenAI-compatible fetch wrapper)            │  │
 │  │               capabilities (declared per-provider)                │  │
 │  │  prompts/     system + canvas-schema + state + RAG fragments      │  │
-│  │  patches/     Zod schema + validator (shared with ARCH_AI.md)     │  │
+│  │  patches/     Zod schema + validator (mirrors ARCH_AI.md Pydantic)│  │
 │  │  rag/         extract (PDF.js) → chunk → embed → index → search   │  │
 │  │  embed/       provider | transformers.js (in-browser)             │  │
 │  │  parse/       JSON-mode + brace-balanced fallback                 │  │
@@ -112,7 +112,7 @@ src/
 │   │   ├── chat.ts
 │   │   └── analyze.ts
 │   ├── patches/
-│   │   ├── schema.ts             # Zod, identical to ARCH_AI.md
+│   │   ├── schema.ts             # Zod; same protocol as ARCH_AI.md (Pydantic on backend)
 │   │   └── validate.ts
 │   ├── parse.ts                  # JSON-mode + brace-balanced fallback
 │   ├── tokens.ts                 # tiktoken-lite (browser build) or heuristic
@@ -306,7 +306,7 @@ All four RAG stages run in browser modules. None requires a backend.
 
 ### Chunk
 
-Same page-aware sliding window as ARCH_AI.md (~500 tokens, 100 overlap, never crossing page boundaries). Implementation is shared with the backend version because it has no runtime dependencies.
+Same page-aware sliding window as ARCH_AI.md (~500 tokens, 100 overlap, never crossing page boundaries). Same algorithm, re-implemented in TS here since the backend is Python — the logic is small and dependency-free either way.
 
 ### Embed
 
@@ -330,7 +330,7 @@ Search is hybrid: dense top-k via the index, plus a BM25 pass (`minisearch` or h
 
 ## Patch protocol
 
-Identical to [ARCH_AI.md#patch-protocol](../ARCH_AI.md#patch-protocol). Same Zod schema, same `op` union, same validation rules, same `rationale` + `cite` carrying. Validation runs in the browser before patches reach the UI; the apply-side dispatches existing store actions just like in the backend design.
+Same protocol as [ARCH_AI.md#patch-protocol](../ARCH_AI.md#patch-protocol): same `op` union, same validation rules, same `rationale` + `cite` carrying. The frontend expresses it as a Zod schema; the backend expresses the same shape as a Pydantic discriminated union. Keeping the two in sync is a code-review discipline, with optional JSON-Schema codegen from Pydantic to TS as a CI backstop. Validation runs in the browser before patches reach the UI; the apply-side dispatches existing store actions just like in the backend design.
 
 This shared protocol is the reason the two architectures are not really competitors. A user could start with this frontend-only design, later deploy [ARCH_AI.md](../ARCH_AI.md)'s backend as one more provider, and nothing in the UI or store layer changes — the provider just happens to have richer capabilities (web RAG, server-side caching, persistent profiles).
 

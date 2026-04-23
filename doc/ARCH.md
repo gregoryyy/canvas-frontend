@@ -1,6 +1,6 @@
 # Architecture
 
-Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [future/](future/) (see [future/ROAD.md](future/ROAD.md) for the roadmap and [future/PLAN.md](future/PLAN.md) for the phase-3 frontend-only candidate plan).
+Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [design/](design/) (see [design/ROAD.md](design/ROAD.md) for the roadmap and [design/PLAN.md](design/PLAN.md) for the phase-3 frontend-only candidate plan).
 
 ## Overview
 
@@ -35,7 +35,7 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
                 POST /api/upload   │ (multipart)
                                    ▼
 ┌── Backend (phase 3, optional) ──────────────────┐      ┌── LLM provider ──┐
-│  Fastify (Node, TypeScript)                     │      │                  │
+│  FastAPI (Python)                               │      │                  │
 │  ├─ /api/chat    → prompt assembly → LLM client ┼─────►│ OpenAI-compatible│
 │  ├─ /api/upload  → text extract → context store │◄─────┤ OpenAI | Ollama  │
 │  └─ env: OPENAI_BASE_URL, OPENAI_API_KEY, MODEL │      │                  │
@@ -65,15 +65,41 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
 | Linting       | ESLint + TypeScript ESLint, Prettier                     |
 | Sanitization  | DOMPurify (npm)                                          |
 | SVG export    | html-to-image (npm)                                      |
-| Backend       | Node + Fastify (or Hono), optional, phase 3              |
+| Backend       | Python + FastAPI, optional, phase 3                      |
 | LLM API       | OpenAI-compatible chat completions (OpenAI or Ollama)    |
+
+## Repository layout
+
+Target is a monorepo with top-level `frontend/`, `backend/`, and `shared/` directories, plus a project-wide `doc/`:
+
+```
+preseed-canvas/
+├── frontend/         TS + React + Vite (this is the current repo root — to be moved under frontend/)
+├── backend/          Python + FastAPI (phase 3; not yet implemented)
+├── shared/           patch.schema.json, cross-stack fixtures, optionally canvas-type configs
+├── doc/              project-wide — ARCH.md (this file), ARCH_AI.md, design/, done/
+├── release.sh        build frontend/dist and publish into the parent site
+└── README.md
+```
+
+**Rationale.** Frontend and backend share two things that matter: the patch protocol ([ARCH_AI.md#patch-protocol](ARCH_AI.md#patch-protocol)) and the canvas-type configs ([public/conf/*.json](../public/conf/)). A monorepo makes both single-sourced:
+
+- **Patch schema in `shared/patch.schema.json`**, exported from the backend Pydantic models (`.model_json_schema()`), consumed by the frontend via Zod-from-JSON-Schema codegen. A protocol change is one commit touching both sides.
+- **Canvas-type configs** can stay in `frontend/public/conf/` (the frontend serves them to itself over HTTP) or move to `shared/canvas-types/` once the backend also reads them. Either way, one copy.
+- **One `doc/` tree, one `ROAD.md`, one issue tracker.** AI features cut across both sides; splitting their docs across repos creates coordination drag.
+
+**Why not separate repos.** Independent deploy and smaller clones are the usual polyrepo arguments; neither outweighs the coordination tax for a one-developer project where the two sides ship together. The patch protocol is the tightest coupling point in the whole system — keeping it in one commit-able place is worth more than repo-level isolation.
+
+**Why not a workspace manager (pnpm / Turborepo / Nx).** Those tools help when every workspace is the same language with the same package manager. TS + Python isn't — `npm` for the frontend and `uv` for the backend are each simpler than trying to wrap both in a polyglot workspace. Two plain top-level directories with their own `package.json` / `pyproject.toml` is the simplest thing that works.
+
+**Current state.** The repo still has the frontend files at the root (`index.html`, `src/`, `public/`, `test/`, `package.json`, `vite.config.ts`, etc.). Moving them under `frontend/` is a straightforward mechanical change when the backend is ready to land; paths in `release.sh` and any CI config need bumping.
 
 ## Frontend
 
-### Module layout (target)
+### Module layout (target — paths shown as they will appear under `frontend/`)
 
 ```
-canvas/
+frontend/
 ├── index.html                # Vite entry
 ├── vite.config.ts
 ├── tsconfig.json
@@ -105,12 +131,12 @@ canvas/
 │   │   ├── sanitize.ts
 │   │   ├── svg.ts            # convertDivToSvg
 │   │   └── io.ts             # loadJson, download/upload LS
+│   ├── ai/                   # phase 3 — see doc/design/ARCH_FE.md
 │   └── styles/               # canvas.css, layout.css
 ├── public/
 │   ├── conf/                 # canvas type definitions (unchanged)
 │   └── models/               # example/template content (unchanged)
-├── test/                     # Vitest specs
-└── doc/
+└── test/                     # Vitest specs
 ```
 
 ### State model
@@ -192,16 +218,16 @@ The backend does **not** own canvas state. The frontend sends the current canvas
 
 ```
 backend/
-├── package.json
-├── src/
-│   ├── server.ts             # Fastify app
+├── pyproject.toml
+├── src/canvas_ai/
+│   ├── server.py             # FastAPI app
 │   ├── routes/
-│   │   ├── chat.ts           # POST /api/chat
-│   │   └── upload.ts         # POST /api/upload
+│   │   ├── chat.py           # POST /api/chat
+│   │   └── upload.py         # POST /api/upload
 │   ├── llm/
-│   │   └── client.ts         # OpenAI-compatible client (baseURL + apiKey from env)
+│   │   └── client.py         # OpenAI-compatible client (base_url + api_key from env)
 │   └── prompts/
-│       └── canvas.ts         # system prompt, canvas-aware schema
+│       └── canvas.py         # system prompt, canvas-aware schema
 └── .env.example              # OPENAI_BASE_URL, OPENAI_API_KEY, MODEL
 ```
 

@@ -1,10 +1,12 @@
-# Unlost Preseed Canvas
+# Unlost Preseed Canvas — frontend
 
 Interactive browser-based canvas tool for structured strategy and analysis boards: Preseed Canvas, Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, TOWS.
 
-Client-only app. Canvas state lives in `localStorage`; JSON import/export is supported. An optional LLM-backed chat sidebar (phase 3, not yet implemented) will be able to write directly into cells.
+Client-only app. Canvas state lives in `localStorage`; JSON import/export is supported.
 
-Stack: TypeScript (strict), Vite, Vitest + jsdom. Phase 2 introduces React.
+**Project scope.** This repository holds the **frontend**. An optional **backend** (phase 3, not yet implemented) adds LLM-assisted analysis — see [doc/ARCH_AI.md](doc/ARCH_AI.md) for the design. The backend is expected to live in a sibling repository `canvas-backend/` (Python + FastAPI); its layout is sketched in [doc/ARCH.md#backend](doc/ARCH.md#backend) and detailed in [doc/ARCH_AI.md#backend-module-layout](doc/ARCH_AI.md#backend-module-layout). The frontend is fully usable with no backend configured; an alternative all-in-browser design (no backend at all, user brings their own LLM provider) is in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md).
+
+Frontend stack: TypeScript (strict), React, Vite, Vitest + jsdom.
 
 ## Getting started
 
@@ -19,29 +21,58 @@ npm run lint      # eslint
 
 ## Project layout
 
+Target is a **monorepo** with top-level `frontend/` and `backend/` directories plus a `shared/` directory for the cross-stack patch schema and fixtures. The current on-disk layout is pre-migration (frontend files at the repo root) and will be moved under `frontend/` when the backend lands. See [doc/ARCH.md#repository-layout](doc/ARCH.md#repository-layout) for the rationale.
+
 ```text
-canvas-frontend/
-├── index.html              Vite entry
-├── src/
-│   ├── main.tsx            bootstrap: loads model/config, mounts React roots, enables persistence
-│   ├── components/         App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, etc.
-│   ├── hooks/              useEditable, useLongPress, useDragDrop
-│   ├── state/              store, persistence, useStore
-│   ├── scoring/formula.ts  hand-rolled parser for score formulas
-│   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
-│   └── util/               dom, sanitize, io, log, svg
-├── public/                 Vite input to serve at / in dev, verbatim to dist/ at build
-│   ├── styles/             canvas.css, layout.css (app styling)
-│   ├── conf/               canvas-type JSON definitions (served as /conf/*.json)
-│   ├── models/             example/template canvas JSON (served as /models/*.json)
-│   ├── global/             chrome assets (aurora, logo, scripts; globals from parent page)
-│   └── fonts/              Montserrat font files
-├── test/                   Vitest specs + helpers
-├── release.sh              build + publish dist/ into the parent site
-└── doc/                    ARCH.md, ARCH_AI.md
-    ├── done/               completed-phase records (DONE.md, PLAN.md)
-    └── future/             roadmap and exploratory designs (ROAD.md, PLAN.md, ARCH_FE.md, TODO.md)
+preseed-canvas/                  monorepo root (repo currently named canvas-frontend)
+├── frontend/                    TS + React + Vite — current repo root moves here
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── index.html
+│   ├── src/
+│   │   ├── main.tsx
+│   │   ├── components/          App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, …
+│   │   ├── hooks/               useEditable, useLongPress, useDragDrop
+│   │   ├── state/               store, persistence, useStore
+│   │   ├── scoring/formula.ts   hand-rolled parser for score formulas
+│   │   ├── types/               Cell, Card, Meta, Settings, ScoringRule, …
+│   │   └── util/                dom, sanitize, io, log, svg
+│   │   (phase 3: src/ai/ adds provider client, prompts, patches, RAG — see doc/design/ARCH_FE.md)
+│   ├── public/
+│   │   ├── styles/              canvas.css, layout.css
+│   │   ├── conf/                canvas-type JSON definitions (served as /conf/*.json)
+│   │   ├── models/              example/template canvas JSON (served as /models/*.json)
+│   │   ├── global/              chrome assets (aurora, logo, fonts)
+│   │   └── fonts/               Montserrat font files
+│   └── test/                    Vitest specs + helpers
+├── backend/                     Python + FastAPI — phase 3, not yet implemented
+│   ├── pyproject.toml
+│   ├── .env.example
+│   ├── src/canvas_ai/           see doc/ARCH_AI.md#backend-module-layout
+│   └── tests/
+├── shared/                      cross-stack artifacts
+│   ├── patch.schema.json        exported from backend Pydantic; consumed by frontend Zod codegen
+│   ├── canvas-types/            (optional) public/conf/*.json moves here once backend reads them
+│   └── fixtures/                sample canvases for tests on both sides
+├── doc/                         project-wide docs
+│   ├── ARCH.md                  whole-project architecture
+│   ├── ARCH_AI.md               backend design (Python + FastAPI)
+│   ├── design/                  forward-looking (ROAD.md, PLAN.md, ARCH_FE.md, STACK.md, SOTA.md, TODO.md)
+│   └── done/                    completed-phase records (DONE.md, PLAN.md)
+├── release.sh                   build frontend/dist and publish into the parent site
+└── README.md
 ```
+
+**Pre-migration on-disk layout (what exists today):**
+
+```text
+canvas-frontend/                 will become preseed-canvas/frontend/
+├── index.html, src/, public/, test/, package.json, vite.config.ts, tsconfig.json, eslint.config.js, release.sh
+└── doc/                         stays at the monorepo root after the frontend move
+```
+
+**Why monorepo rather than separate repos.** The patch protocol and canvas-type configs are tightly coupled across frontend and backend. A single repo gives atomic commits for protocol changes, one source of truth for the canvas configs, and a shared `doc/`. A workspace manager like pnpm workspaces or Turborepo isn't used — those help when every workspace is one language, which TS + Python is not. Two plain top-level directories with their own package managers (`npm` for frontend, `uv` for backend) stay simple. Full rationale in [doc/ARCH.md#repository-layout](doc/ARCH.md#repository-layout).
 
 ## URL parameters
 

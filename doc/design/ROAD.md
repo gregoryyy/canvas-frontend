@@ -4,6 +4,8 @@ Longer-term direction beyond the active plan in [PLAN.md](PLAN.md). Items here a
 
 The active plan ships frontend-only AI ([ARCH_FE.md](ARCH_FE.md)) in substages `3F-a` … `3F-e`. Most items below build on top of that base, or extend the canvas in directions that are independent of the AI track.
 
+External references, prior art, and library pointers that inform these items are curated in [SOTA.md](SOTA.md). Link out to SOTA entries rather than duplicating context here.
+
 ---
 
 ## AI & analysis
@@ -56,6 +58,48 @@ Today's `pi-check critique` adds `:?` and `:!` cards. Future extensions:
 - **Cross-cell consistency checks.** "Cell 4 (Value Propositions) mentions enterprise customers, but Cell 5 (Go-to-Market) is bottom-up." Surface as a `:!` patch on Cell 5 with a cite to Cell 4.
 - **Implicit-claim surfacing.** Detect claims that the user has implied but not stated, and propose them as `:?` queries.
 - **Score-rationale reconciliation.** When the user-set score and the LLM's read of the cell content diverge, surface the gap.
+
+### Deep-research agent with confidence metric and knowledge target
+
+An agentic mode that, given a canvas cell (or the canvas as a whole), runs a multi-step research loop: identify what's unknown → formulate sub-queries → retrieve → synthesize → assess confidence → decide whether to keep searching or stop.
+
+- **Knowledge target.** The user (or the framework) declares a target: "fill cell 4 to a confidence of at least X," or "until marginal information gain drops below Y." Without a target, open-ended agents drift and cost adds up; with one, the loop terminates.
+- **Confidence metric.** Per proposed patch, a structured self-assessment: coverage (did the sources address the cell's `description`?), source diversity, contradiction count, LLM's own calibrated uncertainty (via logprobs when available, or an `instructor`-style self-eval pass). The UI shows the score alongside the patch.
+- **Stopping rule.** Confidence reaches target, max step count, or budget cap — whichever comes first. The agent surfaces what it's *still* uncertain about as `:?` query cards rather than guessing.
+- **Dependencies.** Needs the LLM Wiki, RAG (docs + web + profile), and the patch/cite pipeline already in place. Natural addition at substage 3B-c or later.
+- **Reference.** Related patterns in [SOTA.md](SOTA.md) (add: DeepResearch / agentic-search reference when scoped).
+
+### GraphRAG + LLM Wiki for adaptive deep research
+
+Extend the RAG stack from flat chunk retrieval to a graph-aware retrieval that composes with the LLM Wiki.
+
+- **Why graph.** Decks, wiki pages, and prior canvases reference entities (companies, markets, people, concepts). A knowledge graph over those entities lets the agent traverse relationships ("competitors of X", "investors in Y", "wiki concepts cited by this cell") instead of hoping cosine similarity surfaces the right chunks.
+- **Approach.** Entity extraction on ingest (NER + LLM-assisted linking), edge construction (co-occurrence + explicit references from the wiki), graph store (`networkx` in-process for v1; Neo4j or similar only if scale demands). Query time: RAG returns chunks *and* a small neighborhood subgraph; the prompt assembler inlines both.
+- **Adaptive.** The deep-research agent picks its next sub-query partly from the graph — "this entity has many outgoing edges I haven't explored" is a better signal than raw embedding distance.
+- **Relationship to LLM Wiki.** Wiki pages become first-class nodes. Karpathy's "ingest → wiki" operation (see [SOTA.md](SOTA.md)) extended to also grow the graph. Wiki and graph are the durable artifacts; chunks and vectors are derived.
+- **Scope warning.** Graph-RAG is a real rabbit hole. First test: does a bundle of ~30 deck pages benefit materially from graph traversal over flat hybrid retrieval? If not, defer.
+
+### Multimodal PDF analysis
+
+Pitch decks are visual: charts, screenshots, logos, hand-drawn diagrams, layout-meaningful slides. Text-only extraction loses information.
+
+- **Question.** Can the PDF be sent to the LLM provider directly — either as a file (OpenAI Files API, Anthropic PDF input) or as rendered page images via the vision endpoint — so the model sees the deck the way a human does? What's the quality gap vs. extract-then-text?
+- **Two paths to evaluate:**
+  1. **Provider-native.** OpenAI and Anthropic both accept PDFs or page images; the model handles extraction + interpretation in one call. Simpler, but ties the design to providers that support this and loses control over chunking/citation granularity.
+  2. **Local vision extraction.** Render pages to images (PyMuPDF / `pdf2image`), send to a vision model (GPT-4o, Claude, `llava`-class local) for caption + layout description, fold those captions alongside text chunks in the RAG index.
+- **Research tasks.** Benchmark extraction quality on a small set of real decks (text-only `pdfplumber` vs. provider-native PDF vs. vision-captioned hybrid). Measure: do cited claims in drafted patches correctly attribute to slides with visual-only content (e.g. a roadmap chart, a competitive quadrant)?
+- **Citation granularity.** Ensure the chosen approach still supports per-page citations for the patch `cite[]` protocol. Provider-native PDF handling sometimes returns only summary-level attributions.
+- **Cost.** Vision input is several-fold more expensive than text. Decide which path is the default and which is opt-in; the RAG settings page should surface the tradeoff.
+
+### Explainable decisions and scoring
+
+When the assistant proposes a patch or a score, surface *why* clearly enough that the user can trust, correct, or override without guessing the model's reasoning.
+
+- **Per-patch rationale, already in the protocol.** The `rationale` field on every `Patch` ([../ARCH_AI.md#patch-protocol](../ARCH_AI.md#patch-protocol)) is the basic affordance. Make sure every proposing code path fills it, and that the UI surfaces it under the diff preview.
+- **Per-patch cite, already in the protocol.** `cite[]` shows which RAG snippets (doc page, wiki entry, profile passage) the patch leans on. The diff preview renders these as expandable links into the source.
+- **Score decomposition.** For `setScore` patches, show the rubric anchor the score is closest to (see [Scoring calibration](#scoring-calibration)) plus the 1–2 cell-content facts that drove it. A score without an explanation is a worse UX than no score at all.
+- **"Why not higher / lower?" explanation.** Optional affordance: on a proposed score, the user clicks "why not 5?" and the assistant returns a structured comparison (what would have to be true in the cell content to justify 5). Cheap to implement on top of the scoring prompt.
+- **Decision log.** Every accepted/rejected patch is appended to a local log (markdown or JSON) with the rationale, the cites, and the user's action. Over time the log is useful both for user reflection and as input to [Scoring calibration](#scoring-calibration).
 
 ---
 
