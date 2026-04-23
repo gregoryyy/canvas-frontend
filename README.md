@@ -24,7 +24,7 @@ canvas-frontend/
 ├── index.html              Vite entry
 ├── src/
 │   ├── main.tsx            bootstrap: loads model/config, mounts React roots, enables persistence
-│   ├── components/         App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, Signature, HoverHelp, ConfirmStep, OverlayMenu, Toast, ToastContainer
+│   ├── components/         App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, etc.
 │   ├── hooks/              useEditable, useLongPress, useDragDrop
 │   ├── state/              store, persistence, useStore
 │   ├── scoring/formula.ts  hand-rolled parser for score formulas
@@ -38,7 +38,9 @@ canvas-frontend/
 │   └── fonts/              Montserrat font files
 ├── test/                   Vitest specs + helpers
 ├── release.sh              build + publish dist/ into the parent site
-└── doc/                    ARCH.md, PLAN.md, DONE.md, TODO.md
+└── doc/                    ARCH.md, ARCH_AI.md
+    ├── done/               completed-phase records (DONE.md, PLAN.md)
+    └── future/             roadmap and exploratory designs (ROAD.md, PLAN.md, ARCH_FE.md, TODO.md)
 ```
 
 ## URL parameters

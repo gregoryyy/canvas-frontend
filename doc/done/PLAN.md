@@ -1,6 +1,6 @@
 # Plan
 
-Migration plan from the current plain-ES-module app to the target in [ARCH.md](ARCH.md). Three phases, each shippable on its own.
+Migration plan from the current plain-ES-module app to the target in [ARCH.md](../ARCH.md). Three phases, each shippable on its own.
 
 ## Rule: 1:1 functional equivalence (phases 1–2)
 
@@ -106,7 +106,7 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 
 3. **Editable + drag/drop hooks**
    - `useEditable(ref, onCommit)` — wraps contenteditable + Enter-key handling (Enter inserts `<br><br>` via Selection/Range API, same as today) + sanitize-on-blur.
-   - `useDragDrop` — a direct port of the current `makeDraggable`/`makeDroppable` in [util.js:109-159](../util.js#L109-L159). Same HTML5 drag events, same `dragging`/`highlight` classes, same 500 ms long-press path, same drop-on-card-reorder vs drop-on-cell-append split. No drag-and-drop library — introducing one would change gesture behavior.
+   - `useDragDrop` — a direct port of the current `makeDraggable`/`makeDroppable` in [util.js:109-159](../../util.js#L109-L159). Same HTML5 drag events, same `dragging`/`highlight` classes, same 500 ms long-press path, same drop-on-card-reorder vs drop-on-cell-append split. No drag-and-drop library — introducing one would change gesture behavior.
    - `useLongPress(ref, callback, ms)` — direct port of `generateLongPressEvents` with the same 10 px movement cancel threshold.
 
 4. **Overlays and menus**
@@ -190,7 +190,7 @@ Phase 3 is additive — it introduces the chat sidebar, backend, and LLM integra
 
 ## Cross-cutting
 
-- **Repo topology.** After phase 1 M2, canvas source lives in a standalone repo. The unlost.ventures site repo retains a `canvas/` directory that holds *only* the built `dist/` output, updated via `scripts/release.sh`. See [ARCH.md#deployment](ARCH.md#deployment).
+- **Repo topology.** After phase 1 M2, canvas source lives in a standalone repo. The unlost.ventures site repo retains a `canvas/` directory that holds *only* the built `dist/` output, updated via `scripts/release.sh`. See [ARCH.md#deployment](../ARCH.md#deployment).
 - **Branching:** one branch per phase, merge only when its "done when" checklist is green.
 - **Docs:** update `README.md` at the end of each phase (build/run/test commands change in phase 1).
 - **Deprecations:** `canvas.html`, `canvas_test.html`, `network.js`, and the vendored `lib/` drop out during phase 1 M2; do not preserve them for back-compat.

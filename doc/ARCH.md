@@ -1,6 +1,6 @@
 # Architecture
 
-Target architecture for the Canvas app. Describes the end state after all phases; see [PLAN.md](PLAN.md) for the migration path.
+Target architecture for the Canvas app. Describes the end state after all phases. The migration path that produced phases 1 and 2 is archived in [done/PLAN.md](done/PLAN.md); forward-looking plans live in [future/](future/) (see [future/ROAD.md](future/ROAD.md) for the roadmap and [future/PLAN.md](future/PLAN.md) for the phase-3 frontend-only candidate plan).
 
 ## Overview
 
@@ -180,7 +180,7 @@ CI automation is out of scope for phase 1. A GitHub Action that triggers the rel
 
 A bad canvas release is reverted by reverting the parent-site commit that bumped `canvas/`. The previous canvas build is restored exactly because `dist/` contents are deterministic from the canvas repo commit recorded in `canvas/VERSION`.
 
-## Backend (phase 3, optional)
+## Backend
 
 ### Role
 
