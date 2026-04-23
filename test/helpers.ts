@@ -1,9 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { vi } from 'vitest';
-import { Application, Settings } from '../src/app';
-import { setApp, setConf } from '../src/context';
-import { setCanvasTypes } from '../src/state/store';
 
 export function loadFixture<T = unknown>(relativePath: string): T {
   return JSON.parse(readFileSync(resolve(relativePath), 'utf8')) as T;
@@ -22,11 +19,6 @@ export function installFetchMock(): void {
     const body = readFileSync(resolve('public', pathMatch[0]), 'utf8');
     return new Response(body, { headers: { 'Content-Type': 'application/json' } });
   });
-}
-
-export interface BootstrapOptions {
-  config?: string; // filename in public/conf, sans .json
-  model?: string; // filename in public/models, sans .json
 }
 
 /**
@@ -57,40 +49,4 @@ export function installLocalStorageStub(): void {
     writable: true,
     configurable: true,
   });
-}
-
-/**
- * Reset DOM + localStorage, build a fresh Application bound to the given
- * config and model. Mirrors the DOMContentLoaded bootstrap in src/main.ts,
- * minus the network fetch.
- */
-export function bootstrapApp(options: BootstrapOptions = {}): void {
-  const configName = options.config ?? 'preseed';
-  const modelName = options.model ?? 'test';
-
-  document.body.innerHTML = '<div id="content"></div><div id="controls"></div>';
-  installLocalStorageStub();
-
-  const config = loadFixture<{ settings: never }>(`public/conf/${configName}.json`);
-  const model = loadFixture(`public/models/${modelName}.json`);
-
-  const canvasTypes: [string, string][] = [
-    ['Preseed Canvas', 'preseed'],
-    ['Business Model Canvas', 'bmcanvas'],
-    ['Lean Canvas', 'leancanvas'],
-  ];
-  const newConf = new Settings((config as { settings: never }).settings as never);
-  newConf.canvasTypes = canvasTypes;
-  setConf(newConf);
-  setApp(Application.create(config as never, model as never));
-  // Phase-2 store mirror — components use useStore(s => s.canvasTypes).
-  setCanvasTypes(canvasTypes);
-}
-
-/**
- * Wait long enough for fetch + microtasks to drain. Used after `loadFromLs`
- * and `changeType`, which kick off async work but don't return a Promise.
- */
-export function flush(ms = 20): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
 }

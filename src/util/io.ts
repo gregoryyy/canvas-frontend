@@ -1,5 +1,5 @@
+import { showToast } from '../components/ToastContainer';
 import { sanitizeJSON } from './sanitize';
-import { showToast } from './overlay';
 
 export function loadJson(file: string): Promise<unknown> {
   return fetch(file)

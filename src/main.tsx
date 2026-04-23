@@ -1,7 +1,9 @@
 /* copyright 2025 Unlost GmbH. All rights reserved. */
 
-import { Application, Controls, Settings } from './app';
-import { app, setApp, setConf, setCtl } from './context';
+import { createRoot } from 'react-dom/client';
+import { CanvasArea, ControlsArea } from './components/App';
+import { enablePersistence } from './state/persistence';
+import { init, setCanvasTypes } from './state/store';
 import type { CanvasState } from './types/canvas';
 import type { CanvasConfig } from './types/config';
 import { loadJson } from './util/io';
@@ -14,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const param = (key: string): string | null =>
     new URLSearchParams(window.location.search).get(key);
   const modelName = param('model') || defaultModel;
+
   loadJson(`models/${modelName}.json`)
     .then((modelData) => {
       const md = modelData as CanvasState;
@@ -25,35 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
       ]);
     })
     .then(([modelData, config, configList]) => {
-      const cfg = config as CanvasConfig;
       const list = configList as { name: string; file: string }[];
-      const newConf = Settings.create(cfg);
-      newConf.canvasTypes = list.map((type) => [type.name, type.file]);
-      setConf(newConf);
-      setApp(Application.create(cfg, modelData as CanvasState));
-      setCtl(Controls.create());
+      setCanvasTypes(list.map((t) => [t.name, t.file]));
+      init(config as CanvasConfig, modelData as CanvasState);
+
+      const contentEl = document.getElementById('content');
+      const controlsEl = document.getElementById('controls');
+      if (contentEl) createRoot(contentEl).render(<CanvasArea />);
+      if (controlsEl) createRoot(controlsEl).render(<ControlsArea />);
+
+      enablePersistence();
       console.log('Canvas started');
     })
     .catch((error) => {
       console.error('Error during the canvas setup:', error);
     });
-});
-
-// auto-save on page unload when a canvas title is set
-window.addEventListener('beforeunload', () => {
-  if (app?.meta?.title) {
-    try {
-      app.saveToLs(app.meta.title, true);
-    } catch {
-      /* silent */
-    }
-  }
-});
-
-// Ctrl+S / Cmd+S: save to localStorage
-document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault();
-    if (app) app.saveToLs();
-  }
 });

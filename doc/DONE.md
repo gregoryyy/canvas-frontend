@@ -479,6 +479,71 @@ Gaps: none. Phase-2 test coverage is comprehensive (107 specs across 10 files). 
 
 ---
 
+### Finalization — mount React + retire phase-1 — ✅ done
+
+Landed:
+- [src/main.tsx](../src/main.tsx) — replaces `src/main.ts`. Bootstraps by loading the model + config + configsList, calling `setCanvasTypes(...)` and `init(cfg, content)`, mounting two React roots (`CanvasArea` into `#content`, `ControlsArea` into `#controls`), and enabling `persistence` for the beforeunload + Ctrl+S auto-save triggers. All legacy imperative paths removed.
+- [src/components/App.tsx](../src/components/App.tsx) now exports `CanvasArea` + `ControlsArea` separately (plus the combined `App` for tests). Two-root layout preserves the legacy `index.html` structure without restructuring.
+- [src/components/Signature.tsx](../src/components/Signature.tsx) — matches `<div class="signature">` from the legacy `Application.renderSignature`: canvas-type display name + "Unlost Canvas App v1.3.5" version string.
+- [src/components/PostCanvas.tsx](../src/components/PostCanvas.tsx) — real score computation. Subscribes to `cells`; recomputes total via `evaluateFormula` in a `useEffect([cells, scoring, display])` so the DOM `<select>` values are read after commit. Fixes the M2-deferred "hardcoded 0.0" regression.
+- [src/components/ConfirmStep.tsx](../src/components/ConfirmStep.tsx) — new `flashOnClick` prop adds the `.clicked` class for 500 ms on every click (matches the legacy button visual feedback).
+- [src/components/Controls.tsx](../src/components/Controls.tsx) — wires `flashOnClick` on every `ConfirmStep` and a `withFlash(handler)` wrapper on the plain-div menu / import buttons.
+- [src/state/persistence.ts](../src/state/persistence.ts) + [src/util/io.ts](../src/util/io.ts) — `showToast` imports migrated from `util/overlay` → `components/ToastContainer` (single toast system across the app).
+
+Deleted — phase-1 is gone:
+- [src/app.ts](../src/app.ts) — Application / Settings / Controls imperative classes.
+- [src/canvas/](../src/canvas/) — Canvas, Cell, Card, PreCanvas, PostCanvas, DragState (6 files + folder).
+- [src/context.ts](../src/context.ts) — legacy `app` / `conf` / `ctl` module-level bindings.
+- [src/util/editable.ts](../src/util/editable.ts), [longpress.ts](../src/util/longpress.ts), [dragdrop.ts](../src/util/dragdrop.ts), [overlay.ts](../src/util/overlay.ts) — replaced by phase-2 hooks and components.
+- [test/load.test.ts](../test/load.test.ts), [test/card.test.ts](../test/card.test.ts), [test/interact.test.ts](../test/interact.test.ts) — legacy Jasmine-ports; coverage duplicated by `store.test.ts`, `controls.test.tsx`, `integration.test.tsx`, `components.test.tsx`.
+- [test/helpers.ts](../test/helpers.ts) — `bootstrapApp` + `flush` removed; only `loadFixture`, `installFetchMock`, `installLocalStorageStub` remain.
+
+Final repo shape in `src/`:
+```
+main.tsx
+components/  App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, Signature,
+             HoverHelp, ConfirmStep, OverlayMenu, Toast, ToastContainer
+hooks/       useEditable, useLongPress, useDragDrop
+state/       store, persistence, useStore
+scoring/     formula.ts
+types/       canvas, config, _validate
+util/        dom, sanitize, io, log, svg
+```
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **99/99 passing** (107 → 99: dropped the 8 legacy Jasmine-port specs; the rest is unchanged and all the phase-2 component / hook / store / controls / integration / overlay / formula tests still pass against the React-only build).
+- `npm run build` → 49 modules (was 33), 243 kB JS / **78 kB gzipped** (was 56 kB / 20 kB). React now live in the bundle.
+
+Decisions / deviations:
+- **Two React roots** (`#content` + `#controls`) instead of restructuring [index.html](../index.html). Keeps the legacy DOM layout intact (the `<div class="block2">` wrappers with text between) at the cost of two `createRoot` calls. Both roots read the same module-level store so state stays consistent.
+- **`showToast` now centralized in `components/ToastContainer`.** `util/io.ts` and `state/persistence.ts` import from there (util → components direction). Slightly unusual layering, but the module-level `pushToast` slot makes it work without a React context, and it removes the "two toast implementations" footgun from phase 2.
+- **Legacy-test deletion over porting.** `load.test.ts` / `card.test.ts` / `interact.test.ts` were phase-1 M7 ports of Jasmine specs. Their coverage is entirely in phase-2 tests (`store.test.ts` covers save/load/clear, `controls.test.tsx` covers the buttons, `integration.test.tsx` covers the Cell/Card/edit/drag-drop flow end-to-end via `<App />`). Rather than port to render `<App />` + act, deletion is honest — they described a dead imperative code path.
+- **PostCanvas score uses DOM-reading `evaluateFormula` unchanged.** Could refactor it to accept a `scoreLookup(n)` function and compute from `store.cells`, but that deviates from the 1:1-ported formula and requires touching `formula.test.ts`. The current approach works: `useEffect` runs after commit, so the `<select>` values are current.
+
+Feature parity check vs the [PLAN.md](PLAN.md) phase-1–2 equivalence checklist:
+
+- ✅ URL params (`?model`, `?config`, `?debug`) with same defaults
+- ✅ Same controls, labels, order, confirm-twice semantics
+- ✅ **`.clicked` button flash** — restored via `flashOnClick` + `withFlash`
+- ✅ Same toast messages and durations
+- ✅ `Ctrl+S` / `Cmd+S` + `beforeunload` auto-save (via `enablePersistence`)
+- ✅ Drag gestures: click-and-drag on desktop (actually long-press 500 ms per legacy), long-press 500 ms on touch, drop-on-card-reorder, drop-on-cell-append, highlight class behavior
+- ✅ Inline-edit: contenteditable, Enter inserts `<br><br>`, blur commits, empty-after-edit deletes
+- ✅ Card type commands at start of text: `:?`, `:!`, `:=`, `:*`, `:-`
+- ✅ Help overlay: double-click + long-press on cell title (M3 + M4)
+- ✅ New-card triggers: double-click + long-press on empty cell area (M3)
+- ✅ localStorage key `preseedcanvas`, same JSON shape, same import/export format
+- ✅ **Score-formula semantics** — restored, PostCanvas recomputes on cell changes
+- ✅ Sanitization ruleset (DOMPurify with `br, p, i, b, a`)
+- ✅ **Signature div** (`canvastype` + `canvassource` + app version) — restored via `<Signature />`
+- ✅ SVG export via `convertDivToSvg`
+
+Gaps: none. Phase 2 is feature-complete per the 1:1 equivalence rule.
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
@@ -489,4 +554,4 @@ Gaps: none. Phase-2 test coverage is comprehensive (107 specs across 10 files). 
 | M4 Overlays and menus | ✅ |
 | M5 Controls panel | ✅ |
 | M6 Tests | ✅ |
-| Finalization (mount + retire phase-1) | ⬜ |
+| Finalization | ✅ |

@@ -1,4 +1,4 @@
-import { type ChangeEvent, useRef, useState } from 'react';
+import { type ChangeEvent, type MouseEvent, useRef, useState } from 'react';
 import {
   type CanvasState,
   changeType,
@@ -23,6 +23,21 @@ interface ControlsProps {
 type OpenMenu = 'type' | 'load' | null;
 
 const LS_KEY = 'preseedcanvas';
+const FLASH_MS = 500;
+
+/**
+ * Adds the `clicked` class to the click target for 500 ms then runs the real
+ * handler — matches the legacy Controls visual flash. ConfirmStep handles
+ * its own flash via the `flashOnClick` prop.
+ */
+function withFlash(handler: () => void): (e: MouseEvent<HTMLDivElement>) => void {
+  return (e) => {
+    const target = e.currentTarget;
+    target.classList.add('clicked');
+    setTimeout(() => target.classList.remove('clicked'), FLASH_MS);
+    handler();
+  };
+}
 
 /**
  * Control bar. M5 wires every button to its store action, mirroring the
@@ -119,12 +134,13 @@ export function Controls({ config }: ControlsProps) {
         className="control"
         label="Clear Canvas"
         onConfirm={handleClearCanvas}
+        flashOnClick
       />
       <div
         ref={typeRef}
         id="chtype"
         className="control"
-        onClick={() => setOpenMenu((m) => (m === 'type' ? null : 'type'))}
+        onClick={withFlash(() => setOpenMenu((m) => (m === 'type' ? null : 'type')))}
       >
         Canvas Type
       </div>
@@ -133,12 +149,13 @@ export function Controls({ config }: ControlsProps) {
         className="control"
         label="Export SVG"
         onConfirm={handleExportSvg}
+        flashOnClick
       />
       <div
         ref={loadRef}
         id="lsload"
         className="control"
-        onClick={() => setOpenMenu((m) => (m === 'load' ? null : 'load'))}
+        onClick={withFlash(() => setOpenMenu((m) => (m === 'load' ? null : 'load')))}
       >
         Load from LS
       </div>
@@ -147,12 +164,14 @@ export function Controls({ config }: ControlsProps) {
         className="control"
         label="Save to LS"
         onConfirm={handleSaveToLs}
+        flashOnClick
       />
       <ConfirmStep
         id="lsclear"
         className="control"
         label="Clear LS"
         onConfirm={handleClearLs}
+        flashOnClick
       />
       {filemenu && (
         <ConfirmStep
@@ -160,13 +179,14 @@ export function Controls({ config }: ControlsProps) {
           className="control"
           label="Export LS"
           onConfirm={handleExportLs}
+          flashOnClick
         />
       )}
       {filemenu && (
         <div
           id="lsup"
           className="control"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={withFlash(() => fileInputRef.current?.click())}
         >
           Import LS
         </div>

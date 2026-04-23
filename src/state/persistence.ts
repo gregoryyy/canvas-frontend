@@ -11,7 +11,7 @@
  * them out — enabling both at once would double-save, so don't.
  */
 
-import { showToast } from '../util/overlay';
+import { showToast } from '../components/ToastContainer';
 import { getState, saveToLs } from './store';
 
 let attached = false;

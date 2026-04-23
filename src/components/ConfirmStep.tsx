@@ -12,7 +12,15 @@ interface ConfirmStepProps {
    * an OverlayMenu item).
    */
   stopPropagation?: boolean;
+  /**
+   * When true, add the `clicked` class to the rendered element for 500 ms on
+   * every click (regardless of confirm state). Matches the legacy Controls
+   * button visual feedback.
+   */
+  flashOnClick?: boolean;
 }
+
+const FLASH_MS = 500;
 
 /**
  * Click-twice-to-confirm button. First click shows "{label}?" in red and
@@ -26,6 +34,7 @@ export function ConfirmStep({
   id,
   className,
   stopPropagation = false,
+  flashOnClick = false,
 }: ConfirmStepProps) {
   const [confirming, setConfirming] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,6 +48,11 @@ export function ConfirmStep({
 
   const handleClick = (e: MouseEvent): void => {
     if (stopPropagation) e.stopPropagation();
+    if (flashOnClick) {
+      const target = e.currentTarget as HTMLElement;
+      target.classList.add('clicked');
+      setTimeout(() => target.classList.remove('clicked'), FLASH_MS);
+    }
     if (confirming) {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = null;

@@ -23,15 +23,13 @@ npm run lint      # eslint
 canvas-frontend/
 ├── index.html              Vite entry
 ├── src/
-│   ├── main.ts             bootstrap: DOMContentLoaded + beforeunload + Ctrl+S
-│   ├── app.ts              Application / Settings / Controls classes
-│   ├── context.ts          runtime app/conf/ctl holders (phase-1 workaround)
-│   ├── canvas/             Canvas, Cell, Card, PreCanvas, PostCanvas, DragState
-│   ├── components/         React components (phase 2)
+│   ├── main.tsx            bootstrap: loads model/config, mounts React roots, enables persistence
+│   ├── components/         App, Canvas, Cell, Card, PreCanvas, PostCanvas, Controls, Signature, HoverHelp, ConfirmStep, OverlayMenu, Toast, ToastContainer
+│   ├── hooks/              useEditable, useLongPress, useDragDrop
+│   ├── state/              store, persistence, useStore
 │   ├── scoring/formula.ts  hand-rolled parser for score formulas
-│   ├── state/              phase-2 store + persistence + useStore hook
 │   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
-│   └── util/               dom, sanitize, dragdrop, longpress, editable, overlay, svg, io, log
+│   └── util/               dom, sanitize, io, log, svg
 ├── public/                 Vite input to serve at / in dev, verbatim to dist/ at build
 │   ├── styles/             canvas.css, layout.css (app styling)
 │   ├── conf/               canvas-type JSON definitions (served as /conf/*.json)
