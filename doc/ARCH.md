@@ -70,12 +70,12 @@ Interactive, client-first canvas tool for structured strategy/analysis boards (P
 
 ## Repository layout
 
-Target is a monorepo with top-level `frontend/`, `backend/`, and `shared/` directories, plus a project-wide `doc/`:
+Monorepo with top-level `frontend/`, `backend/`, and `shared/` directories, plus a project-wide `doc/`:
 
 ```
-preseed-canvas/
-├── frontend/         TS + React + Vite (this is the current repo root — to be moved under frontend/)
-├── backend/          Python + FastAPI (phase 3; not yet implemented)
+unlost-canvas/
+├── frontend/         TS + React + Vite — the always-usable browser app
+├── backend/          Python + FastAPI (phase 3; skeleton only — see ARCH_AI.md)
 ├── shared/           patch.schema.json, cross-stack fixtures, optionally canvas-type configs
 ├── doc/              project-wide — ARCH.md (this file), ARCH_AI.md, design/, done/
 ├── release.sh        build frontend/dist and publish into the parent site
@@ -92,7 +92,7 @@ preseed-canvas/
 
 **Why not a workspace manager (pnpm / Turborepo / Nx).** Those tools help when every workspace is the same language with the same package manager. TS + Python isn't — `npm` for the frontend and `uv` for the backend are each simpler than trying to wrap both in a polyglot workspace. Two plain top-level directories with their own `package.json` / `pyproject.toml` is the simplest thing that works.
 
-**Current state.** The repo still has the frontend files at the root (`index.html`, `src/`, `public/`, `test/`, `package.json`, `vite.config.ts`, etc.). Moving them under `frontend/` is a straightforward mechanical change when the backend is ready to land; paths in `release.sh` and any CI config need bumping.
+**Current state.** Layout is in place. `backend/` is a skeleton (`pyproject.toml`, `.env.example`, empty `src/canvas_ai/__init__.py`); first real code lands when phase 3 starts. `shared/` has only its README; `patch.schema.json` lands when the backend defines the Pydantic models.
 
 ## Frontend
 

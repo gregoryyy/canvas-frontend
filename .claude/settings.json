@@ -35,7 +35,13 @@
       "WebFetch(domain:unlost.ventures)",
       "Bash(bash -n release.sh)",
       "Bash(gh --version)",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Read(//Users/gregor/Documents/devel/claude_code/**)",
+      "Read(//Users/gregor/Documents/devel/claude_code/unlost-canvas/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/gregor/Documents/devel/claude_code/unlost-canvas/.claude"
     ]
   }
 }

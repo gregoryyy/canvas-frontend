@@ -1,7 +1,7 @@
 [project]
 name = "canvas-ai"
 version = "0.0.0"
-description = "Backend for the Preseed Canvas — LLM-assisted analysis via FastAPI."
+description = "Backend for Unlost Canvas — LLM-assisted analysis via FastAPI."
 requires-python = ">=3.12"
 readme = "README.md"
 

@@ -1,4 +1,4 @@
-# Preseed Canvas app
+# Unlost Canvas app
 
 > @author Gregor Heinrich
 > @date 20240214  originally created 2023

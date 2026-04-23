@@ -1,16 +1,28 @@
-# Unlost Preseed Canvas — frontend
+# Unlost Canvas
 
-Interactive browser-based canvas tool for structured strategy and analysis boards: Preseed Canvas, Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, TOWS.
+Interactive browser-based canvas tool for structured early-stage startup analysis. The **Preseed Canvas** is the primary surface — the end-to-end workflow is *upload a pitch deck → draft a Preseed Canvas from it → drill into cells or companion canvases for deep dives*. Additional canvas types — Lean Canvas, Business Model Canvas, Product Vision Board, SWOT, TOWS — are available as deep-dive companions, not standalone entry points.
 
 Client-only app. Canvas state lives in `localStorage`; JSON import/export is supported.
 
-**Project scope.** This repository holds the **frontend**. An optional **backend** (phase 3, not yet implemented) adds LLM-assisted analysis — see [doc/ARCH_AI.md](doc/ARCH_AI.md) for the design. The backend is expected to live in a sibling repository `canvas-backend/` (Python + FastAPI); its layout is sketched in [doc/ARCH.md#backend](doc/ARCH.md#backend) and detailed in [doc/ARCH_AI.md#backend-module-layout](doc/ARCH_AI.md#backend-module-layout). The frontend is fully usable with no backend configured; an alternative all-in-browser design (no backend at all, user brings their own LLM provider) is in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md).
+**Project scope.** Monorepo with two stacks:
 
-Frontend stack: TypeScript (strict), React, Vite, Vitest + jsdom.
+- **`frontend/`** — the always-usable browser app (TypeScript + React + Vite). Phases 1–2 **complete**. This is everything the user sees today.
+- **`backend/`** — optional Python + FastAPI service that adds LLM-assisted analysis. Primary workflow: **pitch-deck ingestion → draft a Preseed Canvas → drill into companion canvases** for deep dives. Capabilities: chat sidebar, PDF uploads, RAG retrieval, pi-check analyzer. Phase 3, **skeleton only** — `pyproject.toml`, `.env.example`, and an empty package under `src/canvas_ai/`. Design in [doc/ARCH_AI.md](doc/ARCH_AI.md); the active phase-3 plan is in [doc/design/PLAN.md](doc/design/PLAN.md).
+- **`shared/`** — cross-stack artifacts (patch schema, test fixtures). Placeholder until the first phase-3 substage lands; see [shared/README.md](shared/README.md).
+
+The frontend is fully usable with no backend configured; an alternative all-in-browser design (no backend at all, user brings their own LLM provider) is tracked in [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) and [doc/design/PLAN.md](doc/design/PLAN.md).
+
+Stacks at a glance:
+
+- Frontend: TypeScript (strict), React, Vite, Vitest + jsdom.
+- Backend: Python 3.12, FastAPI, Pydantic v2, `uv`, `ruff` + `mypy`, `pytest`.
 
 ## Getting started
 
+### Frontend (phases 1–2, working today)
+
 ```bash
+cd frontend
 npm install
 npm run dev       # Vite dev server (http://localhost:5173/)
 npm run build     # emits dist/
@@ -19,13 +31,24 @@ npm run typecheck # tsc --noEmit
 npm run lint      # eslint
 ```
 
+### Backend (phase 3, skeleton)
+
+```bash
+cd backend
+uv sync                    # install deps + create .venv
+cp .env.example .env       # set OPENAI_BASE_URL, OPENAI_API_KEY, MODEL, CORS_ORIGIN
+uv run uvicorn canvas_ai.server:app --reload --port 8000
+```
+
+Not runnable yet — first real code lands with phase 3B-a. See [backend/README.md](backend/README.md).
+
 ## Project layout
 
-Target is a **monorepo** with top-level `frontend/` and `backend/` directories plus a `shared/` directory for the cross-stack patch schema and fixtures. The current on-disk layout is pre-migration (frontend files at the repo root) and will be moved under `frontend/` when the backend lands. See [doc/ARCH.md#repository-layout](doc/ARCH.md#repository-layout) for the rationale.
+**Monorepo** with top-level `frontend/` and `backend/` directories plus a `shared/` directory for the cross-stack patch schema and fixtures. See [doc/ARCH.md#repository-layout](doc/ARCH.md#repository-layout) for the rationale.
 
 ```text
-preseed-canvas/                  monorepo root (repo currently named canvas-frontend)
-├── frontend/                    TS + React + Vite — current repo root moves here
+unlost-canvas/                   monorepo root
+├── frontend/                    TS + React + Vite — the always-usable browser app
 │   ├── package.json
 │   ├── vite.config.ts
 │   ├── tsconfig.json
@@ -64,17 +87,13 @@ preseed-canvas/                  monorepo root (repo currently named canvas-fron
 └── README.md
 ```
 
-**Pre-migration on-disk layout (what exists today):**
-
-```text
-canvas-frontend/                 will become preseed-canvas/frontend/
-├── index.html, src/, public/, test/, package.json, vite.config.ts, tsconfig.json, eslint.config.js, release.sh
-└── doc/                         stays at the monorepo root after the frontend move
-```
-
 **Why monorepo rather than separate repos.** The patch protocol and canvas-type configs are tightly coupled across frontend and backend. A single repo gives atomic commits for protocol changes, one source of truth for the canvas configs, and a shared `doc/`. A workspace manager like pnpm workspaces or Turborepo isn't used — those help when every workspace is one language, which TS + Python is not. Two plain top-level directories with their own package managers (`npm` for frontend, `uv` for backend) stay simple. Full rationale in [doc/ARCH.md#repository-layout](doc/ARCH.md#repository-layout).
 
-## URL parameters
+## Frontend usage
+
+The sections below document the phases 1–2 frontend app. The backend does not yet exist; its runtime contract will be described in [doc/ARCH.md#backend](doc/ARCH.md#backend) and [doc/ARCH_AI.md](doc/ARCH_AI.md) as phase 3 lands.
+
+### URL parameters
 
 - `?model=<name>` — loads `/models/<name>.json` (default: `template`)
 - `?config=<name>` — loads `/conf/<name>.json` (default: `model.meta.canvas`, fallback `preseed`)
@@ -88,7 +107,7 @@ Examples:
 /?model=test&debug=true
 ```
 
-## Interaction model
+### Interaction model
 
 - Click a card or text field to edit inline
 - Double-click or long-press a cell title to toggle its help overlay
@@ -105,11 +124,11 @@ Card type commands at the start of a card:
 - `:*` emphasis
 - `:-` reset to default
 
-## Controls
+### Controls
 
 `Save to LS`, `Load from LS`, `Clear LS`, `Export LS`, `Import LS`, `Export SVG`, `Canvas Type`, `Clear Canvas`. The app also auto-saves on `beforeunload` when a canvas title is set.
 
-## Data format
+### Data format
 
 localStorage key: `preseedcanvas`. Saved canvases are keyed by title. Each canvas JSON shape:
 
@@ -131,14 +150,15 @@ localStorage key: `preseedcanvas`. Saved canvases are keyed by title. Each canva
 
 Canvas-type configs in `/conf/*.json` define settings (`canvasd`, `localstorage`, `layout`), scoring formulas, and the ordered cell structure.
 
-## Testing
+### Testing
 
 ```bash
+cd frontend
 npm run test              # one-shot Vitest run
 npm run test -- --watch   # watch mode
 ```
 
-Specs live under `test/` (`*.test.ts`). jsdom is the default environment. `test/helpers.ts` bootstraps an `Application` against JSON fixtures from `public/` via a fetch mock.
+Specs live under `frontend/test/` (`*.test.ts`). jsdom is the default environment. `test/helpers.ts` bootstraps an `Application` against JSON fixtures from `frontend/public/` via a fetch mock.
 
 ## Release / deployment
 
@@ -148,10 +168,19 @@ The canvas deploys as a vendored `dist/` snapshot inside the parent `unlost.vent
 ./release.sh ../unlost.ventures
 ```
 
-The script runs `npm run build`, clears the target `canvas/` directory, copies `dist/*`, and writes `canvas/VERSION` with the source commit hash. The parent-site commit is left to the maintainer (reviewable PR). See [doc/ARCH.md#deployment](doc/ARCH.md#deployment) for the full flow.
+The script runs `npm run build` inside `frontend/`, clears the target `canvas/` directory, copies `frontend/dist/*`, and writes `canvas/VERSION` with the source commit hash. The parent-site commit is left to the maintainer (reviewable PR). Backend deployment is out of scope for the release script; phase-3 backend deployment is a separate concern tracked in [doc/ARCH.md#deployment](doc/ARCH.md#deployment) and [doc/ARCH_AI.md](doc/ARCH_AI.md).
 
 ## Notes
 
-- Sanitization: DOMPurify with `ALLOWED_TAGS: ['br', 'p', 'i', 'b', 'a']`, applied at all state ↔ DOM boundaries (`util/sanitize.ts`).
-- Debug logging: pass `?debug=true` to enable; `util/log.ts` prints caller-annotated messages.
-- The chat / upload features sketched in `conf/*.json` (`settings.canvasd`) are phase-3 scope — not wired up in phase 1.
+- Sanitization: DOMPurify with `ALLOWED_TAGS: ['br', 'p', 'i', 'b', 'a']`, applied at all state ↔ DOM boundaries (`frontend/src/util/sanitize.ts`).
+- Debug logging: pass `?debug=true` to enable; `frontend/src/util/log.ts` prints caller-annotated messages.
+- The chat / upload features sketched in `frontend/public/conf/*.json` (`settings.canvasd`) are phase-3 scope — not wired up in phases 1–2.
+
+## Documentation map
+
+- [doc/ARCH.md](doc/ARCH.md) — whole-project architecture, including the backend's role and the deployment flow.
+- [doc/ARCH_AI.md](doc/ARCH_AI.md) — backend design (Python + FastAPI), patch protocol, backend module layout.
+- [doc/design/ROAD.md](doc/design/ROAD.md), [doc/design/PLAN.md](doc/design/PLAN.md) — phase-3 roadmap and the active plan.
+- [doc/design/ARCH_FE.md](doc/design/ARCH_FE.md) — frontend-only (no-backend) alternative for phase 3.
+- [doc/design/STACK.md](doc/design/STACK.md), [doc/design/SOTA.md](doc/design/SOTA.md) — stack rationale and state of the art.
+- [doc/done/DONE.md](doc/done/DONE.md), [doc/done/PLAN.md](doc/done/PLAN.md) — archived record of phases 1–2.

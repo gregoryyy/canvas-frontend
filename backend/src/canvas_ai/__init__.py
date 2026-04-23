@@ -1,4 +1,4 @@
-"""canvas-ai — Preseed Canvas backend.
+"""canvas-ai — Unlost Canvas backend.
 
 Design: ../../doc/ARCH_AI.md
 """
