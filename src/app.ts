@@ -47,10 +47,15 @@ export class Settings {
 }
 
 // ---- Application -----------------------------------------------------------
-//
-// renderable lifecycle: update() syncs DOM → state, render() builds the
-// initial DOM, rerender() syncs state → DOM, clear() resets to an empty canvas.
 
+/**
+ * Top-level app: holds meta / canvas / analysis and drives the renderable
+ * lifecycle:
+ *   - update() syncs DOM → state
+ *   - render() builds the initial DOM
+ *   - rerender() syncs state → DOM
+ *   - clear() resets to an empty canvas
+ */
 export class Application {
   meta: PreCanvas;
   canvas: Canvas;

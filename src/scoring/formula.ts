@@ -1,11 +1,12 @@
-// Evaluate a minimal arithmetic formula that can call `score(n)` and reference
-// named context variables. Supports +, -, *, /, parentheses, integer and
-// decimal literals. `score(n)` reads the value of the DOM element with id
-// `score${n}` — a `<select>` inside a scoring cell — and falls back to 0 when
-// the element is missing or its value is not numeric.
-//
-// Ported 1:1 from PostCanvas.evaluateFormula in the pre-migration canvas.js.
-
+/**
+ * Evaluate a minimal arithmetic formula that can call `score(n)` and
+ * reference named context variables. Supports +, -, *, /, parentheses,
+ * integer and decimal literals. `score(n)` reads the value of the DOM
+ * element with id `score${n}` — a `<select>` inside a scoring cell — and
+ * falls back to 0 when the element is missing or its value is not numeric.
+ *
+ * Ported 1:1 from PostCanvas.evaluateFormula in the pre-migration canvas.js.
+ */
 export function evaluateFormula(formula: string, context: Record<string, number>): number {
   const tokens = formula.match(/(\d+(\.\d+)?)|([a-zA-Z_]\w*)|([+\-*/()])/g);
   if (!tokens) return 0;

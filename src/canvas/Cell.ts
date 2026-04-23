@@ -9,15 +9,19 @@ import { decodeHtml, sanitize, trimPluralS } from '../util/sanitize';
 import { Card } from './Card';
 import { dragState } from './DragState';
 
-// Score is typed as string | number because the legacy runtime assigns both:
-// the initial load assigns a number (from JSON), and the dropdown `change`
-// handler assigns the raw <select>.value string. Serialization and DOM reads
-// accept both. Narrowed in phase 2.
+/**
+ * Score is typed as string | number because the legacy runtime assigns both:
+ * the initial load assigns a number (from JSON), and the dropdown `change`
+ * handler assigns the raw `<select>.value` string. Serialization and DOM
+ * reads accept both. Narrowed in phase 2.
+ */
 type Score = string | number | undefined;
 
-// Shape the Cell constructor accepts as `content`. Satisfied by a plain Cell
-// JSON object (initial load), a Cell instance (restructure), or [] (no
-// content yet).
+/**
+ * Shape the Cell constructor accepts as `content`. Satisfied by a plain Cell
+ * JSON object (initial load), a Cell instance (restructure), or `[]` (no
+ * content yet).
+ */
 interface CellContent {
   cards?: Array<{ content: string; type?: CardType }>;
   score?: Score;

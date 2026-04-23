@@ -8,9 +8,11 @@ export function loadFixture<T = unknown>(relativePath: string): T {
   return JSON.parse(readFileSync(resolve(relativePath), 'utf8')) as T;
 }
 
-// Install a fetch mock that serves files from public/.
-// The app calls `fetch('conf/foo.json')` and `fetch('models/bar.json')`; jsdom
-// resolves those relative to document.URL, so we key the mock off the path.
+/**
+ * Install a fetch mock that serves files from `public/`. The app calls
+ * `fetch('conf/foo.json')` and `fetch('models/bar.json')`; jsdom resolves
+ * those relative to `document.URL`, so the mock keys off the path tail.
+ */
 export function installFetchMock(): void {
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = input instanceof Request ? input.url : String(input);
@@ -26,10 +28,13 @@ export interface BootstrapOptions {
   model?: string; // filename in public/models, sans .json
 }
 
-// Vitest + Node 22's experimental localStorage leaves `globalThis.localStorage`
-// as a plain object without the Storage API methods. Install a Map-backed stub
-// so `getItem` / `setItem` / `removeItem` / `clear` work as the app expects.
-function installLocalStorageStub(): void {
+/**
+ * Vitest + Node 22's experimental localStorage leaves `globalThis.localStorage`
+ * as a plain object without the Storage API methods. Install a Map-backed
+ * stub so `getItem` / `setItem` / `removeItem` / `clear` work as the app
+ * expects.
+ */
+export function installLocalStorageStub(): void {
   const store = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', {
     value: {
@@ -53,9 +58,11 @@ function installLocalStorageStub(): void {
   });
 }
 
-// Reset DOM + localStorage, build a fresh Application bound to the given
-// config and model. Mirrors the DOMContentLoaded bootstrap in src/main.ts,
-// minus the network fetch.
+/**
+ * Reset DOM + localStorage, build a fresh Application bound to the given
+ * config and model. Mirrors the DOMContentLoaded bootstrap in src/main.ts,
+ * minus the network fetch.
+ */
 export function bootstrapApp(options: BootstrapOptions = {}): void {
   const configName = options.config ?? 'preseed';
   const modelName = options.model ?? 'test';
@@ -76,8 +83,10 @@ export function bootstrapApp(options: BootstrapOptions = {}): void {
   setApp(Application.create(config as never, model as never));
 }
 
-// Wait long enough for fetch + microtasks to drain, used after loadFromLs and
-// changeType which kick off async work but don't return a Promise.
+/**
+ * Wait long enough for fetch + microtasks to drain. Used after `loadFromLs`
+ * and `changeType`, which kick off async work but don't return a Promise.
+ */
 export function flush(ms = 20): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

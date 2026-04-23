@@ -1,10 +1,12 @@
-// Module-level drag/drop tracker. Replaces the `static` fields on the legacy
-// Cell and Card classes (`Cell.dragSource`, `Card.dragDestIndex`, etc.).
-//
-// Cell-level fields carry either a numeric cell index (set by makeDroppable on
-// the cell background) or a string `data-index` read from a DOM attribute
-// (set by makeDraggable on a card). The mixed type is preserved 1:1 — the
-// strict `===` comparison in Canvas.updateDragDrop relies on it.
+/**
+ * Module-level drag/drop tracker. Replaces the `static` fields on the legacy
+ * Cell and Card classes (`Cell.dragSource`, `Card.dragDestIndex`, etc.).
+ *
+ * Cell-level fields carry either a numeric cell index (set by makeDroppable
+ * on the cell background) or a string `data-index` read from a DOM attribute
+ * (set by makeDraggable on a card). The mixed type is preserved 1:1 — the
+ * strict `===` comparison in Canvas.updateDragDrop relies on it.
+ */
 
 export interface DragState {
   sourceCell: string | number | undefined;

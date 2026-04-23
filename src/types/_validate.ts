@@ -1,9 +1,12 @@
 import type { CanvasState } from './canvas';
 import type { CanvasConfig, CanvasTypeRef } from './config';
 
-// Hand-transcribed samples drawn from public/conf/preseed.json,
-// public/models/example.json, public/conf/configs.json. If the real JSON drifts
-// from these shapes, update the types (not the samples) until both compile.
+/**
+ * Hand-transcribed samples drawn from public/conf/preseed.json,
+ * public/models/example.json, public/conf/configs.json. If the real JSON
+ * drifts from these shapes, update the types (not the samples) until both
+ * compile.
+ */
 
 const _sampleConfig: CanvasConfig = {
   settings: {

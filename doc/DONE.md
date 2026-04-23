@@ -260,3 +260,56 @@ Gaps: just the dry-run + manual walkthrough.
 | M6 main.js port + circular-import removal | ✅ |
 | M7 Tests (Vitest + jsdom) | ✅ |
 | M8 Release verification | ◯ docs + assets in place; manual dry-run + equivalence walk pending |
+
+---
+
+## Phase 2
+
+### M1 — State store + persistence — ✅ done
+
+Landed:
+- [src/state/store.ts](../src/state/store.ts) — hand-rolled `useSyncExternalStore`-compatible store holding `{ meta, cells, analysis, config }`. Pure data. Functional actions:
+  - `init(config, content)` — load state from a config + model pair (matches pre-phase-2 `Application.create → Canvas ctor` exactly).
+  - Card: `addCard`, `updateCard`, `removeCard`, `moveCard`.
+  - Cell / meta: `setScore`, `setMeta`, `setAnalysis`.
+  - Structural: `changeType` (rebuilds cells from new config, preserves cards by positional index — matches `Application.restructure`), `clearAll` (empties cards, zeros scored cells).
+  - Persistence: `saveToLs(title?)`, `loadFromLs(title)` — same `preseedcanvas` localStorage key, same JSON shape, `sanitizeJSON` on load.
+  - Store API: `getState()`, `subscribe(listener)`, `toCanvasState(s)` (adapter back to the `{ meta, canvas, analysis }` shape for serialization).
+  - All mutations assign a new top-level state object; untouched branches keep referential equality (ready for React's reconciler + `useSyncExternalStore`).
+- [src/state/persistence.ts](../src/state/persistence.ts) — `enablePersistence()` / `disablePersistence()` / `isPersistenceEnabled()`. Attaches `beforeunload` (silent save) and `Ctrl+S` / `Cmd+S` (save + "Saved" toast) listeners. Not wired at import — must be explicitly enabled once phase-2 M6 swaps out the pre-phase-2 listeners in [main.ts](../src/main.ts), otherwise they'd double-save.
+- [test/store.test.ts](../test/store.test.ts) — **19 specs** exercising every action + the subscribe/unsubscribe lifecycle + structural equality for untouched branches. Uses the fetch/localStorage helpers from [test/helpers.ts](../test/helpers.ts).
+- [test/helpers.ts](../test/helpers.ts) — `installLocalStorageStub` exported (was previously a local function).
+- [src/types/canvas.ts](../src/types/canvas.ts) — `Cell.score` widened from `number | undefined` to `number | string | undefined` to match the legacy runtime (the `<select>` change handler assigns `select.value`, a string). Aligns the data type with what [Cell.ts](../src/canvas/Cell.ts) has been computing all along.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **39/39** (20 phase-1 + 19 store).
+- `npm run build` unchanged (store isn't imported by the runtime yet).
+
+Decisions / deviations:
+- **Hand-rolled `useSyncExternalStore` pattern, not zustand.** Plan allowed either. The subscribe + getState + setState trio is ~10 lines; zustand adds 1.1 kB gzipped and a learning tax for future contributors. Fits the "no extra dependencies" posture the project has carried through phase 1.
+- **`moveCard` API uses clean post-removal `toIndex` semantics**, not the legacy "toIndex = drop target's post-insertBefore position, minus one" quirk. The legacy code's semantics were an artifact of coupling state updates to DOM manipulations that already ran — the pure-data API shouldn't inherit that. Phase-2 M3 drag hooks translate gesture coordinates into the flat index that `moveCard` expects; the end-state per gesture stays identical.
+- **Store holds `config` alongside state.** Not strictly in the plan (plan says "holding `CanvasState`"), but `changeType` needs the new config to rebuild cells, and React components in M2 will need config for cell titles / help text / scoring formulas. Holding it is cleaner than passing it through every selector.
+- **Persistence doesn't auto-attach.** Import has no side effects. Enabling requires `enablePersistence()`. Prevents double-save during the coexistence window with phase-1 `main.ts`.
+- **`saveToLs` without a title is a no-op** (matches legacy: no save if `app.meta.title` is empty). `loadFromLs` returns the loaded `CanvasState` so callers can fetch a matching config when the canvas-type identifier changed.
+
+Insights:
+- **Structural equality for untouched branches is cheap when you're already using spread-based immutability.** The test `preserves referential equality for untouched cell branches` pins this down: `addCard(cell0.id)` changes `cells[0]` and the top-level `cells` array, but `cells[1]` remains the same object reference. `useSyncExternalStore`'s default `getSnapshot` strict-equality check exploits this — React can skip re-rendering components that only read from unchanged cells.
+- **Legacy score typing was always a union, just not declared as one.** `Cell.score` in [src/types/canvas.ts](../src/types/canvas.ts) said `number | undefined`, but [src/canvas/Cell.ts](../src/canvas/Cell.ts) used a local `Score = string | number | undefined` because the real runtime assigns `<select>.value`. Aligning the declared type removes the mismatch and un-blocks reusing the type in the store. Phase-2 can tighten once the `<select>` handler coerces with `Number()`.
+- **The no-deps store doubles as the adapter surface for future zustand migration.** If the project ever grows beyond this and wants dev-tools or persistence middleware, swapping in zustand only touches the 3 functions (`getState`, `subscribe`, and internal `setState`); action bodies stay identical.
+
+Gaps: none. Ready for M2 (presentational React components subscribing via `useSyncExternalStore`).
+
+---
+
+## Phase 2 status
+
+| Milestone | Status |
+|---|---|
+| M1 State store + persistence | ✅ |
+| M2 Dumb components | ⬜ |
+| M3 Editable + drag/drop hooks | ⬜ |
+| M4 Overlays and menus | ⬜ |
+| M5 Controls panel | ⬜ |
+| M6 Tests | ⬜ |
