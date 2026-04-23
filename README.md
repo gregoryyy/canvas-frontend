@@ -32,11 +32,12 @@ canvas-frontend/
 │   ├── state/              phase-2 store + persistence + useStore hook
 │   ├── types/              Cell, Card, Meta, Settings, ScoringRule, ...
 │   └── util/               dom, sanitize, dragdrop, longpress, editable, overlay, svg, io, log
-├── public/styles/          canvas.css, layout.css (app styling)
-├── public/conf/            canvas-type JSON definitions (served as /conf/*.json)
-├── public/models/          example/template canvas JSON (served as /models/*.json)
-├── public/global/          chrome assets (aurora, logo, scripts)
-├── public/fonts/           Montserrat font files
+├── public/                 Vite input to serve at / in dev, verbatim to dist/ at build
+│   ├── styles/             canvas.css, layout.css (app styling)
+│   ├── conf/               canvas-type JSON definitions (served as /conf/*.json)
+│   ├── models/             example/template canvas JSON (served as /models/*.json)
+│   ├── global/             chrome assets (aurora, logo, scripts; globals from parent page)
+│   └── fonts/              Montserrat font files
 ├── test/                   Vitest specs + helpers
 ├── release.sh              build + publish dist/ into the parent site
 └── doc/                    ARCH.md, PLAN.md, DONE.md, TODO.md

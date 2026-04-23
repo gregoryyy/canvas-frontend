@@ -450,6 +450,35 @@ Gaps: none. Phase 2 M6 mounts everything and retires the phase-1 imperative app.
 
 ---
 
+### M6 — Tests — ✅ done
+
+Landed:
+- [test/integration.test.tsx](../test/integration.test.tsx) — **12 specs** at the App-level integration layer that the per-component unit tests don't cover:
+  - **Card editing** through the full chain: render `<App />`, mutate a `.card` element's innerHTML, fire blur, verify the store's `cells` array reflects the new content. Covers content edit, prefix-command type detection (`:?` → `query`), and the auto-delete-on-empty path.
+  - **Cell-level interactions**: dblclick on the empty cell container dispatches `addCard`; dropdown change dispatches `setScore`.
+  - **Drag/drop wiring**: long-press (faked timers, mouseDown + 600 ms advance) initiates the drag, `dragenter` / `drop` events fire on the target. Verified for same-cell reorder and cross-cell move; both produce the expected post-move `cells` content.
+  - **Store transitions** as inline snapshots: `addCard`, `removeCard`, `moveCard` (cross-cell), `clearAll`, `changeType` — captures the cells-array shape after each transition with `toMatchInlineSnapshot`. Snapshots double as a regression net for any store action that subtly changes cell or card shape.
+
+Verification:
+- `npx tsc --noEmit` clean.
+- `npx eslint .` clean.
+- `npx vitest run` → **107/107 passing** (95 prior + 12 integration).
+- `npm run build` → 33 modules, 56.26 kB. Bundle still excludes the React tree (M6 does not yet mount it; see "Phase 2 finalization" below).
+
+Decisions / deviations:
+- **Drag/drop tests use long-press, not native dragstart.** `Card`'s `useDraggable` is configured with `longPressMs: 500` to avoid clashes with `contenteditable` click-to-edit; native `dragstart` doesn't fire `onDragStart`. Tests fake-time `mouseDown` + 600 ms to trigger the long-press hook, then dispatch `dragenter` / `drop` directly. Faithful simulation of how a real desktop user actually drags in this app.
+- **Inline snapshots over external `__snapshots__` files.** `toMatchInlineSnapshot` keeps the expected value next to the assertion; reviewers see the entire transition without opening a sibling file. Updates land via `vitest -u` and produce visible diffs in the test file itself.
+- **Existing `store.test.ts` already covered the action transitions.** The new snapshot specs are additive — they assert the *shape* of state transitions in a more discoverable way. The earlier specs assert specific properties (length, content); snapshots assert the entire structure. Both are useful.
+
+Insights:
+- **`fireEvent.mouseDown(el, { pageX })` doesn't set `pageX`** — jsdom derives `pageX` as `clientX + scrollX`. Pass `clientX` to make the long-press move-threshold check use real coordinates. Already burned this lesson in the M3 hook tests; saved the integration tests one debug round.
+- **`act(() => { vi.advanceTimersByTime(...) })` is the right pattern for testing hook-driven setTimeout state changes.** The `act` wrapper flushes any React state updates triggered by the timer-fired callback. Without `act`, the updated DOM isn't yet visible to subsequent assertions.
+- **Inline snapshots update cleanly with `vitest run -u`.** Even with the snapshot template literal indentation in the test file, vitest re-formats correctly. Worth using more broadly for state-shape regression tests.
+
+Gaps: none. Phase-2 test coverage is comprehensive (107 specs across 10 files). What remains for true phase-2 completion is the **mount step** — replacing the imperative phase-1 `Application.create` boot in `main.ts` with `createRoot(...).render(<App />)`, deleting the phase-1 sources, and enabling `persistence.enablePersistence()` once the legacy listeners are gone. This is "Phase 2 finalization" — out of M6 scope as written, but is what's needed for the Done-when criterion of "Feature parity with phase 1".
+
+---
+
 ## Phase 2 status
 
 | Milestone | Status |
@@ -459,4 +488,5 @@ Gaps: none. Phase 2 M6 mounts everything and retires the phase-1 imperative app.
 | M3 Editable + drag/drop hooks | ✅ |
 | M4 Overlays and menus | ✅ |
 | M5 Controls panel | ✅ |
-| M6 Tests | ⬜ |
+| M6 Tests | ✅ |
+| Finalization (mount + retire phase-1) | ⬜ |
