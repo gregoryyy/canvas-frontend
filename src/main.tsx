@@ -12,7 +12,9 @@ const defaultModel = 'template';
 const configsFile = 'configs.json';
 const defaultConfigName = 'preseed';
 
-document.addEventListener('DOMContentLoaded', () => {
+// Module scripts are deferred, so the DOM is parsed by the time this runs.
+// No DOMContentLoaded wrapper needed.
+function bootstrap(): void {
   const param = (key: string): string | null =>
     new URLSearchParams(window.location.search).get(key);
   const modelName = param('model') || defaultModel;
@@ -43,4 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch((error) => {
       console.error('Error during the canvas setup:', error);
     });
-});
+}
+
+bootstrap();
